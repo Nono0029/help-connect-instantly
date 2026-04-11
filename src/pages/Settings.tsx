@@ -16,8 +16,8 @@ const Settings = () => {
     {
       title: "Mon compte",
       items: [
-        { icon: User, label: "Modifier mon profil", desc: "Nom, photo, bio" },
-        { icon: Shield, label: "Mot de passe & sécurité", desc: "Changer mot de passe" },
+        { icon: User, label: "Modifier mon profil", desc: "Pseudo, photo, bio", action: () => navigate("/edit-profile") },
+        { icon: Shield, label: "Mot de passe & sécurité", desc: "Changer mot de passe", action: () => navigate("/change-password") },
         { icon: Bell, label: "Notifications", desc: "Gérer les alertes" },
       ],
     },
@@ -38,22 +38,16 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="p-1">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
+          <button onClick={() => navigate("/")} className="p-1"><ArrowLeft className="w-5 h-5 text-foreground" /></button>
           <h1 className="text-lg font-bold text-foreground">Paramètres</h1>
         </div>
       </header>
 
-      {/* Profile card */}
-      <div className="mx-4 mt-4 p-4 bg-card rounded-2xl border border-border">
+      <div className="mx-4 mt-4 p-4 bg-card rounded-2xl border border-border cursor-pointer" onClick={() => navigate("/edit-profile")}>
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xl font-bold">
-            T
-          </div>
+          <div className="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xl font-bold">T</div>
           <div className="flex-1">
             <h2 className="font-bold text-foreground">Toi</h2>
             <p className="text-sm text-muted-foreground">Paris 11ème · Membre depuis 2024</p>
@@ -68,7 +62,6 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* History */}
       <div className="mx-4 mt-5">
         <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
           <ShoppingBag className="w-4 h-4 text-primary" /> Historique
@@ -77,9 +70,7 @@ const Settings = () => {
           {historyItems.map(item => (
             <div key={item.id} className="flex items-center justify-between p-3 bg-card rounded-xl border border-border">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                  item.type === "demande" ? "bg-primary/15 text-primary" : "bg-accent/15 text-accent"
-                }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${item.type === "demande" ? "bg-primary/15 text-primary" : "bg-accent/15 text-accent"}`}>
                   {item.type === "demande" ? <Heart className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
                 </div>
                 <div>
@@ -89,9 +80,7 @@ const Settings = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold text-foreground">{item.prix}</p>
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                  item.status === "terminé" ? "bg-accent/15 text-accent" : "bg-primary/15 text-primary"
-                }`}>
+                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${item.status === "terminé" ? "bg-accent/15 text-accent" : "bg-primary/15 text-primary"}`}>
                   {item.status}
                 </span>
               </div>
@@ -100,27 +89,20 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Menu sections */}
       <div className="px-4 mt-5 pb-8 space-y-5">
         {menuSections.map(section => (
           <div key={section.title}>
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">{section.title}</h3>
             <div className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border">
               {section.items.map(item => (
-                <button
-                  key={item.label}
-                  onClick={item.action}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors"
-                >
+                <button key={item.label} onClick={item.action} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors">
                   <item.icon className="w-5 h-5 text-primary" />
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
                     <p className="text-xs text-muted-foreground">{item.desc}</p>
                   </div>
                   {item.toggle ? (
-                    <div className={`w-11 h-6 rounded-full transition-all flex items-center px-0.5 ${
-                      theme === "dark" ? "bg-primary justify-end" : "bg-muted-foreground/20 justify-start"
-                    }`}>
+                    <div className={`w-11 h-6 rounded-full transition-all flex items-center px-0.5 ${theme === "dark" ? "bg-primary justify-end" : "bg-muted-foreground/20 justify-start"}`}>
                       <div className="w-5 h-5 rounded-full bg-card shadow-sm" />
                     </div>
                   ) : (

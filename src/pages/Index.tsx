@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import PostDemandeForm from "@/components/PostDemandeForm";
+import SearchFilters from "@/components/SearchFilters";
 
 interface Demande {
   id: number;
@@ -43,22 +44,35 @@ const Index = () => {
   const [selectedCat, setSelectedCat] = useState("Tout");
   const [likedIds, setLikedIds] = useState<number[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({ type: "Tout", maxDistance: 999, prix: "all" });
 
   const filtered = demandes
     .filter(d => {
       const matchSearch = d.titre.toLowerCase().includes(search.toLowerCase()) || d.description.toLowerCase().includes(search.toLowerCase());
       const matchCat = selectedCat === "Tout" || d.categorie === selectedCat;
-      return matchSearch && matchCat;
+      const matchType = filters.type === "Tout" || d.categorie === filters.type;
+      const matchDist = d.distanceKm <= filters.maxDistance;
+      const matchPrix = filters.prix === "all" ||
+        (filters.prix === "gratuit" && d.gratuit) ||
+        (!d.gratuit && d.prix && parseFloat(d.prix.replace(/[^0-9.]/g, "")) <= parseFloat(filters.prix));
+      return matchSearch && matchCat && matchType && matchDist && matchPrix;
     })
     .sort((a, b) => a.distanceKm - b.distanceKm);
 
-  const toggleLike = (id: number) => {
+  const toggleLike = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
     setLikedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
+  const activeFiltersCount = [
+    filters.type !== "Tout",
+    filters.maxDistance !== 999,
+    filters.prix !== "all",
+  ].filter(Boolean).length;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header sticky */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="px-4 pt-3 pb-2">
           <div className="flex items-center justify-between mb-3">
@@ -76,7 +90,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Search bar */}
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -85,12 +98,21 @@ const Index = () => {
               onChange={e => setSearch(e.target.value)}
               className="pl-10 pr-10 h-11 rounded-xl bg-secondary border-none text-sm"
             />
-            <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 relative"
+              onClick={() => setShowFilters(true)}
+            >
               <Filter className="w-4 h-4" />
+              {activeFiltersCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-bold">
+                  {activeFiltersCount}
+                </span>
+              )}
             </Button>
           </div>
 
-          {/* Location */}
           <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
             <MapPin className="w-3 h-3 text-primary" />
             <span>Paris 11ème</span>
@@ -99,7 +121,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Categories */}
         <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
           {categories.map(cat => (
             <button
@@ -120,7 +141,6 @@ const Index = () => {
       {/* Mini Map */}
       <div className="mx-4 mt-3 rounded-2xl overflow-hidden border border-border relative h-40 bg-secondary">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-primary/10" />
-        {/* Fake map grid */}
         <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
           {Array.from({ length: 8 }).map((_, i) => (
             <line key={`h${i}`} x1="0" y1={i * 20} x2="100%" y2={i * 20} stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" />
@@ -129,38 +149,20 @@ const Index = () => {
             <line key={`v${i}`} x1={i * 35} y1="0" x2={i * 35} y2="100%" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" />
           ))}
         </svg>
-        {/* Map pins */}
         {filtered.slice(0, 6).map((d, i) => {
           const positions = [
-            { left: "45%", top: "45%" },
-            { left: "25%", top: "30%" },
-            { left: "65%", top: "55%" },
-            { left: "35%", top: "65%" },
-            { left: "70%", top: "25%" },
-            { left: "55%", top: "70%" },
+            { left: "45%", top: "45%" }, { left: "25%", top: "30%" }, { left: "65%", top: "55%" },
+            { left: "35%", top: "65%" }, { left: "70%", top: "25%" }, { left: "55%", top: "70%" },
           ];
-          const pos = positions[i];
           return (
-            <motion.div
-              key={d.id}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: i * 0.08 }}
-              className="absolute"
-              style={pos}
-            >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-lg ${
-                d.urgent ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"
-              }`}>
+            <motion.div key={d.id} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.08 }} className="absolute" style={positions[i]}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-lg ${d.urgent ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}`}>
                 {d.avatar[0]}
               </div>
-              {d.urgent && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-ping" />
-              )}
+              {d.urgent && <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-ping" />}
             </motion.div>
           );
         })}
-        {/* Center marker (you) */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
           <div className="w-4 h-4 rounded-full bg-primary border-2 border-primary-foreground shadow-lg" />
           <div className="absolute inset-0 w-4 h-4 rounded-full bg-primary/30 animate-ping" />
@@ -182,7 +184,8 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-card rounded-2xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow"
+              onClick={() => navigate(`/demande/${d.id}`)}
+              className="bg-card rounded-2xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98]"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -198,7 +201,7 @@ const Index = () => {
                     </div>
                   </div>
                 </div>
-                <button onClick={() => toggleLike(d.id)} className="p-1">
+                <button onClick={(e) => toggleLike(d.id, e)} className="p-1">
                   <Heart className={`w-5 h-5 transition-colors ${likedIds.includes(d.id) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
                 </button>
               </div>
@@ -211,7 +214,7 @@ const Index = () => {
                   <Badge variant="secondary" className="text-xs rounded-lg">{d.categorie}</Badge>
                   {d.urgent && <Badge className="bg-destructive text-destructive-foreground text-xs rounded-lg">⚡ Urgent</Badge>}
                 </div>
-                <span className={`text-sm font-bold ${d.gratuit ? "text-green-500" : "text-foreground"}`}>
+                <span className={`text-sm font-bold ${d.gratuit ? "text-accent" : "text-foreground"}`}>
                   {d.gratuit ? "Gratuit ❤️" : d.prix}
                 </span>
               </div>
@@ -221,22 +224,14 @@ const Index = () => {
       </div>
 
       {/* FAB */}
-      <motion.div
-        className="fixed bottom-6 right-6 z-50"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <Button
-          size="lg"
-          className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground"
-          onClick={() => setShowForm(true)}
-        >
+      <motion.div className="fixed bottom-6 right-6 z-50" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+        <Button size="lg" className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground" onClick={() => setShowForm(true)}>
           <Plus className="w-6 h-6" />
         </Button>
       </motion.div>
 
-      {/* Post form */}
       <PostDemandeForm open={showForm} onClose={() => setShowForm(false)} />
+      <SearchFilters open={showFilters} onClose={() => setShowFilters(false)} filters={filters} onApply={setFilters} />
     </div>
   );
 };
