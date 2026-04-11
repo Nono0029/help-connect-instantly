@@ -146,7 +146,7 @@ const Index = () => {
               style={pos}
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-lg ${
-                d.urgent ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
+                d.urgent ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"
               }`}>
                 {d.avatar[0]}
               </div>
@@ -205,7 +205,7 @@ const Index = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs rounded-lg">{d.categorie}</Badge>
-                  {d.urgent && <Badge className="bg-accent text-accent-foreground text-xs rounded-lg">⚡ Urgent</Badge>}
+                  {d.urgent && <Badge className="bg-destructive text-destructive-foreground text-xs rounded-lg">⚡ Urgent</Badge>}
                 </div>
                 <span className={`text-sm font-bold ${d.gratuit ? "text-green-500" : "text-foreground"}`}>
                   {d.gratuit ? "Gratuit ❤️" : d.prix}
