@@ -38,6 +38,7 @@ const demandes: Demande[] = [
 const categories = ["Tout", "🏠 Maison", "🔧 Bricolage", "🐶 Animaux", "📚 Cours", "💬 Écoute", "💻 Tech", "🌱 Jardin"];
 
 const Index = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState("Tout");
   const [likedIds, setLikedIds] = useState<number[]>([]);
@@ -69,7 +70,7 @@ const Index = () => {
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-accent rounded-full" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
                 <User className="w-5 h-5" />
               </Button>
             </div>
