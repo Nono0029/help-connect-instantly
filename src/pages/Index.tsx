@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
+import PostDemandeForm from "@/components/PostDemandeForm";
 
 interface Demande {
   id: number;
@@ -39,6 +40,7 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState("Tout");
   const [likedIds, setLikedIds] = useState<number[]>([]);
+  const [showForm, setShowForm] = useState(false);
 
   const filtered = demandes
     .filter(d => {
@@ -222,10 +224,17 @@ const Index = () => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        <Button size="lg" className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground">
+        <Button
+          size="lg"
+          className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground"
+          onClick={() => setShowForm(true)}
+        >
           <Plus className="w-6 h-6" />
         </Button>
       </motion.div>
+
+      {/* Post form */}
+      <PostDemandeForm open={showForm} onClose={() => setShowForm(false)} />
     </div>
   );
 };
