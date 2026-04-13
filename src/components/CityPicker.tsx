@@ -76,7 +76,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               onClick={e => e.stopPropagation()}
-              className="absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[75vh] flex flex-col"
+              className="absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[60vh] flex flex-col"
             >
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-1">
