@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { MapPin, Search, X, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Liste de villes françaises populaires
 const VILLES_SUGGESTIONS = [
   "Paris 1er", "Paris 2ème", "Paris 3ème", "Paris 4ème", "Paris 5ème",
   "Paris 6ème", "Paris 7ème", "Paris 8ème", "Paris 9ème", "Paris 10ème",
@@ -32,12 +31,12 @@ const CityPicker = ({ ville, onChange }: Props) => {
   const suggestions = query.length >= 1
     ? VILLES_SUGGESTIONS.filter(v =>
         v.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 8)
-    : VILLES_SUGGESTIONS.slice(0, 8);
+      ).slice(0, 20)
+    : VILLES_SUGGESTIONS.slice(0, 20);
 
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      setTimeout(() => inputRef.current?.focus(), 300);
     } else {
       setQuery("");
     }
@@ -50,7 +49,6 @@ const CityPicker = ({ ville, onChange }: Props) => {
 
   return (
     <>
-      {/* Trigger inline */}
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -60,14 +58,13 @@ const CityPicker = ({ ville, onChange }: Props) => {
         <ChevronDown className="w-3 h-3" />
       </button>
 
-      {/* Bottom sheet */}
       <AnimatePresence>
         {open && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex flex-col justify-end"
             onClick={() => setOpen(false)}
           >
             <motion.div
@@ -76,15 +73,13 @@ const CityPicker = ({ ville, onChange }: Props) => {
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               onClick={e => e.stopPropagation()}
-              className="fixed bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[60vh] flex flex-col"
+              className="bg-background rounded-t-3xl flex flex-col overflow-hidden"
             >
-              {/* Handle */}
-              <div className="flex justify-center pt-3 pb-1">
+              <div className="flex justify-center pt-3 pb-1 shrink-0">
                 <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
               </div>
 
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 pb-3 border-b border-border">
+              <div className="flex items-center justify-between px-4 pb-3 border-b border-border shrink-0">
                 <button onClick={() => setOpen(false)} className="text-muted-foreground p-1">
                   <X className="w-5 h-5" />
                 </button>
@@ -94,7 +89,6 @@ const CityPicker = ({ ville, onChange }: Props) => {
                 <div className="w-7" />
               </div>
 
-              {/* Search */}
               <div className="px-4 pt-3 pb-2 shrink-0">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -117,8 +111,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
                 </div>
               </div>
 
-              {/* Suggestions */}
-              <className="overflow-y-auto px-4 pb-6 max-h-[300px]">
+              <div className="overflow-y-auto px-4 pb-8 h-64">
                 {suggestions.length === 0 ? (
                   <div className="text-center text-sm text-muted-foreground py-8">
                     Aucune ville trouvée pour « {query} »
