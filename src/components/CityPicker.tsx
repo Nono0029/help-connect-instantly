@@ -95,7 +95,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
               </div>
 
               {/* Search */}
-              <div className="px-4 pt-3 pb-2">
+              <div className="px-4 pt-3 pb-2 shrink-0">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
