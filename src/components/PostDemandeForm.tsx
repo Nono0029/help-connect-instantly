@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
-import { X, Camera, Image, Euro, Clock, ChevronDown, Sparkles } from "lucide-react";
+import { X, Camera, Image, Euro, Clock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 const typesAide = [
   { id: "physique", label: "💪 Aide physique", desc: "Déménagement, ménage, portage..." },
@@ -23,9 +23,10 @@ const durees = ["< 30 min", "1h", "2h", "Demi-journée", "Journée", "Plusieurs 
 interface Props {
   open: boolean;
   onClose: () => void;
+  onDemandeAdded: () => void;
 }
 
-const PostDemandeForm = ({ open, onClose }: Props) => {
+const PostDemandeForm = ({ open, onClose, onDemandeAdded }: Props) => {
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -34,6 +35,7 @@ const PostDemandeForm = ({ open, onClose }: Props) => {
   const [gratuit, setGratuit] = useState(false);
   const [duree, setDuree] = useState("");
   const [urgent, setUrgent] = useState(false);
+  const [loading, setLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,9 +54,36 @@ const PostDemandeForm = ({ open, onClose }: Props) => {
     setPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
-    // Future: send to backend
-    onClose();
+  const handleSubmit = async () => {
+    if (!titre || !selectedType) return;
+    setLoading(true);
+
+    const typeLabel = typesAide.find(t => t.id === selectedType)?.label || selectedType;
+
+    const { error } = await supabase.from("demandes").insert([{
+      titre,
+      description,
+      categorie: typeLabel,
+      auteur: "Anonyme",
+      prix: gratuit ? null : prix,
+      gratuit,
+      urgent,
+    }]);
+
+    setLoading(false);
+
+    if (!error) {
+      onDemandeAdded();
+      onClose();
+      setTitre("");
+      setDescription("");
+      setSelectedType("");
+      setPhotos([]);
+      setPrix("");
+      setGratuit(false);
+      setDuree("");
+      setUrgent(false);
+    }
   };
 
   return (
@@ -75,12 +104,10 @@ const PostDemandeForm = ({ open, onClose }: Props) => {
             onClick={e => e.stopPropagation()}
             className="absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[92vh] overflow-y-auto"
           >
-            {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
             </div>
 
-            {/* Header */}
             <div className="flex items-center justify-between px-4 pb-3 border-b border-border">
               <button onClick={onClose} className="text-muted-foreground p-1">
                 <X className="w-5 h-5" />
@@ -103,21 +130,11 @@ const PostDemandeForm = ({ open, onClose }: Props) => {
                     <Camera className="w-5 h-5" />
                     <span className="text-[10px] font-medium">Ajouter</span>
                   </button>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handlePhoto}
-                  />
+                  <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhoto} />
                   {photos.map((src, i) => (
                     <div key={i} className="relative shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-border">
                       <img src={src} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => removePhoto(i)}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-foreground/70 text-background flex items-center justify-center"
-                      >
+                      <button onClick={() => removePhoto(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-foreground/70 text-background flex items-center justify-center">
                         <X className="w-3 h-3" />
                       </button>
                     </div>
@@ -133,26 +150,14 @@ const PostDemandeForm = ({ open, onClose }: Props) => {
               {/* Titre */}
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Titre de ta demande</label>
-                <Input
-                  placeholder="Ex: Besoin d'aide pour déménager..."
-                  value={titre}
-                  onChange={e => setTitre(e.target.value)}
-                  className="h-11 rounded-xl bg-secondary border-none"
-                  maxLength={80}
-                />
+                <Input placeholder="Ex: Besoin d'aide pour déménager..." value={titre} onChange={e => setTitre(e.target.value)} className="h-11 rounded-xl bg-secondary border-none" maxLength={80} />
                 <p className="text-[11px] text-muted-foreground mt-1 text-right">{titre.length}/80</p>
               </div>
 
               {/* Description */}
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Décris ton besoin</label>
-                <Textarea
-                  placeholder="Explique en détail ce dont tu as besoin, quand, où, etc."
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  className="min-h-[100px] rounded-xl bg-secondary border-none resize-none"
-                  maxLength={500}
-                />
+                <Textarea placeholder="Explique en détail ce dont tu as besoin, quand, où, etc." value={description} onChange={e => setDescription(e.target.value)} className="min-h-[100px] rounded-xl bg-secondary border-none resize-none" maxLength={500} />
                 <p className="text-[11px] text-muted-foreground mt-1 text-right">{description.length}/500</p>
               </div>
 
@@ -161,24 +166,13 @@ const PostDemandeForm = ({ open, onClose }: Props) => {
                 <label className="text-sm font-semibold text-foreground mb-2 block">Type d'aide</label>
                 <div className="flex flex-wrap gap-2">
                   {typesAide.map(type => (
-                    <button
-                      key={type.id}
-                      onClick={() => setSelectedType(type.id)}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
-                        selectedType === type.id
-                          ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
-                          : "bg-secondary text-muted-foreground border-transparent hover:border-primary/30"
-                      }`}
-                    >
+                    <button key={type.id} onClick={() => setSelectedType(type.id)}
+                      className={`px-3 py-2 rounded-xl text-xs font-medium transition-all border ${selectedType === type.id ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20" : "bg-secondary text-muted-foreground border-transparent hover:border-primary/30"}`}>
                       {type.label}
                     </button>
                   ))}
                 </div>
-                {selectedType && (
-                  <p className="text-xs text-muted-foreground mt-2 pl-1">
-                    {typesAide.find(t => t.id === selectedType)?.desc}
-                  </p>
-                )}
+                {selectedType && <p className="text-xs text-muted-foreground mt-2 pl-1">{typesAide.find(t => t.id === selectedType)?.desc}</p>}
               </div>
 
               {/* Durée */}
@@ -188,15 +182,8 @@ const PostDemandeForm = ({ open, onClose }: Props) => {
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {durees.map(d => (
-                    <button
-                      key={d}
-                      onClick={() => setDuree(d)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                        duree === d
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-secondary text-muted-foreground border-transparent"
-                      }`}
-                    >
+                    <button key={d} onClick={() => setDuree(d)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${duree === d ? "bg-primary text-primary-foreground border-primary" : "bg-secondary text-muted-foreground border-transparent"}`}>
                       {d}
                     </button>
                   ))}
@@ -209,54 +196,29 @@ const PostDemandeForm = ({ open, onClose }: Props) => {
                   <Euro className="w-4 h-4 text-primary" /> Budget
                 </label>
                 <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => { setGratuit(true); setPrix(""); }}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
-                      gratuit
-                        ? "bg-accent text-accent-foreground border-accent shadow-md"
-                        : "bg-secondary text-muted-foreground border-transparent"
-                    }`}
-                  >
+                  <button onClick={() => { setGratuit(true); setPrix(""); }}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border ${gratuit ? "bg-accent text-accent-foreground border-accent shadow-md" : "bg-secondary text-muted-foreground border-transparent"}`}>
                     ❤️ Gratuit
                   </button>
                   <div className="flex-1 relative">
-                    <Input
-                      type="number"
-                      placeholder="Prix proposé"
-                      value={prix}
-                      onChange={e => { setPrix(e.target.value); setGratuit(false); }}
-                      className="h-10 rounded-xl bg-secondary border-none pr-8"
-                    />
+                    <Input type="number" placeholder="Prix proposé" value={prix} onChange={e => { setPrix(e.target.value); setGratuit(false); }} className="h-10 rounded-xl bg-secondary border-none pr-8" />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">€</span>
                   </div>
                 </div>
               </div>
 
-              {/* Urgent toggle */}
-              <button
-                onClick={() => setUrgent(!urgent)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                  urgent
-                    ? "bg-destructive/10 border-destructive/30 text-destructive"
-                    : "bg-secondary border-transparent text-muted-foreground"
-                }`}
-              >
+              {/* Urgent */}
+              <button onClick={() => setUrgent(!urgent)}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${urgent ? "bg-destructive/10 border-destructive/30 text-destructive" : "bg-secondary border-transparent text-muted-foreground"}`}>
                 <span className="text-sm font-medium">⚡ C'est urgent</span>
-                <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${
-                  urgent ? "bg-destructive justify-end" : "bg-muted-foreground/20 justify-start"
-                }`}>
+                <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${urgent ? "bg-destructive justify-end" : "bg-muted-foreground/20 justify-start"}`}>
                   <div className="w-5 h-5 rounded-full bg-card shadow-sm" />
                 </div>
               </button>
 
-              {/* Submit */}
-              <Button
-                onClick={handleSubmit}
-                disabled={!titre || !selectedType}
-                className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25"
-              >
+              <Button onClick={handleSubmit} disabled={!titre || !selectedType || loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25">
                 <Sparkles className="w-4 h-4 mr-2" />
-                Publier ma demande
+                {loading ? "Publication..." : "Publier ma demande"}
               </Button>
 
               <p className="text-center text-[11px] text-muted-foreground pb-4">
