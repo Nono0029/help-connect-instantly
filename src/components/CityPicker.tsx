@@ -118,7 +118,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
               </div>
 
               {/* Suggestions */}
-              <div className="overflow-y-auto flex-1 px-4 pb-6">
+              <className="overflow-y-auto px-4 pb-6" style={{maxHeight: "300px"}}>
                 {suggestions.length === 0 ? (
                   <div className="text-center text-sm text-muted-foreground py-8">
                     Aucune ville trouvée pour « {query} »
