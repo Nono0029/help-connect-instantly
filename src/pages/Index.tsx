@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, MapPin, Clock, Heart, Filter, Bell, User, Plus, ChevronDown } from "lucide-react";
+import { Search, MapPin, Clock, Heart, Filter, Bell, User, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import PostDemandeForm from "@/components/PostDemandeForm";
 import SearchFilters from "@/components/SearchFilters";
+import CityPicker from "@/components/CityPicker";
 
 interface Demande {
   id: number;
@@ -46,6 +47,7 @@ const Index = () => {
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ type: "Tout", maxDistance: 999, prix: "all" });
+  const [ville, setVille] = useState("Paris 11ème");
 
   const filtered = demandes
     .filter(d => {
@@ -114,9 +116,7 @@ const Index = () => {
           </div>
 
           <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-            <MapPin className="w-3 h-3 text-primary" />
-            <span>Paris 11ème</span>
-            <ChevronDown className="w-3 h-3" />
+            <CityPicker ville={ville} onChange={setVille} />
             <span className="ml-auto text-primary font-medium">{filtered.length} demandes autour de toi</span>
           </div>
         </div>
