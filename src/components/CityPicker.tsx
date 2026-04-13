@@ -67,7 +67,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           >
             <motion.div
@@ -76,7 +76,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               onClick={e => e.stopPropagation()}
-              className="absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[60vh] flex flex-col"
+              className="fixed bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[60vh] flex flex-col"
             >
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-1">
