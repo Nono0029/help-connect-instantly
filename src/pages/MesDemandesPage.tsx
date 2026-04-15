@@ -32,10 +32,19 @@ const MesDemandesPage = () => {
   const fetchDemandes = async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      const { data } = await supabase
+
+const { data, error } = await supabase
   .from("demandes")
-  .select("*")
+  .select("*");
+
+if (error) {
+  console.error(error);
+  setLoading(false);
+  return;
+}
+
+if (data) setDemandes(data);
+setLoading(false);
   .or(`user_id.eq.${user_id},user_id.is.null`)
   .order("created_at", { ascending: false });
 
@@ -66,9 +75,9 @@ if (data) setDemandes(data);
   const getTemps = (created_at: string) => {
     const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
     if (diff < 60) return "À l'instant";
-    if (diff < 3600) return Il y a \ min;
-    if (diff < 86400) return Il y a \h;
-    return Il y a \j;
+if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
+if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
+return `Il y a ${Math.floor(diff / 86400)} j`;
   };
 
   return (
