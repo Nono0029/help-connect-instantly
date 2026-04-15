@@ -103,11 +103,11 @@ const Settings = () => {
 >
   <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
 </div>
->
+{condition ? (
   <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
-</div>
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+) : (
+  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+)}
                   )}
                 </button>
               ))}
