@@ -168,11 +168,15 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
                       <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{getTemps(d.created_at)}</span>
                     </div>
                   </div>
-                </div>
                 <button onClick={(e) => toggleLike(d.id, e)} className="p-1">
-                  <Heart className={w-5 h-5 transition-colors \} />
-                </button>
-              </div>
+  <Heart className="w-5 h-5 transition-colors" />
+                  <Heart
+  className={`w-5 h-5 transition-colors ${
+    isLiked ? "text-red-500 fill-red-500" : "text-gray-400"
+  }`}
+/>
+</button>
+              
 
               <h3 className="font-semibold text-foreground mb-1">{d.titre}</h3>
               <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{d.description}</p>
