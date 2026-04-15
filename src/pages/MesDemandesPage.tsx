@@ -33,11 +33,13 @@ const MesDemandesPage = () => {
     if (!user) return;
     setLoading(true);
     const { data } = await supabase
-      .from("demandes")
-      .select("*")
-      .or(user_id.eq.\,user_id.is.null)
-      .order("created_at", { ascending: false });
-    if (data) setDemandes(data);
+      const { data } = await supabase
+  .from("demandes")
+  .select("*")
+  .or(`user_id.eq.${user_id},user_id.is.null`)
+  .order("created_at", { ascending: false });
+
+if (data) setDemandes(data);
     setLoading(false);
   };
 
