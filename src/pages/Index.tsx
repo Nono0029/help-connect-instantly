@@ -200,14 +200,27 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
   ))}
 </AnimatePresence>
         <Button size="lg" className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground" onClick={() => setShowForm(true)}>
-          <Plus className="w-6 h-6" />
-        </Button>
-      </motion.div>
+         return (
+  <div>
+    ...
+    <AnimatePresence>
+      {items.map(d => (
+        <motion.div key={d.id}>
+          <div>
+            <span>{d.prix}</span>
+          </div>
+        </motion.div>
+      ))}
+    </AnimatePresence>
 
-      <PostDemandeForm open={showForm} onClose={() => setShowForm(false)} onDemandeAdded={fetchDemandes} />
-      <SearchFilters open={showFilters} onClose={() => setShowFilters(false)} filters={filters} onApply={setFilters} />
-    </div>
-  );
-};
+    <Button>
+      <Plus className="w-6 h-6" />
+    </Button>
 
-export default Index;
+    <PostDemandeForm
+      open={showForm}
+      onClose={() => setShowForm(false)}
+      onDemandeAdded={fetchDemandes}
+    />
+  </div>
+);
