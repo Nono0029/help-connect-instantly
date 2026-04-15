@@ -101,11 +101,13 @@ const Settings = () => {
     item.toggle ? "bg-green-500 justify-end" : "bg-gray-300 justify-start"
   }`}
 >
-  <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+  <div>
+  {condition ? (
+    <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+  ) : (
+    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+  )}
 </div>
-{condition ? (
-  <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
-) : (
   <ChevronRight className="w-4 h-4 text-muted-foreground" />
 )}
                   )}
