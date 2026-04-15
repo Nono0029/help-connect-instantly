@@ -188,16 +188,17 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
                 </div>
                 <span className="text-sm font-bold">
   {d.gratuit ? "Gratuit ❤️" : d.prix}
-</span>
-                  {d.gratuit ? "Gratuit ❤️" : d.prix}
-                </span>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+<AnimatePresence>
+  {items.map(d => (
+    <motion.div key={d.id}>
+      <div>
+        <span className="text-sm font-bold">
+          {d.gratuit ? "Gratuit ❤️" : d.prix}
+        </span>
       </div>
-
-      <motion.div className="fixed bottom-6 right-6 z-50" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+    </motion.div>
+  ))}
+</AnimatePresence>
         <Button size="lg" className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground" onClick={() => setShowForm(true)}>
           <Plus className="w-6 h-6" />
         </Button>
