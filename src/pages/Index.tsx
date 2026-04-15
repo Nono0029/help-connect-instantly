@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, MapPin, Clock, Heart, Filter, Bell, User, Plus } from "lucide-react";
+import { Search, MapPin, Clock, Heart, Filter, Bell, User, Plus, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -71,9 +71,9 @@ const Index = () => {
   const getTemps = (created_at: string) => {
     const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
     if (diff < 60) return "À l'instant";
-    if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-    if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)}h`;
-    return `Il y a ${Math.floor(diff / 86400)}j`;
+    if (diff < 3600) return Il y a \ min;
+    if (diff < 86400) return Il y a \h;
+    return Il y a \j;
   };
 
   return (
@@ -89,7 +89,10 @@ const Index = () => {
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-accent rounded-full" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
+              <Button variant="ghost" size="icon" onClick={() => navigate("/mes-demandes")} title="Mes demandes">
+                <ShoppingBag className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} title="Paramètres">
                 <User className="w-5 h-5" />
               </Button>
             </div>
@@ -122,14 +125,13 @@ const Index = () => {
         <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
           {categories.map(cat => (
             <button key={cat} onClick={() => setSelectedCat(cat)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedCat === cat ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+              className={shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all \}>
               {cat}
             </button>
           ))}
         </div>
       </header>
 
-      {/* Demand cards */}
       <div className="flex-1 px-4 pt-4 pb-24 space-y-3">
         {filtered.length === 0 && (
           <div className="text-center text-muted-foreground py-20">
@@ -163,7 +165,7 @@ const Index = () => {
                   </div>
                 </div>
                 <button onClick={(e) => toggleLike(d.id, e)} className="p-1">
-                  <Heart className={`w-5 h-5 transition-colors ${likedIds.includes(d.id) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+                  <Heart className={w-5 h-5 transition-colors \} />
                 </button>
               </div>
 
@@ -175,7 +177,7 @@ const Index = () => {
                   <Badge variant="secondary" className="text-xs rounded-lg">{d.categorie}</Badge>
                   {d.urgent && <Badge className="bg-destructive text-destructive-foreground text-xs rounded-lg">⚡ Urgent</Badge>}
                 </div>
-                <span className={`text-sm font-bold ${d.gratuit ? "text-accent" : "text-foreground"}`}>
+                <span className={	ext-sm font-bold \}>
                   {d.gratuit ? "Gratuit ❤️" : d.prix}
                 </span>
               </div>
@@ -184,7 +186,6 @@ const Index = () => {
         </AnimatePresence>
       </div>
 
-      {/* FAB */}
       <motion.div className="fixed bottom-6 right-6 z-50" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
         <Button size="lg" className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground" onClick={() => setShowForm(true)}>
           <Plus className="w-6 h-6" />
