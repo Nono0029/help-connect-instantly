@@ -96,11 +96,13 @@ const Settings = () => {
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
                     <p className="text-xs text-muted-foreground">{item.desc}</p>
                   <div className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
-  item.toggle ? "bg-green-500 justify-end" : "bg-gray-300 justify-start"
-<div
+  <div
   className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
     item.toggle ? "bg-green-500 justify-end" : "bg-gray-300 justify-start"
   }`}
+>
+  <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+</div>
 >
   <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
 </div>
