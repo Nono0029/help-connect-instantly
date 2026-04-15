@@ -59,7 +59,7 @@ const Settings = () => {
             <p className="text-sm text-muted-foreground">{email}</p>
             <div className="flex items-center gap-1 mt-1">
               {[1, 2, 3, 4, 5].map(s => (
-                <Star key={s} className={w-3 h-3 \} />
+                <Star key={s} className="w-3 h-3" />
               ))}
               <span className="text-xs text-muted-foreground ml-1">4.8 (12 avis)</span>
             </div>
