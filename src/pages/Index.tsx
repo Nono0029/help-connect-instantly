@@ -68,12 +68,13 @@ const Index = () => {
     filters.prix !== "all",
   ].filter(Boolean).length;
 
-  const getTemps = (created_at: string) => {
-    const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
-    if (diff < 60) return "À l'instant";
-    if (diff < 3600) return Il y a \ min;
-    if (diff < 86400) return Il y a \h;
-    return Il y a \j;
+  const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
+
+if (diff < 60) return "À l'instant";
+if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
+if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
+
+return `Il y a ${Math.floor(diff / 86400)} j`;
   };
 
   return (
