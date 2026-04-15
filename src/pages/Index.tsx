@@ -131,11 +131,11 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
     className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
   >
     {cat}
-  </button>
+  {items.map(item => (
+  <div key={item.id}>
+    ...
+  </div>
 ))}
-          ))}
-        </div>
-      </header>
 
       <div className="flex-1 px-4 pt-4 pb-24 space-y-3">
         {filtered.length === 0 && (
