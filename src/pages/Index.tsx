@@ -186,7 +186,9 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
                   <Badge variant="secondary" className="text-xs rounded-lg">{d.categorie}</Badge>
                   {d.urgent && <Badge className="bg-destructive text-destructive-foreground text-xs rounded-lg">⚡ Urgent</Badge>}
                 </div>
-                <span className={	ext-sm font-bold \}>
+                <span className="text-sm font-bold">
+  {d.gratuit ? "Gratuit ❤️" : d.prix}
+</span>
                   {d.gratuit ? "Gratuit ❤️" : d.prix}
                 </span>
               </div>
