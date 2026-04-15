@@ -125,10 +125,14 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
 
         <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
           {categories.map(cat => (
-            <button key={cat} onClick={() => setSelectedCat(cat)}
-              className={shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all \}>
-              {cat}
-            </button>
+  <button
+    key={cat}
+    onClick={() => setSelectedCat(cat)}
+    className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+  >
+    {cat}
+  </button>
+))}
           ))}
         </div>
       </header>
