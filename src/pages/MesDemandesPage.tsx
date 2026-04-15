@@ -43,11 +43,14 @@ if (error) {
   return;
 }
 
-if (data) setDemandes(data);
-setLoading(false);
+const { data } = await supabase
+  .from("demandes")
+  .select("*")
   .or(`user_id.eq.${user_id},user_id.is.null`)
   .order("created_at", { ascending: false });
 
+if (data) setDemandes(data);
+setLoading(false);
 if (data) setDemandes(data);
     setLoading(false);
   };
