@@ -51,11 +51,14 @@ const AuthPage = () => {
 
         <div className="bg-secondary rounded-2xl p-1 flex mb-6">
           {(["login", "signup"] as const).map(t => (
-            <button key={t} onClick={() => { setTab(t); setError(""); }}
-              className={lex-1 py-2.5 rounded-xl text-sm font-semibold transition-all \}>
-              {t === "login" ? "Connexion" : "Inscription"}
-            </button>
-          ))}
+  <button
+    key={t}
+    onClick={() => { setTab(t); setError(""); }}
+    className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
+  >
+    {t === "login" ? "Connexion" : "Inscription"}
+  </button>
+))}
         </div>
 
         <AnimatePresence mode="wait">
