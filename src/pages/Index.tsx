@@ -225,5 +225,6 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
 <PostDemandeForm
   open={showForm}
   onClose={() => setShowForm(false)}
-  onDemandeAdded={fetchDemandes}
-/>
+  <Button onClick={...}>
+  Valider
+</Button>
