@@ -107,14 +107,23 @@ const Settings = () => {
   ) : (
     <ChevronRight className="w-4 h-4 text-muted-foreground" />
   )}
-</div>
-  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-)}
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
+{items.map(item => (
+  <button key={item.id} className="flex items-center justify-between w-full">
+    
+    {item.toggle ? (
+      <div
+        className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
+          item.toggle ? "bg-green-500 justify-end" : "bg-gray-300 justify-start"
+        }`}
+      >
+        <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+      </div>
+    ) : (
+      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+    )}
+
+  </button>
+))}
         ))}
 
         <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm">
