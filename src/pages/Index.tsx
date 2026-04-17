@@ -205,33 +205,25 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
   onClick={() => setShowForm(true)}
 >
   +
-</Button>
-  +
-</button>
+<AnimatePresence>
+  {items.map(d => (
+    <motion.div key={d.id}>
+      <div>
+        <span>{d.prix}</span>
+      </div>
+    </motion.div>
+  ))}
+</AnimatePresence>
 
-<div>
-  <AnimatePresence>
-      {items.map(d => (
-        <motion.div key={d.id}>
-          <div>
-            <span>{d.prix}</span>
-          </div>
-        </motion.div>
-      ))}
-    </AnimatePresence>
-
-    <Button
-      size="lg"
-      onClick={() => setShowForm(true)}
-    >
-     <Plus className="w-6 h-6" />
+<Button
+  size="lg"
+  onClick={() => setShowForm(true)}
+>
+  <Plus className="w-6 h-6" />
 </Button>
 
-    <PostDemandeForm
-      open={showForm}
-      onClose={() => setShowForm(false)}
-      onDemandeAdded={fetchDemandes}
-    />
-
-  </div>
-);
+<PostDemandeForm
+  open={showForm}
+  onClose={() => setShowForm(false)}
+  onDemandeAdded={fetchDemandes}
+/>
