@@ -41,11 +41,10 @@ if (error) {
   console.error(error);
   setLoading(false);
   return;
-}
-
-const { data } = await supabase
+const { data: demandesData, error } = await supabase
   .from("demandes")
-  .select("*")
+  .select("*");
+  .setDemandes(demandesData);
   .or(`user_id.eq.${user_id},user_id.is.null`)
   .order("created_at", { ascending: false });
 
@@ -137,11 +136,10 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
 
               <div className="flex items-center justify-between mt-3">
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{getTemps(d.created_at)}</span>
-                  <span className={lex items-center gap-1 font-semibold \}>
-                    <Euro className="w-3 h-3" />{d.gratuit ? "Gratuit" : (d.prix || "—")}
-                  </span>
-                </div>
+                  <span className="flex items-center gap-1 font-semibold">
+  <Euro className="w-3 h-3" />
+  {d.gratuit ? "Gratuit" : (d.prix || "—")}
+</span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(d)}
