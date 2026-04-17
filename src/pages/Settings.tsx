@@ -129,9 +129,9 @@ const Settings = () => {
           <LogOut className="w-4 h-4" /> Se déconnecter
         </button>
     
-  </div>
 </div>
-);
+</div>
+  );
 };
 
 export default Settings;
