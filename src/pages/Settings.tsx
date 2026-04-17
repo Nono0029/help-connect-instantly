@@ -117,11 +117,28 @@ const Settings = () => {
         }`}
       >
         <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
-      </div>
-    ) : (
       const Settings = () => {
 
   const handleSignOut = () => {
+    // logout logic
+  };
+
+  return (
+    <div>
+      {condition ? (
+        <div>
+          {/* UI A */}
+        </div>
+      ) : (
+        <div>
+          {/* UI B */}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Settings;
     // logout logic
   };
 
