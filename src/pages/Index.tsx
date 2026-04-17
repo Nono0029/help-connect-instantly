@@ -223,8 +223,11 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
 </Button>
 
 <PostDemandeForm
+  <MyComponent
   open={showForm}
   onClose={() => setShowForm(false)}
+>
   <Button onClick={...}>
-  Valider
-</Button>
+    Valider
+  </Button>
+</MyComponent>
