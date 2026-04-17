@@ -119,11 +119,22 @@ const Settings = () => {
         <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
       </div>
     ) : (
-      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-
-const Settings = () => {
+      const Settings = () => {
 
   const handleSignOut = () => {
+    // logout logic
+  };
+
+  return (
+    <div>
+      {/* ton UI ici */}
+
+      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+    </div>
+  );
+};
+
+export default Settings;
     // logout logic
   };
 
