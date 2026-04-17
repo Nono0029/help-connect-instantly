@@ -127,12 +127,17 @@ const Settings = () => {
 
         <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm">
           <LogOut className="w-4 h-4" /> Se déconnecter
-        </button>
-    
 const Settings = () => {
   return (
     <div>
-      ...
+      <button>
+        Click me
+      </button>
+    </div>
+  );
+};
+
+export default Settings;
     </div>
   );
 };
