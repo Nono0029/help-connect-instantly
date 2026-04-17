@@ -122,16 +122,16 @@ const Settings = () => {
       <ChevronRight className="w-4 h-4 text-muted-foreground" />
     )}
 
-  </button>
+ </button>
 ))}
-        ))}
 
         <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm">
           <LogOut className="w-4 h-4" /> Se déconnecter
         </button>
       </div>
-    </div>
-  );
+ </div>
+</div>
+);
 };
 
 export default Settings;
