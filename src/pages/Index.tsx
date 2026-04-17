@@ -200,9 +200,9 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
   ))}
 </AnimatePresence>
         <Button size="lg" className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground" onClick={() => setShowForm(true)}>
-         return (
+        return (
   <div>
-    ...
+
     <AnimatePresence>
       {items.map(d => (
         <motion.div key={d.id}>
@@ -213,7 +213,10 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
       ))}
     </AnimatePresence>
 
-    <Button>
+    <Button
+      size="lg"
+      onClick={() => setShowForm(true)}
+    >
       <Plus className="w-6 h-6" />
     </Button>
 
@@ -222,8 +225,6 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
       onClose={() => setShowForm(false)}
       onDemandeAdded={fetchDemandes}
     />
- <Button>
-<Plus className="w-6 h-6" />
-</Button>
-</div>
-</div>
+
+  </div>
+);
