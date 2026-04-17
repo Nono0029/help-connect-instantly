@@ -120,12 +120,23 @@ const Settings = () => {
       </div>
     ) : (
       <ChevronRight className="w-4 h-4 text-muted-foreground" />
-    )}
 
 const Settings = () => {
+
   const handleSignOut = () => {
     // logout logic
   };
+
+  return (
+    <div>
+      <button onClick={handleSignOut}>
+        Sign out
+      </button>
+    </div>
+  );
+};
+
+export default Settings;
 
   return (
     <div>
