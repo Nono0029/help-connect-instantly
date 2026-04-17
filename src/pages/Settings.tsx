@@ -122,13 +122,21 @@ const Settings = () => {
       <ChevronRight className="w-4 h-4 text-muted-foreground" />
     )}
 
- </button>
-))}
 const Settings = () => {
   const handleSignOut = () => {
     // logout logic
   };
 
+  return (
+    <div>
+      {items.map(() => (
+        <button>...</button>
+      ))}
+    </div>
+  );
+};
+
+export default Settings;
   return (
     <div>
       <button
