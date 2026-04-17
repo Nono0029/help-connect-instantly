@@ -201,11 +201,15 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
 </AnimatePresence>
         <Button
   size="lg"
+ <button
   className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground"
   onClick={() => setShowForm(true)}
-  <div>
+>
+  +
+</button>
 
-    <AnimatePresence>
+<div>
+  <AnimatePresence>
       {items.map(d => (
         <motion.div key={d.id}>
           <div>
