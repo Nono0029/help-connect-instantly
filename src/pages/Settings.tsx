@@ -1,28 +1,21 @@
-import { ArrowLeft, User, Moon, Sun, ChevronRight, Shield, Bell, Heart, ShoppingBag, HelpCircle, LogOut, Star } from "lucide-react";
+mport { ArrowLeft, User, Moon, Sun, ChevronRight, Shield, Bell, ShoppingBag, HelpCircle, LogOut, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
-import { useAuth } from "@/context/AuthContext";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { user, signOut } = useAuth();
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
-  };
-
-  const pseudo = user?.email?.split("@")[0] || "Mon compte";
-  const email = user?.email || "";
+  const pseudo = "Mon compte";
+  const email = "";
 
   const menuSections = [
     {
       title: "Mon compte",
       items: [
-        { icon: User, label: "Modifier mon profil", desc: "Pseudo, photo, bio", action: () => navigate("/edit-profile") },
-        { icon: Shield, label: "Mot de passe & sécurité", desc: "Changer mon mot de passe", action: () => navigate("/change-password") },
-        { icon: Bell, label: "Notifications", desc: "Gérer les alertes", action: undefined },
+        { icon: User, label: "Modifier mon profil", desc: "Pseudo, photo, bio", action: () => navigate("/edit-profile"), toggle: false },
+        { icon: Shield, label: "Mot de passe & sécurité", desc: "Changer mon mot de passe", action: () => navigate("/change-password"), toggle: false },
+        { icon: Bell, label: "Notifications", desc: "Gérer les alertes", action: undefined, toggle: false },
       ],
     },
     {
@@ -34,8 +27,8 @@ const Settings = () => {
     {
       title: "Aide",
       items: [
-        { icon: HelpCircle, label: "Centre d'aide", desc: "FAQ et support", action: undefined },
-        { icon: Star, label: "Noter l'appli", desc: "Donne-nous 5 étoiles !", action: undefined },
+        { icon: HelpCircle, label: "Centre d'aide", desc: "FAQ et support", action: undefined, toggle: false },
+        { icon: Star, label: "Noter l'appli", desc: "Donne-nous 5 étoiles !", action: undefined, toggle: false },
       ],
     },
   ];
@@ -44,7 +37,9 @@ const Settings = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="p-1"><ArrowLeft className="w-5 h-5 text-foreground" /></button>
+          <button onClick={() => navigate("/")} className="p-1">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
           <h1 className="text-lg font-bold text-foreground">Paramètres</h1>
         </div>
       </header>
@@ -59,7 +54,7 @@ const Settings = () => {
             <p className="text-sm text-muted-foreground">{email}</p>
             <div className="flex items-center gap-1 mt-1">
               {[1, 2, 3, 4, 5].map(s => (
-                <Star key={s} className="w-3 h-3" />
+                <Star key={s} className="w-3 h-3 fill-primary text-primary" />
               ))}
               <span className="text-xs text-muted-foreground ml-1">4.8 (12 avis)</span>
             </div>
@@ -95,109 +90,27 @@ const Settings = () => {
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
                     <p className="text-xs text-muted-foreground">{item.desc}</p>
-                  <div className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
-  <div
-  className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
-    item.toggle ? "bg-green-500 justify-end" : "bg-gray-300 justify-start"
-  }`}
->
-  <div>
-  {condition ? (
-    <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
-  ) : (
-    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-  )}
-{items.map(item => (
-  <button key={item.id} className="flex items-center justify-between w-full">
-    
-    {item.toggle ? (
-      <div
-        className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
-          item.toggle ? "bg-green-500 justify-end" : "bg-gray-300 justify-start"
-        }`}
-      >
-        <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
-      const Settings = () => {
+                  </div>
+                  {item.toggle ? (
+                    <div className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${theme === "dark" ? "bg-primary justify-end" : "bg-muted-foreground/20 justify-start"}`}>
+                      <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+                    </div>
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
 
-  const handleSignOut = () => {
-    // logout logic
-  };
-
-  return (
-    <div>
-      {condition ? (
-        <div>
-          {/* UI A */}
-        </div>
-      ) : (
-        <div>
-          {/* UI B */}
-        </div>
-      )}
+        <button className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm">
+          <LogOut className="w-4 h-4" />
+          Se déconnecter
+        </button>
+      </div>
     </div>
   );
 };
 
-export default Settings;
-    // logout logic
-  };
-
-  return (
-    <div>
-      {/* ton UI ici */}
-
-      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-    </div>
-  );
-};
-
-export default Settings;
-    // logout logic
-  };
-
-  return (
-    <div>
-      <button onClick={handleSignOut}>
-        Sign out
-      </button>
-    </div>
-  );
-};
-
-export default Settings;
-
-  return (
-    <div>
-      {items.map(() => (
-        <button>...</button>
-      ))}
-    </div>
-  );
-};
-
-export default Settings;
-  return (
-    <div>
-      <button
-        onClick={handleSignOut}
-        className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm"
-      >
-        <LogOut className="w-4 h-4" />
-        Se déconnecter
-      </button>
-    </div>
-  );
-};
-
-export default Settings;
-        Click me
-      </button>
-    </div>
-  );
-};
-
-export default Settings;
-    </div>
-  );
-};
 export default Settings;
