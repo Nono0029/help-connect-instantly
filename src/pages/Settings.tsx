@@ -1,13 +1,20 @@
 import { ArrowLeft, User, Moon, Sun, ChevronRight, Shield, Bell, ShoppingBag, HelpCircle, LogOut, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/context/AuthContext";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
 
-  const pseudo = "Mon compte";
-  const email = "";
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  const pseudo = user?.email?.split("@")[0] || "Mon compte";
+  const email = user?.email || "";
 
   const menuSections = [
     {
@@ -104,7 +111,10 @@ const Settings = () => {
           </div>
         ))}
 
-        <button className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm">
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm"
+        >
           <LogOut className="w-4 h-4" />
           Se déconnecter
         </button>
