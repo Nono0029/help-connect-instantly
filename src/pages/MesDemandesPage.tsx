@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Pencil, Trash2, Clock, Euro, Zap, PackageOpen } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Euro, Zap, PackageOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/context/AuthContext";
 import PostDemandeForm from "@/components/PostDemandeForm";
 
 interface Demande {
@@ -16,12 +15,10 @@ interface Demande {
   gratuit: boolean;
   prix?: string;
   created_at: string;
-  user_id: string;
 }
 
 const MesDemandesPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [demandes, setDemandes] = useState<Demande[]>([]);
   const [loading, setLoading] = useState(true);
   const [demandeToEdit, setDemandeToEdit] = useState<Demande | null>(null);
@@ -30,31 +27,20 @@ const MesDemandesPage = () => {
   const [deleting, setDeleting] = useState(false);
 
   const fetchDemandes = async () => {
-    if (!user) return;
     setLoading(true);
-
-const { data, error } = await supabase
-  .from("demandes")
-  .select("*");
-
-if (error) {
-  console.error(error);
-  setLoading(false);
-  return;
-const { data: demandesData, error } = await supabase
-  .from("demandes")
-  .select("*");
-  .setDemandes(demandesData);
-  .or(`user_id.eq.${user_id},user_id.is.null`)
-  .order("created_at", { ascending: false });
-
-if (data) setDemandes(data);
-setLoading(false);
-if (data) setDemandes(data);
+    const { data, error } = await supabase
+      .from("demandes")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error(error);
+    } else if (data) {
+      setDemandes(data);
+    }
     setLoading(false);
   };
 
-  useEffect(() => { fetchDemandes(); }, [user]);
+  useEffect(() => { fetchDemandes(); }, []);
 
   const handleDelete = async (id: number) => {
     setDeleting(true);
@@ -72,14 +58,6 @@ if (data) setDemandes(data);
   const handleEdit = (d: Demande) => {
     setDemandeToEdit(d);
     setShowForm(true);
-  };
-
-  const getTemps = (created_at: string) => {
-    const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
-    if (diff < 60) return "À l'instant";
-if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
-return `Il y a ${Math.floor(diff / 86400)} j`;
   };
 
   return (
@@ -121,25 +99,22 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
               transition={{ delay: i * 0.04 }}
               className="bg-card rounded-2xl border border-border p-4 shadow-sm"
             >
-              <div className="flex-1 min-w-0 mb-2">
-                <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{d.categorie}</span>
-                  {d.urgent && (
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-0.5">
-                      <Zap className="w-3 h-3" /> Urgent
-                    </span>
-                  )}
-                </div>
-                <h3 className="font-semibold text-foreground truncate">{d.titre}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">{d.description}</p>
+              <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{d.categorie}</span>
+                {d.urgent && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-0.5">
+                    <Zap className="w-3 h-3" /> Urgent
+                  </span>
+                )}
               </div>
+              <h3 className="font-semibold text-foreground truncate">{d.titre}</h3>
+              <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5 mb-3">{d.description}</p>
 
-              <div className="flex items-center justify-between mt-3">
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1 font-semibold">
-  <Euro className="w-3 h-3" />
-  {d.gratuit ? "Gratuit" : (d.prix || "—")}
-</span>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                  <Euro className="w-3 h-3" />
+                  {d.gratuit ? "Gratuit" : (d.prix || "—")}
+                </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(d)}
