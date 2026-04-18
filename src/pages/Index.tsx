@@ -47,6 +47,14 @@ const Index = () => {
     fetchDemandes();
   }, []);
 
+  const getTemps = (created_at: string) => {
+    const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
+    if (diff < 60) return "À l'instant";
+    if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
+    if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
+    return `Il y a ${Math.floor(diff / 86400)} j`;
+  };
+
   const filtered = demandes.filter(d => {
     const matchSearch = d.titre.toLowerCase().includes(search.toLowerCase()) || d.description.toLowerCase().includes(search.toLowerCase());
     const matchCat = selectedCat === "Tout" || d.categorie === selectedCat;
@@ -67,15 +75,6 @@ const Index = () => {
     filters.maxDistance !== 999,
     filters.prix !== "all",
   ].filter(Boolean).length;
-
-  const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
-
-if (diff < 60) return "À l'instant";
-if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
-
-return `Il y a ${Math.floor(diff / 86400)} j`;
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -125,17 +124,20 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
 
         <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
           {categories.map(cat => (
-  <button
-    key={cat}
-    onClick={() => setSelectedCat(cat)}
-    className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-  >
-    {cat}
-  {items.map(item => (
-  <div key={item.id}>
-    ...
-  </div>
-))}
+            <button
+              key={cat}
+              onClick={() => setSelectedCat(cat)}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                selectedCat === cat
+                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                  : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </header>
 
       <div className="flex-1 px-4 pt-4 pb-24 space-y-3">
         {filtered.length === 0 && (
@@ -168,15 +170,11 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
                       <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{getTemps(d.created_at)}</span>
                     </div>
                   </div>
+                </div>
                 <button onClick={(e) => toggleLike(d.id, e)} className="p-1">
-  <Heart className="w-5 h-5 transition-colors" />
-                  <Heart
-  className={`w-5 h-5 transition-colors ${
-    isLiked ? "text-red-500 fill-red-500" : "text-gray-400"
-  }`}
-/>
-</button>
-              
+                  <Heart className={`w-5 h-5 transition-colors ${likedIds.includes(d.id) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+                </button>
+              </div>
 
               <h3 className="font-semibold text-foreground mb-1">{d.titre}</h3>
               <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{d.description}</p>
@@ -186,48 +184,25 @@ return `Il y a ${Math.floor(diff / 86400)} j`;
                   <Badge variant="secondary" className="text-xs rounded-lg">{d.categorie}</Badge>
                   {d.urgent && <Badge className="bg-destructive text-destructive-foreground text-xs rounded-lg">⚡ Urgent</Badge>}
                 </div>
-                <span className="text-sm font-bold">
-  {d.gratuit ? "Gratuit ❤️" : d.prix}
-<AnimatePresence>
-  {items.map(d => (
-    <motion.div key={d.id}>
-      <div>
-        <span className="text-sm font-bold">
-          {d.gratuit ? "Gratuit ❤️" : d.prix}
-        </span>
+                <span className={`text-sm font-bold ${d.gratuit ? "text-accent" : "text-foreground"}`}>
+                  {d.gratuit ? "Gratuit ❤️" : d.prix}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
-    </motion.div>
-  ))}
-</AnimatePresence>
-<Button
-  size="lg"
-  className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground"
-  onClick={() => setShowForm(true)}
->
-  +
-<AnimatePresence>
-  {items.map(d => (
-    <motion.div key={d.id}>
-      <div>
-        <span>{d.prix}</span>
-      </div>
-    </motion.div>
-  ))}
-</AnimatePresence>
 
-<Button
-  size="lg"
-  onClick={() => setShowForm(true)}
->
-  <Plus className="w-6 h-6" />
-</Button>
+      <motion.div className="fixed bottom-6 right-6 z-50" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+        <Button size="lg" className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground" onClick={() => setShowForm(true)}>
+          <Plus className="w-6 h-6" />
+        </Button>
+      </motion.div>
 
-<PostDemandeForm
-  <MyComponent
-  open={showForm}
-  onClose={() => setShowForm(false)}
->
-  <Button onClick={...}>
-    Valider
-  </Button>
-</MyComponent>
+      <PostDemandeForm open={showForm} onClose={() => setShowForm(false)} onDemandeAdded={fetchDemandes} />
+      <SearchFilters open={showFilters} onClose={() => setShowFilters(false)} filters={filters} onApply={setFilters} />
+    </div>
+  );
+};
+
+export default Index;
