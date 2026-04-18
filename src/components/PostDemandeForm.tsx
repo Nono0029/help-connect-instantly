@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/context/AuthContext";
 
 const typesAide = [
   { id: "physique", label: "💪 Aide physique", desc: "Déménagement, ménage, portage..." },
@@ -31,7 +30,6 @@ interface Demande {
   gratuit: boolean;
   prix?: string;
   created_at: string;
-  user_id: string;
 }
 
 interface Props {
@@ -42,7 +40,6 @@ interface Props {
 }
 
 const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props) => {
-  const { user } = useAuth();
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -83,9 +80,8 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
   };
 
   const handleSubmit = async () => {
-    if (!titre || !selectedType || !user) return;
+    if (!titre || !selectedType) return;
     setLoading(true);
-
     const typeLabel = typesAide.find(t => t.id === selectedType)?.label || selectedType;
     const payload = { titre, description, categorie: typeLabel, prix: gratuit ? null : prix, gratuit, urgent };
 
@@ -94,8 +90,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
       const res = await supabase.from("demandes").update(payload).eq("id", demandeToEdit.id);
       error = res.error;
     } else {
-      const auteur = user.email?.split("@")[0] || "Anonyme";
-      const res = await supabase.from("demandes").insert([{ ...payload, auteur, user_id: user.id }]);
+      const res = await supabase.from("demandes").insert([{ ...payload, auteur: "Anonyme" }]);
       error = res.error;
     }
 
@@ -177,7 +172,11 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
                 <div className="flex flex-wrap gap-2">
                   {typesAide.map(type => (
                     <button key={type.id} onClick={() => setSelectedType(type.id)}
-                      className={px-3 py-2 rounded-xl text-xs font-medium transition-all border \}>
+                      className={`px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
+                        selectedType === type.id
+                          ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                          : "bg-secondary text-muted-foreground border-transparent hover:border-primary/30"
+                      }`}>
                       {type.label}
                     </button>
                   ))}
@@ -192,7 +191,11 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
                 <div className="flex flex-wrap gap-2">
                   {durees.map(d => (
                     <button key={d} onClick={() => setDuree(d)}
-                      className={px-3 py-1.5 rounded-lg text-xs font-medium transition-all border \}>
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                        duree === d
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-secondary text-muted-foreground border-transparent"
+                      }`}>
                       {d}
                     </button>
                   ))}
@@ -205,7 +208,11 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
                 </label>
                 <div className="flex items-center gap-3">
                   <button onClick={() => { setGratuit(true); setPrix(""); }}
-                    className={px-4 py-2 rounded-xl text-sm font-medium transition-all border \}>
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
+                      gratuit
+                        ? "bg-accent text-accent-foreground border-accent shadow-md"
+                        : "bg-secondary text-muted-foreground border-transparent"
+                    }`}>
                     ❤️ Gratuit
                   </button>
                   <div className="flex-1 relative">
@@ -216,9 +223,15 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
               </div>
 
               <button onClick={() => setUrgent(!urgent)}
-                className={w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all \}>
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                  urgent
+                    ? "bg-destructive/10 border-destructive/30 text-destructive"
+                    : "bg-secondary border-transparent text-muted-foreground"
+                }`}>
                 <span className="text-sm font-medium">⚡ C'est urgent</span>
-                <div className={w-10 h-6 rounded-full transition-all flex items-center px-0.5 \}>
+                <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${
+                  urgent ? "bg-destructive justify-end" : "bg-muted-foreground/20 justify-start"
+                }`}>
                   <div className="w-5 h-5 rounded-full bg-card shadow-sm" />
                 </div>
               </button>
