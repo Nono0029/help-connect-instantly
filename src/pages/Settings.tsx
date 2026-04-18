@@ -1,4 +1,4 @@
-mport { ArrowLeft, User, Moon, Sun, ChevronRight, Shield, Bell, ShoppingBag, HelpCircle, LogOut, Star } from "lucide-react";
+import { ArrowLeft, User, Moon, Sun, ChevronRight, Shield, Bell, ShoppingBag, HelpCircle, LogOut, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
 
