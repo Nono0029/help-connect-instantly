@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import CityPicker from "@/components/CityPicker";
 
 const typesAide = [
   { id: "physique", label: "💪 Aide physique", desc: "Déménagement, ménage, portage..." },
@@ -50,6 +51,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   const [duree, setDuree] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [villeForm, setVilleForm] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const isEdit = !!demandeToEdit;
@@ -66,7 +68,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
     } else {
       setTitre(""); setDescription(""); setSelectedType("");
       setPhotos([]); setPrix(""); setGratuit(false);
-      setDuree(""); setUrgent(false);
+      setDuree(""); setUrgent(false); setVilleForm("");
     }
   }, [demandeToEdit, open]);
 
@@ -81,10 +83,10 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   };
 
   const handleSubmit = async () => {
-    if (!titre || !selectedType) return;
+    if (!titre || !selectedType || !villeForm) return;
     setLoading(true);
     const typeLabel = typesAide.find(t => t.id === selectedType)?.label || selectedType;
-    const payload = { titre, description, categorie: typeLabel, prix: gratuit ? null : prix, gratuit, urgent, ville: ville || "" };
+    const payload = { titre, description, categorie: typeLabel, prix: gratuit ? null : prix, gratuit, urgent, ville: villeForm || ville || "" };
 
     let error = null;
     if (isEdit && demandeToEdit) {
@@ -169,6 +171,16 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
               </div>
 
               <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Ville de la demande</label>
+                <div className="h-11 rounded-xl bg-secondary px-4 flex items-center">
+                  <CityPicker
+                    ville={villeForm || "Choisir une ville..."}
+                    onChange={(v) => setVilleForm(v)}
+                  />
+                </div>
+              </div>
+
+              <div>
                 <label className="text-sm font-semibold text-foreground mb-2 block">Type d'aide</label>
                 <div className="flex flex-wrap gap-2">
                   {typesAide.map(type => (
@@ -237,7 +249,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                 </div>
               </button>
 
-              <Button onClick={handleSubmit} disabled={!titre || !selectedType || loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25">
+              <Button onClick={handleSubmit} disabled={!titre || !selectedType || !villeForm || loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25">
                 <Sparkles className="w-4 h-4 mr-2" />
                 {loading ? (isEdit ? "Modification..." : "Publication...") : (isEdit ? "Enregistrer les modifications" : "Publier ma demande")}
               </Button>
