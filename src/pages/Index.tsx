@@ -92,6 +92,9 @@ const Index = () => {
               <Button variant="ghost" size="icon" onClick={() => navigate("/mes-demandes")} title="Mes demandes">
                 <ShoppingBag className="w-5 h-5" />
               </Button>
+              <Button variant="ghost" size="icon" onClick={() => navigate("/messages")} title="Messages">
+  <MessageCircle className="w-5 h-5" />
+</Button>
               <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} title="Paramètres">
                 <User className="w-5 h-5" />
               </Button>
