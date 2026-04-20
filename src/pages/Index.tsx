@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, MapPin, Clock, Heart, Filter, Bell, User, Plus, ShoppingBag } from "lucide-react";
+import { Search, MapPin, Clock, Heart, Filter, Bell, User, Plus, ShoppingBag, MessageCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
