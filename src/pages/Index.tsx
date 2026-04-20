@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import PostDemandeForm from "@/components/PostDemandeForm";
 import SearchFilters from "@/components/SearchFilters";
 import CityPicker from "@/components/CityPicker";
+import MapView from "@/components/MapView";
 import { supabase } from "@/lib/supabase";
 
 interface Demande {
@@ -20,6 +21,7 @@ interface Demande {
   gratuit: boolean;
   prix?: string;
   created_at: string;
+  ville?: string;
 }
 
 const categories = ["Tout", "🏠 Maison", "🔧 Bricolage", "🐶 Animaux", "📚 Cours", "💬 Écoute", "💻 Tech", "🌱 Jardin"];
@@ -43,9 +45,7 @@ const Index = () => {
     if (data) setDemandes(data);
   };
 
-  useEffect(() => {
-    fetchDemandes();
-  }, []);
+  useEffect(() => { fetchDemandes(); }, []);
 
   const getTemps = (created_at: string) => {
     const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
@@ -93,8 +93,8 @@ const Index = () => {
                 <ShoppingBag className="w-5 h-5" />
               </Button>
               <Button variant="ghost" size="icon" onClick={() => navigate("/messages")} title="Messages">
-  <MessageCircle className="w-5 h-5" />
-</Button>
+                <MessageCircle className="w-5 h-5" />
+              </Button>
               <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} title="Paramètres">
                 <User className="w-5 h-5" />
               </Button>
@@ -142,6 +142,9 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Carte */}
+      <MapView demandes={filtered} ville={ville} />
+
       <div className="flex-1 px-4 pt-4 pb-24 space-y-3">
         {filtered.length === 0 && (
           <div className="text-center text-muted-foreground py-20">
@@ -168,7 +171,7 @@ const Index = () => {
                   <div>
                     <p className="text-sm font-medium text-foreground">{d.auteur}</p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{ville}</span>
+                      <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{d.ville || ville}</span>
                       <span>·</span>
                       <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{getTemps(d.created_at)}</span>
                     </div>
@@ -202,7 +205,7 @@ const Index = () => {
         </Button>
       </motion.div>
 
-      <PostDemandeForm open={showForm} onClose={() => setShowForm(false)} onDemandeAdded={fetchDemandes} />
+      <PostDemandeForm open={showForm} onClose={() => setShowForm(false)} onDemandeAdded={fetchDemandes} ville={ville} />
       <SearchFilters open={showFilters} onClose={() => setShowFilters(false)} filters={filters} onApply={setFilters} />
     </div>
   );
