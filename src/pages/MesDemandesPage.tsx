@@ -1,99 +1,188 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowLeft, Pencil, Trash2, Euro, Zap, PackageOpen } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/context/AuthContext";
+import PostDemandeForm from "@/components/PostDemandeForm";
 
-interface Conversation {
+interface Demande {
   id: number;
-  demande_id: number;
-  helper_id: string;
-  demandeur_id: string;
-  statut: string;
-  demande?: {
-    titre: string;
-  };
+  titre: string;
+  description: string;
+  categorie: string;
+  auteur: string;
+  urgent: boolean;
+  gratuit: boolean;
+  prix?: string;
+  created_at: string;
 }
 
-const MessagesPage = () => {
+const MesDemandesPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [demandes, setDemandes] = useState<Demande[]>([]);
   const [loading, setLoading] = useState(true);
+  const [demandeToEdit, setDemandeToEdit] = useState<Demande | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
+  const fetchDemandes = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("demandes")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error(error);
+    } else if (data) {
+      setDemandes(data);
+    }
+    setLoading(false);
+  };
 
-    const fetchConversations = async () => {
-      setLoading(true);
+  useEffect(() => { fetchDemandes(); }, []);
 
-      const { data } = await supabase
-        .from("conversations")
-        .select("*, demande:demande_id(titre)")
-        .or(`helper_id.eq.${user.id},demandeur_id.eq.${user.id}`)
-        .order("id", { ascending: false });
+  const handleDelete = async (id: number) => {
+    setDeleting(true);
+    const { error } = await supabase.from("demandes").delete().eq("id", id);
+    setDeleting(false);
+    if (error) {
+      alert("Erreur suppression : " + error.message);
+      setConfirmDeleteId(null);
+      return;
+    }
+    setConfirmDeleteId(null);
+    setDemandes(prev => prev.filter(d => d.id !== id));
+  };
 
-      if (data) setConversations(data);
-
-      setLoading(false);
-    };
-
-    fetchConversations();
-  }, [user]);
+  const handleEdit = (d: Demande) => {
+    setDemandeToEdit(d);
+    setShowForm(true);
+  };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-
-      {/* Header */}
+    <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate("/")} className="p-1">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <p className="text-sm font-bold text-foreground">Messages</p>
+          <h1 className="text-lg font-bold text-foreground">Mes demandes</h1>
+          <span className="ml-auto text-sm text-muted-foreground">{demandes.length} publiée{demandes.length > 1 ? "s" : ""}</span>
         </div>
       </header>
 
-      {/* Liste */}
-      <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto">
-
+      <div className="px-4 pt-4 pb-24 space-y-3">
         {loading && (
-          <p className="text-sm text-muted-foreground">Chargement...</p>
-        )}
-
-        {!loading && conversations.length === 0 && (
-          <div className="flex flex-col items-center justify-center mt-20 text-center">
-            <MessageCircle className="w-10 h-10 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Aucune conversation
-            </p>
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-28 bg-card rounded-2xl border border-border animate-pulse" />
+            ))}
           </div>
         )}
 
-        {conversations.map((conv, i) => (
-          <motion.div
-            key={conv.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03 }}
-            onClick={() => navigate(`/chat/${conv.id}`)}
-            className="p-4 rounded-2xl bg-card border border-border cursor-pointer hover:opacity-80 transition"
-          >
-            <p className="text-sm font-semibold text-foreground">
-              {conv.demande?.titre || "Conversation"}
-            </p>
+        {!loading && demandes.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+            <PackageOpen className="w-12 h-12 text-muted-foreground/40" />
+            <p className="font-semibold text-foreground">Aucune demande publiée</p>
+            <p className="text-sm text-muted-foreground">Appuie sur + sur l'accueil pour créer ta première demande</p>
+          </div>
+        )}
 
-            <p className="text-xs text-muted-foreground mt-1">
-              {conv.statut === "payé" ? "✅ Payé" : "💬 En cours"}
-            </p>
-          </motion.div>
-        ))}
+        <AnimatePresence>
+          {demandes.map((d, i) => (
+            <motion.div
+              key={d.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ delay: i * 0.04 }}
+              className="bg-card rounded-2xl border border-border p-4 shadow-sm"
+            >
+              <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{d.categorie}</span>
+                {d.urgent && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-0.5">
+                    <Zap className="w-3 h-3" /> Urgent
+                  </span>
+                )}
+              </div>
+              <h3 className="font-semibold text-foreground truncate">{d.titre}</h3>
+              <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5 mb-3">{d.description}</p>
 
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                  <Euro className="w-3 h-3" />
+                  {d.gratuit ? "Gratuit" : (d.prix || "—")}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEdit(d)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" /> Modifier
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(d.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Supprimer
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
+
+      <AnimatePresence>
+        {confirmDeleteId !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-end justify-center"
+            onClick={() => setConfirmDeleteId(null)}
+          >
+            <motion.div
+              initial={{ y: 100 }}
+              animate={{ y: 0 }}
+              exit={{ y: 100 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-lg bg-card rounded-t-3xl p-6 pb-10 space-y-4"
+            >
+              <div className="flex justify-center">
+                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+              </div>
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+                  <Trash2 className="w-6 h-6 text-destructive" />
+                </div>
+                <h3 className="font-bold text-foreground text-lg">Supprimer la demande ?</h3>
+                <p className="text-sm text-muted-foreground">Cette action est irréversible.</p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setConfirmDeleteId(null)} className="flex-1 py-3 rounded-xl bg-secondary text-foreground font-medium text-sm">
+                  Annuler
+                </button>
+                <button onClick={() => handleDelete(confirmDeleteId)} disabled={deleting} className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground font-medium text-sm disabled:opacity-60">
+                  {deleting ? "Suppression..." : "Supprimer"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <PostDemandeForm
+        open={showForm}
+        onClose={() => { setShowForm(false); setDemandeToEdit(null); }}
+        onDemandeAdded={fetchDemandes}
+        demandeToEdit={demandeToEdit}
+      />
     </div>
   );
 };
 
-export default MessagesPage;
+export default MesDemandesPage;
