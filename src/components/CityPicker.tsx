@@ -1,22 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { MapPin, Search, X, ChevronDown } from "lucide-react";
+import { MapPin, Search, X, ChevronDown, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const VILLES_SUGGESTIONS = [
-  "Paris 1er", "Paris 2ème", "Paris 3ème", "Paris 4ème", "Paris 5ème",
-  "Paris 6ème", "Paris 7ème", "Paris 8ème", "Paris 9ème", "Paris 10ème",
-  "Paris 11ème", "Paris 12ème", "Paris 13ème", "Paris 14ème", "Paris 15ème",
-  "Paris 16ème", "Paris 17ème", "Paris 18ème", "Paris 19ème", "Paris 20ème",
-  "Lyon 1er", "Lyon 2ème", "Lyon 3ème", "Lyon 4ème", "Lyon 5ème",
-  "Lyon 6ème", "Lyon 7ème", "Lyon 8ème", "Lyon 9ème",
-  "Marseille 1er", "Marseille 2ème", "Marseille 3ème", "Marseille 4ème",
-  "Marseille 5ème", "Marseille 6ème", "Marseille 7ème", "Marseille 8ème",
-  "Bordeaux", "Toulouse", "Nantes", "Strasbourg", "Lille", "Rennes",
-  "Reims", "Nice", "Toulon", "Grenoble", "Montpellier", "Béziers",
-  "Clermont-Ferrand", "Rouen", "Caen", "Nancy", "Metz", "Amiens",
-  "Tours", "Orléans", "Dijon", "Angers", "Le Mans", "Saint-Étienne",
-  "Brest", "Nîmes", "Le Havre", "Mulhouse", "Perpignan", "Besançon",
-];
+interface CityResult {
+  display_name: string;
+  lat: string;
+  lon: string;
+}
 
 interface Props {
   ville: string;
@@ -26,24 +16,49 @@ interface Props {
 const CityPicker = ({ ville, onChange }: Props) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<CityResult[]>([]);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const suggestions = query.length >= 1
-    ? VILLES_SUGGESTIONS.filter(v =>
-        v.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 20)
-    : VILLES_SUGGESTIONS.slice(0, 20);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 300);
     } else {
       setQuery("");
+      setResults([]);
     }
   }, [open]);
 
-  const handleSelect = (v: string) => {
-    onChange(v);
+  useEffect(() => {
+    if (query.length < 2) {
+      setResults([]);
+      return;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&featuretype=city,town,village&accept-language=fr`
+        );
+        const data = await res.json();
+        setResults(data);
+      } catch {
+        setResults([]);
+      }
+      setLoading(false);
+    }, 400);
+  }, [query]);
+
+  const getShortName = (display_name: string) => {
+    return display_name.split(",").slice(0, 2).join(",").trim();
+  };
+
+  const handleSelect = (result: CityResult) => {
+    onChange(getShortName(result.display_name));
     setOpen(false);
   };
 
@@ -95,16 +110,13 @@ const CityPicker = ({ ville, onChange }: Props) => {
                   <input
                     ref={inputRef}
                     type="text"
-                    placeholder="Rechercher une ville..."
+                    placeholder="Rechercher n'importe quelle ville..."
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     className="w-full h-11 pl-10 pr-4 rounded-xl bg-secondary border-none text-sm outline-none text-foreground placeholder:text-muted-foreground"
                   />
                   {query && (
-                    <button
-                      onClick={() => setQuery("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    >
+                    <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                       <X className="w-4 h-4" />
                     </button>
                   )}
@@ -112,38 +124,39 @@ const CityPicker = ({ ville, onChange }: Props) => {
               </div>
 
               <div className="overflow-y-auto px-4 pb-8 h-64">
-                {suggestions.length === 0 ? (
-                  <div className="text-center text-sm text-muted-foreground py-8">
-                    Aucune ville trouvée pour « {query} »
+                {loading && (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-5 h-5 text-primary animate-spin" />
                   </div>
-                ) : (
-                  <>
-                    <p className="text-xs text-muted-foreground mb-2 font-medium">
-                      {query ? "Résultats" : "Villes populaires"}
-                    </p>
-                    <div className="space-y-1">
-                      {suggestions.map(v => (
-                        <button
-                          key={v}
-                          onClick={() => handleSelect(v)}
-                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-left transition-colors ${
-                            v === ville
-                              ? "bg-primary/10 text-primary font-semibold"
-                              : "hover:bg-secondary text-foreground"
-                          }`}
-                        >
-                          <MapPin className={`w-4 h-4 shrink-0 ${v === ville ? "text-primary" : "text-muted-foreground"}`} />
-                          {v}
-                          {v === ville && (
-                            <span className="ml-auto text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-                              Actuelle
-                            </span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </>
                 )}
+
+                {!loading && query.length < 2 && (
+                  <p className="text-center text-sm text-muted-foreground py-8">
+                    Tape au moins 2 lettres pour rechercher
+                  </p>
+                )}
+
+                {!loading && query.length >= 2 && results.length === 0 && (
+                  <p className="text-center text-sm text-muted-foreground py-8">
+                    Aucune ville trouvée pour « {query} »
+                  </p>
+                )}
+
+                <div className="space-y-1">
+                  {results.map((r, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSelect(r)}
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-left hover:bg-secondary transition-colors"
+                    >
+                      <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium text-foreground">{getShortName(r.display_name)}</p>
+                        <p className="text-xs text-muted-foreground truncate">{r.display_name}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -154,3 +167,4 @@ const CityPicker = ({ ville, onChange }: Props) => {
 };
 
 export default CityPicker;
+
