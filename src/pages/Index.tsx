@@ -35,6 +35,7 @@ const Index = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ type: "Tout", maxDistance: 999, prix: "all" });
   const [ville, setVille] = useState("Paris 11ème");
+  const [villeCoords, setVilleCoords] = useState<[number, number]>([48.8589, 2.3794]);
   const [demandes, setDemandes] = useState<Demande[]>([]);
 
   const fetchDemandes = async () => {
@@ -120,7 +121,7 @@ const Index = () => {
           </div>
 
           <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-            <CityPicker ville={ville} onChange={setVille} />
+            <CityPicker ville={ville} onChange={(v, lat, lng) => { setVille(v); setVilleCoords([lat, lng]); }} />
             <span className="ml-auto text-primary font-medium">{filtered.length} demandes autour de toi</span>
           </div>
         </div>
@@ -143,7 +144,7 @@ const Index = () => {
       </header>
 
       {/* Carte */}
-      <MapView demandes={filtered} ville={ville} />
+      <MapView demandes={filtered} ville={ville} lat={villeCoords[0]} lng={villeCoords[1]} />
 
       <div className="flex-1 px-4 pt-4 pb-24 space-y-3">
         {filtered.length === 0 && (
