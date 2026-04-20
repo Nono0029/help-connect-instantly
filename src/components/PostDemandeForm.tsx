@@ -33,13 +33,14 @@ interface Demande {
 }
 
 interface Props {
+  ville?: string;
   open: boolean;
   onClose: () => void;
   onDemandeAdded: () => void;
   demandeToEdit?: Demande | null;
 }
 
-const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props) => {
+const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }: Props) => {
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -83,7 +84,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
     if (!titre || !selectedType) return;
     setLoading(true);
     const typeLabel = typesAide.find(t => t.id === selectedType)?.label || selectedType;
-    const payload = { titre, description, categorie: typeLabel, prix: gratuit ? null : prix, gratuit, urgent };
+    const payload = { titre, description, categorie: typeLabel, prix: gratuit ? null : prix, gratuit, urgent, ville: ville || "" };
 
     let error = null;
     if (isEdit && demandeToEdit) {
