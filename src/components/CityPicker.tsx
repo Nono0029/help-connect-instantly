@@ -10,7 +10,7 @@ interface CityResult {
 
 interface Props {
   ville: string;
-  onChange: (ville: string) => void;
+  onChange: (ville: string, lat: number, lng: number) => void;
 }
 
 const CityPicker = ({ ville, onChange }: Props) => {
@@ -31,13 +31,8 @@ const CityPicker = ({ ville, onChange }: Props) => {
   }, [open]);
 
   useEffect(() => {
-    if (query.length < 2) {
-      setResults([]);
-      return;
-    }
-
+    if (query.length < 2) { setResults([]); return; }
     if (debounceRef.current) clearTimeout(debounceRef.current);
-
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
@@ -46,28 +41,22 @@ const CityPicker = ({ ville, onChange }: Props) => {
         );
         const data = await res.json();
         setResults(data);
-      } catch {
-        setResults([]);
-      }
+      } catch { setResults([]); }
       setLoading(false);
     }, 400);
   }, [query]);
 
-  const getShortName = (display_name: string) => {
-    return display_name.split(",").slice(0, 2).join(",").trim();
-  };
+  const getShortName = (display_name: string) =>
+    display_name.split(",").slice(0, 2).join(",").trim();
 
   const handleSelect = (result: CityResult) => {
-    onChange(getShortName(result.display_name));
+    onChange(getShortName(result.display_name), parseFloat(result.lat), parseFloat(result.lon));
     setOpen(false);
   };
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-      >
+      <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
         <MapPin className="w-3 h-3 text-primary" />
         <span className="font-medium text-foreground">{ville}</span>
         <ChevronDown className="w-3 h-3" />
@@ -75,80 +64,40 @@ const CityPicker = ({ ville, onChange }: Props) => {
 
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex flex-col justify-end"
-            onClick={() => setOpen(false)}
-          >
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
+            onClick={() => setOpen(false)}>
+            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               onClick={e => e.stopPropagation()}
-              className="bg-background rounded-t-3xl flex flex-col overflow-hidden"
-            >
+              className="bg-background rounded-t-3xl flex flex-col overflow-hidden">
               <div className="flex justify-center pt-3 pb-1 shrink-0">
                 <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
               </div>
-
               <div className="flex items-center justify-between px-4 pb-3 border-b border-border shrink-0">
-                <button onClick={() => setOpen(false)} className="text-muted-foreground p-1">
-                  <X className="w-5 h-5" />
-                </button>
+                <button onClick={() => setOpen(false)} className="text-muted-foreground p-1"><X className="w-5 h-5" /></button>
                 <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-primary" /> Choisir ma ville
                 </h2>
                 <div className="w-7" />
               </div>
-
               <div className="px-4 pt-3 pb-2 shrink-0">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    placeholder="Rechercher n'importe quelle ville..."
-                    value={query}
-                    onChange={e => setQuery(e.target.value)}
-                    className="w-full h-11 pl-10 pr-4 rounded-xl bg-secondary border-none text-sm outline-none text-foreground placeholder:text-muted-foreground"
-                  />
-                  {query && (
-                    <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
+                  <input ref={inputRef} type="text" placeholder="Rechercher n'importe quelle ville..."
+                    value={query} onChange={e => setQuery(e.target.value)}
+                    className="w-full h-11 pl-10 pr-4 rounded-xl bg-secondary border-none text-sm outline-none text-foreground placeholder:text-muted-foreground" />
+                  {query && <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"><X className="w-4 h-4" /></button>}
                 </div>
               </div>
-
               <div className="overflow-y-auto px-4 pb-8 h-64">
-                {loading && (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                  </div>
-                )}
-
-                {!loading && query.length < 2 && (
-                  <p className="text-center text-sm text-muted-foreground py-8">
-                    Tape au moins 2 lettres pour rechercher
-                  </p>
-                )}
-
-                {!loading && query.length >= 2 && results.length === 0 && (
-                  <p className="text-center text-sm text-muted-foreground py-8">
-                    Aucune ville trouvée pour « {query} »
-                  </p>
-                )}
-
+                {loading && <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 text-primary animate-spin" /></div>}
+                {!loading && query.length < 2 && <p className="text-center text-sm text-muted-foreground py-8">Tape au moins 2 lettres pour rechercher</p>}
+                {!loading && query.length >= 2 && results.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">Aucune ville trouvée pour « {query} »</p>}
                 <div className="space-y-1">
                   {results.map((r, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSelect(r)}
-                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-left hover:bg-secondary transition-colors"
-                    >
+                    <button key={i} onClick={() => handleSelect(r)}
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-left hover:bg-secondary transition-colors">
                       <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
                       <div>
                         <p className="font-medium text-foreground">{getShortName(r.display_name)}</p>
@@ -167,4 +116,3 @@ const CityPicker = ({ ville, onChange }: Props) => {
 };
 
 export default CityPicker;
-
