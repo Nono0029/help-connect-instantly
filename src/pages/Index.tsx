@@ -142,9 +142,9 @@ const Index = () => {
           ))}
         </div>
       </header>
-
-      {/* Carte */}
-      <MapView demandes={filtered} ville={ville} lat={villeCoords[0]} lng={villeCoords[1]} />
+      
+{/* Carte */}
+{!showForm && <MapView demandes={filtered} ville={ville} lat={villeCoords[0]} lng={villeCoords[1]} />}
 
       <div className="flex-1 px-4 pt-4 pb-24 space-y-3">
         {filtered.length === 0 && (
