@@ -162,7 +162,6 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               onClick={() => navigate(`/demande/${d.id}`)}
-              ) => navigate(`/demande/${d.id}`)}
               className="bg-card rounded-2xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98]"
             >
               <div className="flex items-start justify-between mb-2">
