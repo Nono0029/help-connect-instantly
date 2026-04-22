@@ -104,18 +104,22 @@ const ChatPage = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  
   const sendMessage = async (content: string, isAuto = false) => {
   if (!content.trim() || !user || !id) return;
   setLoading(true);
-  const { data, error } = await supabase.from("messages").insert([{
+  await supabase.from("messages").insert([{
     conversation_id: parseInt(id),
     sender_id: user.id,
     content,
     is_auto: isAuto,
   }]);
-  console.log("data:", data);
-  console.log("error:", error);
+  // Recharger tous les messages
+  const { data } = await supabase
+    .from("messages")
+    .select("*")
+    .eq("conversation_id", parseInt(id))
+    .order("created_at", { ascending: true });
+  if (data) setMessages(data);
   setText("");
   setLoading(false);
 };
