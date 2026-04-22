@@ -76,7 +76,7 @@ const ChatPage = () => {
       .channel(`chat-${id}`)
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "messages",
-        filter: `conversation_id=eq.${id}`,
+        filter: `conversation_id=eq.${parseInt(id!)}`,
       }, (payload) => {
         setMessages(prev => [...prev, payload.new as Message]);
       })
