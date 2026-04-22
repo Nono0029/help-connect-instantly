@@ -104,18 +104,21 @@ const ChatPage = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  
   const sendMessage = async (content: string, isAuto = false) => {
-    if (!content.trim() || !user || !id) return;
-    setLoading(true);
-    await supabase.from("messages").insert([{
-      conversation_id: parseInt(id),
-      sender_id: user.id,
-      content,
-      is_auto: isAuto,
-    }]);
-    setText("");
-    setLoading(false);
-  };
+  if (!content.trim() || !user || !id) return;
+  setLoading(true);
+  const { data, error } = await supabase.from("messages").insert([{
+    conversation_id: parseInt(id),
+    sender_id: user.id,
+    content,
+    is_auto: isAuto,
+  }]);
+  console.log("data:", data);
+  console.log("error:", error);
+  setText("");
+  setLoading(false);
+};
 
   const handlePay = async () => {
     if (!conversation) return;
