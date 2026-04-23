@@ -37,6 +37,16 @@ const ChatPage = () => {
   const [userAddress, setUserAddress] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const fetchMessages = async () => {
+    if (!id) return;
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", parseInt(id))
+      .order("created_at", { ascending: true });
+    if (data) setMessages(data);
+  };
+
   useEffect(() => {
     if (!id || !user) return;
 
@@ -47,15 +57,6 @@ const ChatPage = () => {
         .eq("id", id)
         .single();
       if (data) setConversation(data);
-    };
-
-    const fetchMessages = async () => {
-      const { data } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("conversation_id", id)
-        .order("created_at", { ascending: true });
-      if (data) setMessages(data);
     };
 
     const fetchAddress = async () => {
@@ -71,20 +72,21 @@ const ChatPage = () => {
     fetchMessages();
     fetchAddress();
 
-    // Temps réel
     const channel = supabase
       .channel(`chat-${id}`)
-.on("postgres_changes", {
-  event: "INSERT", schema: "public", table: "messages",
-  filter: `conversation_id=eq.${parseInt(id!)}`,
-}, async () => {
-  const { data } = await supabase
-    .from("messages")
-    .select("*")
-    .eq("conversation_id", parseInt(id!))
-    .order("created_at", { ascending: true });
-  if (data) setMessages(data);
-})
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `conversation_id=eq.${parseInt(id!)}`,
+      }, async () => {
+        await fetchMessages();
+      })
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "conversations",
+        filter: `id=eq.${id}`,
       }, (payload) => {
         setConversation(prev => prev ? { ...prev, statut: payload.new.statut } : prev);
       })
@@ -93,7 +95,6 @@ const ChatPage = () => {
     return () => { supabase.removeChannel(channel); };
   }, [id, user]);
 
-  // Après paiement réussi → proposer adresse au demandeur
   useEffect(() => {
     if (searchParams.get("success") === "true" && conversation?.statut === "payé") {
       if (user?.id === conversation.demandeur_id && userAddress) {
@@ -107,39 +108,30 @@ const ChatPage = () => {
   }, [messages]);
 
   const sendMessage = async (content: string, isAuto = false) => {
-  if (!content.trim() || !user || !id) return;
-  setLoading(true);
-  await supabase.from("messages").insert([{
-    conversation_id: parseInt(id),
-    sender_id: user.id,
-    content,
-    is_auto: isAuto,
-  }]);
-  // Recharger tous les messages
-  const { data } = await supabase
-    .from("messages")
-    .select("*")
-    .eq("conversation_id", parseInt(id))
-    .order("created_at", { ascending: true });
-  if (data) setMessages(data);
-  setText("");
-  setLoading(false);
-};
+    if (!content.trim() || !user || !id) return;
+    setLoading(true);
+    await supabase.from("messages").insert([{
+      conversation_id: parseInt(id),
+      sender_id: user.id,
+      content,
+      is_auto: isAuto,
+    }]);
+    await fetchMessages();
+    setText("");
+    setLoading(false);
+  };
 
   const handlePay = async () => {
     if (!conversation) return;
     setPayLoading(true);
-
     const montant = conversation.demande?.gratuit
       ? 0
       : parseFloat((conversation.demande?.prix || "0").replace(/[^0-9.]/g, ""));
-
     if (montant === 0) {
       alert("Cette demande est gratuite !");
       setPayLoading(false);
       return;
     }
-
     try {
       const res = await fetch("/api/create-checkout", {
         method: "POST",
@@ -184,22 +176,18 @@ const ChatPage = () => {
           </button>
           <div className="flex-1">
             <p className="text-sm font-bold text-foreground truncate">{conversation?.demande?.titre || "Conversation"}</p>
-            <p className="text-xs text-muted-foreground">
-              {isPaid ? "✅ Payé" : "💬 En cours"}
-            </p>
+            <p className="text-xs text-muted-foreground">{isPaid ? "✅ Payé" : "💬 En cours"}</p>
           </div>
           {isPaid && <CheckCircle className="w-5 h-5 text-green-500" />}
         </div>
       </header>
 
-      {/* Bandeau payé */}
       {isPaid && (
         <div className="mx-4 mt-3 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-xl text-center">
           <p className="text-sm font-semibold text-green-600">✅ Paiement confirmé</p>
         </div>
       )}
 
-      {/* Messages */}
       <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto pb-36">
         {messages.map((msg, i) => (
           <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -223,7 +211,6 @@ const ChatPage = () => {
         <div ref={bottomRef} />
       </div>
 
-      {/* Proposition adresse automatique */}
       <AnimatePresence>
         {showAddressPrompt && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
@@ -244,7 +231,6 @@ const ChatPage = () => {
         )}
       </AnimatePresence>
 
-      {/* Bouton Payer (helper uniquement, si pas encore payé) */}
       {isHelper && !isPaid && conversation?.demande && !conversation.demande.gratuit && (
         <div className="fixed bottom-20 left-4 right-4 z-10">
           <button onClick={handlePay} disabled={payLoading}
@@ -255,7 +241,6 @@ const ChatPage = () => {
         </div>
       )}
 
-      {/* Input message */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border px-4 py-3">
         <div className="flex items-center gap-2">
           <input type="text" placeholder="Écris un message..."
