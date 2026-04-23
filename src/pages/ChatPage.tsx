@@ -106,7 +106,12 @@ const ChatPage = () => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
+useEffect(() => {
+  const interval = setInterval(() => {
+    fetchMessages();
+  }, 3000);
+  return () => clearInterval(interval);
+}, [id]);
   const sendMessage = async (content: string, isAuto = false) => {
     if (!content.trim() || !user || !id) return;
     setLoading(true);
