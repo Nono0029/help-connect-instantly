@@ -80,9 +80,17 @@ const ChatPage = () => {
       }, (payload) => {
         setMessages(prev => [...prev, payload.new as Message]);
       })
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "conversations",
-        filter: `id=eq.${id}`,
+.on("postgres_changes", {
+  event: "INSERT", schema: "public", table: "messages",
+  filter: `conversation_id=eq.${parseInt(id!)}`,
+}, async () => {
+  const { data } = await supabase
+    .from("messages")
+    .select("*")
+    .eq("conversation_id", parseInt(id!))
+    .order("created_at", { ascending: true });
+  if (data) setMessages(data);
+})
       }, (payload) => {
         setConversation(prev => prev ? { ...prev, statut: payload.new.statut } : prev);
       })
