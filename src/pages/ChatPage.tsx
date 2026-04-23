@@ -74,12 +74,6 @@ const ChatPage = () => {
     // Temps réel
     const channel = supabase
       .channel(`chat-${id}`)
-      .on("postgres_changes", {
-        event: "INSERT", schema: "public", table: "messages",
-        filter: `conversation_id=eq.${parseInt(id!)}`,
-      }, (payload) => {
-        setMessages(prev => [...prev, payload.new as Message]);
-      })
 .on("postgres_changes", {
   event: "INSERT", schema: "public", table: "messages",
   filter: `conversation_id=eq.${parseInt(id!)}`,
