@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import CityPicker from "@/components/CityPicker";
 
 const typesAide = [
@@ -42,6 +43,7 @@ interface Props {
 }
 
 const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }: Props) => {
+  const { user } = useAuth();
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -86,14 +88,27 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
     if (!titre || !selectedType || !villeForm) return;
     setLoading(true);
     const typeLabel = typesAide.find(t => t.id === selectedType)?.label || selectedType;
-    const payload = { titre, description, categorie: typeLabel, prix: gratuit ? null : prix, gratuit, urgent, ville: villeForm || ville || "" };
+    const payload = {
+      titre,
+      description,
+      categorie: typeLabel,
+      prix: gratuit ? null : prix,
+      gratuit,
+      urgent,
+      ville: villeForm || ville || "",
+    };
 
     let error = null;
     if (isEdit && demandeToEdit) {
       const res = await supabase.from("demandes").update(payload).eq("id", demandeToEdit.id);
       error = res.error;
     } else {
-      const res = await supabase.from("demandes").insert([{ ...payload, auteur: "Anonyme" }]);
+      const auteur = user?.email?.split("@")[0] || "Anonyme";
+      const res = await supabase.from("demandes").insert([{
+        ...payload,
+        auteur,
+        user_id: user?.id,
+      }]);
       error = res.error;
     }
 
