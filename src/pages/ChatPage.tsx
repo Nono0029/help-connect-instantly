@@ -57,15 +57,21 @@ const ChatPage = () => {
     setMessages(data || []);
   };
 
-  // 🔥 fetch conversation
   const fetchConv = async () => {
-    if (!id) return;
-
-    const { data, error } = await supabase
-      .from("conversations")
-      .select("*, demande:demande_id(titre, prix, gratuit, user_id)")
-      .eq("id", id)
-      .single();
+  if (!id) return;
+  const { data: convData } = await supabase
+    .from("conversations")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (!convData) return;
+  const { data: demandeData } = await supabase
+    .from("demandes")
+    .select("titre, prix, gratuit, user_id")
+    .eq("id", convData.demande_id)
+    .single();
+  setConversation({ ...convData, demande: demandeData });
+};
 
     if (error) {
       console.log("ERREUR CONV:", error);
