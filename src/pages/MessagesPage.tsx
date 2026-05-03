@@ -12,8 +12,7 @@ interface Conversation {
   demandeur_id: string;
   statut: string;
   created_at: string;
-  demande?: { titre: string };
-  last_message?: string;
+  demande?: { titre: string; user_id?: string };
 }
 
 const MessagesPage = () => {
@@ -24,21 +23,50 @@ const MessagesPage = () => {
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
-      const { data } = await supabase
+    const fetchConvs = async () => {
+      // Récupérer les conversations où je suis helper OU demandeur
+      const { data: asHelper } = await supabase
         .from("conversations")
-        .select("*, demande:demande_id(titre)")
-        .or(`helper_id.eq.${user.id},demandeur_id.eq.${user.id}`)
+        .select("*, demande:demande_id(titre, user_id)")
+        .eq("helper_id", user.id)
         .order("created_at", { ascending: false });
-      if (data) setConversations(data);
+
+      const { data: asDemandeur } = await supabase
+        .from("conversations")
+        .select("*, demande:demande_id(titre, user_id)")
+        .eq("demandeur_id", user.id)
+        .order("created_at", { ascending: false });
+
+      // Récupérer aussi les conversations sur mes demandes
+      const { data: mesDemandesConvs } = await supabase
+        .from("conversations")
+        .select("*, demande:demande_id(titre, user_id)")
+        .order("created_at", { ascending: false });
+
+      const convsSurMesDemandes = (mesDemandesConvs || []).filter(
+        c => c.demande?.user_id === user.id
+      );
+
+      // Fusionner et dédupliquer
+      const all = [
+        ...(asHelper || []),
+        ...(asDemandeur || []),
+        ...convsSurMesDemandes,
+      ];
+      const unique = all.filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i);
+      unique.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setConversations(unique);
       setLoading(false);
     };
-    fetch();
+    fetchConvs();
   }, [user]);
 
-  const getOtherPerson = (conv: Conversation) => {
+  const getRole = (conv: Conversation) => {
     if (!user) return "Inconnu";
-    return conv.helper_id === user.id ? "Demandeur" : "Helper";
+    if (conv.helper_id === user.id) return "Tu aides";
+    if (conv.demande?.user_id === user.id) return "Tu es aidé";
+    return "Conversation";
   };
 
   return (
@@ -53,7 +81,7 @@ const MessagesPage = () => {
       </header>
 
       <div className="px-4 pt-4 pb-24 space-y-3">
-        {loading && [1,2,3].map(i => (
+        {loading && [1, 2, 3].map(i => (
           <div key={i} className="h-20 bg-card rounded-2xl border border-border animate-pulse" />
         ))}
 
@@ -76,13 +104,18 @@ const MessagesPage = () => {
           >
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
-                {getOtherPerson(conv)[0]}
+                {getRole(conv)[0]}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-foreground truncate">{conv.demande?.titre || "Demande"}</p>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                  {conv.statut === "en_attente" ? "⏳ En attente" : conv.statut === "payé" ? "✅ Payé" : "💬 En cours"}
-                </p>
+                <div className="flex items-center justify-between mt-0.5">
+                  <p className="text-xs text-muted-foreground">
+                    {getRole(conv)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {conv.statut === "payé" ? "✅ Payé" : "💬 En cours"}
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
