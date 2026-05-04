@@ -12,7 +12,8 @@ interface Conversation {
   demandeur_id: string;
   statut: string;
   created_at: string;
-  demande?: { titre: string; user_id?: string };
+  titre?: string;
+  demande_user_id?: string;
 }
 
 const MessagesPage = () => {
@@ -24,38 +25,40 @@ const MessagesPage = () => {
   useEffect(() => {
     if (!user) return;
     const fetchConvs = async () => {
-      // Récupérer les conversations où je suis helper OU demandeur
-      const { data: asHelper } = await supabase
+      // Récupérer toutes les conversations
+      const { data: allConvs } = await supabase
         .from("conversations")
-        .select("*, demande:demande_id(titre, user_id)")
-        .eq("helper_id", user.id)
+        .select("*")
         .order("created_at", { ascending: false });
 
-      const { data: asDemandeur } = await supabase
-        .from("conversations")
-        .select("*, demande:demande_id(titre, user_id)")
-        .eq("demandeur_id", user.id)
-        .order("created_at", { ascending: false });
+      if (!allConvs) { setLoading(false); return; }
 
-      // Récupérer aussi les conversations sur mes demandes
-      const { data: mesDemandesConvs } = await supabase
-        .from("conversations")
-        .select("*, demande:demande_id(titre, user_id)")
-        .order("created_at", { ascending: false });
+      // Récupérer toutes les demandes liées
+      const demandeIds = [...new Set(allConvs.map(c => c.demande_id))];
+      const { data: demandes } = await supabase
+        .from("demandes")
+        .select("id, titre, user_id")
+        .in("id", demandeIds);
 
-      const convsSurMesDemandes = (mesDemandesConvs || []).filter(
-        c => c.demande?.user_id === user.id
+      const demandeMap: Record<number, { titre: string; user_id: string }> = {};
+      (demandes || []).forEach(d => { demandeMap[d.id] = d; });
+
+      // Enrichir les conversations avec les infos demande
+      const enriched = allConvs.map(c => ({
+        ...c,
+        titre: demandeMap[c.demande_id]?.titre || "Demande",
+        demande_user_id: demandeMap[c.demande_id]?.user_id,
+      }));
+
+      // Filtrer : je suis helper OU demandeur OU propriétaire de la demande
+      const mine = enriched.filter(c =>
+        c.helper_id === user.id ||
+        c.demandeur_id === user.id ||
+        c.demande_user_id === user.id
       );
 
-      // Fusionner et dédupliquer
-      const all = [
-        ...(asHelper || []),
-        ...(asDemandeur || []),
-        ...convsSurMesDemandes,
-      ];
-      const unique = all.filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i);
-      unique.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
+      // Dédupliquer
+      const unique = mine.filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i);
       setConversations(unique);
       setLoading(false);
     };
@@ -63,9 +66,9 @@ const MessagesPage = () => {
   }, [user]);
 
   const getRole = (conv: Conversation) => {
-    if (!user) return "Inconnu";
+    if (!user) return "Conversation";
     if (conv.helper_id === user.id) return "Tu aides";
-    if (conv.demande?.user_id === user.id) return "Tu es aidé";
+    if (conv.demande_user_id === user.id) return "Tu es aidé";
     return "Conversation";
   };
 
@@ -107,11 +110,9 @@ const MessagesPage = () => {
                 {getRole(conv)[0]}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground truncate">{conv.demande?.titre || "Demande"}</p>
+                <p className="font-semibold text-foreground truncate">{conv.titre}</p>
                 <div className="flex items-center justify-between mt-0.5">
-                  <p className="text-xs text-muted-foreground">
-                    {getRole(conv)}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{getRole(conv)}</p>
                   <p className="text-xs text-muted-foreground">
                     {conv.statut === "payé" ? "✅ Payé" : "💬 En cours"}
                   </p>
