@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Send, MapPin, CreditCard, CheckCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Send, MapPin } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
@@ -36,68 +35,46 @@ const ChatPage = () => {
   const [payLoading, setPayLoading] = useState(false);
   const [showAddressPrompt, setShowAddressPrompt] = useState(false);
   const [userAddress, setUserAddress] = useState("");
-
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // 🔥 fetch messages
   const fetchMessages = async () => {
     if (!id) return;
-
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("messages")
       .select("*")
       .eq("conversation_id", parseInt(id))
       .order("created_at", { ascending: true });
-
-    if (error) {
-      console.log("ERREUR FETCH MESSAGES:", error);
-      return;
-    }
-
     setMessages(data || []);
   };
 
   const fetchConv = async () => {
-  if (!id) return;
-  const { data: convData } = await supabase
-    .from("conversations")
-    .select("*")
-    .eq("id", id)
-    .single();
-  if (!convData) return;
-  const { data: demandeData } = await supabase
-    .from("demandes")
-    .select("titre, prix, gratuit, user_id")
-    .eq("id", convData.demande_id)
-    .single();
-  setConversation({ ...convData, demande: demandeData });
-};
-
-    if (error) {
-      console.log("ERREUR CONV:", error);
-      return;
-    }
-
-    setConversation(data);
+    if (!id) return;
+    const { data: convData } = await supabase
+      .from("conversations")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (!convData) return;
+    const { data: demandeData } = await supabase
+      .from("demandes")
+      .select("titre, prix, gratuit, user_id")
+      .eq("id", convData.demande_id)
+      .single();
+    setConversation({ ...convData, demande: demandeData });
   };
 
-  // 🔥 fetch adresse
   const fetchAddress = async () => {
     if (!user) return;
-
     const { data } = await supabase
       .from("profiles")
       .select("adresse")
       .eq("id", user.id)
       .single();
-
     if (data?.adresse) setUserAddress(data.adresse);
   };
 
-  // 🔥 LOAD INITIAL
   useEffect(() => {
     if (!id || !user) return;
-
     fetchConv();
     fetchMessages();
     fetchAddress();
@@ -108,7 +85,7 @@ const ChatPage = () => {
         event: "INSERT",
         schema: "public",
         table: "messages",
-        filter: `conversation_id=eq.${id}`,
+        filter: `conversation_id=eq.${parseInt(id)}`,
       }, fetchMessages)
       .on("postgres_changes", {
         event: "UPDATE",
@@ -120,17 +97,18 @@ const ChatPage = () => {
       })
       .subscribe();
 
+    const interval = setInterval(fetchMessages, 3000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, [id, user]);
 
-  // 🔥 scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 🔥 paiement success
   useEffect(() => {
     if (searchParams.get("success") === "true" && conversation?.statut === "payé") {
       if (user?.id === conversation.demandeur_id && userAddress) {
@@ -139,69 +117,52 @@ const ChatPage = () => {
     }
   }, [conversation, searchParams, user, userAddress]);
 
-  // 🔥 send message (FIX IMPORTANT)
   const sendMessage = async (content: string, isAuto = false) => {
     if (!content.trim() || !user || !id) return;
-
     setLoading(true);
-
     const { error } = await supabase.from("messages").insert([{
       conversation_id: parseInt(id),
       sender_id: user.id,
       content,
       is_auto: isAuto,
     }]);
-
     if (error) {
-      console.log("ERREUR MESSAGE:", error);
-      alert("Erreur envoi message");
+      alert("Erreur envoi : " + error.message);
       setLoading(false);
       return;
     }
-
+    await fetchMessages();
     setText("");
     setLoading(false);
   };
 
-  // 💳 paiement FIX
   const handlePay = async () => {
     if (!conversation) return;
-
     setPayLoading(true);
-
     const montant = conversation.demande?.gratuit
       ? 0
       : parseFloat((conversation.demande?.prix || "0").replace(/[^0-9.]/g, ""));
-
     if (montant === 0) {
-      alert("Demande gratuite");
+      alert("Cette demande est gratuite !");
       setPayLoading(false);
       return;
     }
-
     try {
       const res = await fetch("/api/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           conversationId: conversation.id,
-          price: montant, // ✅ FIX
+          montant,
+          demandeTitle: conversation.demande?.titre,
         }),
       });
-
       const data = await res.json();
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Erreur paiement");
-      }
-
-    } catch (err) {
-      console.log(err);
-      alert("Erreur connexion");
+      if (data.url) window.location.href = data.url;
+      else alert("Erreur paiement : " + data.error);
+    } catch {
+      alert("Erreur de connexion");
     }
-
     setPayLoading(false);
   };
 
@@ -223,50 +184,82 @@ const ChatPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-background border-b px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate("/messages")}>
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <p className="font-bold">{conversation?.demande?.titre}</p>
-          <p className="text-xs">{isPaid ? "✅ Payé" : "💬 En cours"}</p>
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/messages")} className="p-1">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-foreground truncate">{conversation?.demande?.titre || "Conversation"}</p>
+            <p className="text-xs text-muted-foreground">{isPaid ? "✅ Payé" : "💬 En cours"}</p>
+          </div>
         </div>
       </header>
 
-      {/* MESSAGES */}
-      <div className="flex-1 p-4 space-y-3 overflow-y-auto pb-32">
-        {messages.map(msg => (
+      {isPaid && (
+        <div className="mx-4 mt-3 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-xl text-center">
+          <p className="text-sm font-semibold text-green-600">✅ Paiement confirmé</p>
+        </div>
+      )}
+
+      <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto pb-36">
+        {messages.map((msg) => (
           <div key={msg.id} className={`flex ${isMe(msg.sender_id) ? "justify-end" : "justify-start"}`}>
-            <div className="px-4 py-2 rounded-xl bg-card">
+            <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
+              msg.is_auto
+                ? "bg-primary/10 text-primary border border-primary/20"
+                : isMe(msg.sender_id)
+                  ? "bg-primary text-primary-foreground rounded-br-sm"
+                  : "bg-card border border-border text-foreground rounded-bl-sm"
+            }`}>
               {msg.is_auto && <MapPin className="w-3 h-3 inline mr-1" />}
               {msg.content}
+              <p className={`text-[10px] mt-1 ${isMe(msg.sender_id) ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
+                {getTemps(msg.created_at)}
+              </p>
             </div>
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
 
-      {/* PAYER */}
-      {isHelper && !isPaid && (
-        <div className="p-4">
-          <button onClick={handlePay} className="w-full bg-green-500 text-white py-3 rounded-xl">
-            💳 Payer
+      {showAddressPrompt && (
+        <div className="fixed bottom-24 left-4 right-4 bg-card border border-primary/30 rounded-2xl p-4 shadow-lg z-10">
+          <p className="text-sm font-semibold text-foreground mb-1">📍 Partager ton adresse ?</p>
+          <p className="text-xs text-muted-foreground mb-3">{userAddress}</p>
+          <div className="flex gap-2">
+            <button onClick={() => setShowAddressPrompt(false)}
+              className="flex-1 py-2 rounded-xl bg-secondary text-muted-foreground text-sm font-medium">
+              Pas maintenant
+            </button>
+            <button onClick={handleSendAddress}
+              className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium">
+              Envoyer
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isHelper && !isPaid && conversation?.demande && !conversation.demande.gratuit && (
+        <div className="fixed bottom-20 left-4 right-4 z-10">
+          <button onClick={handlePay} disabled={payLoading}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-green-500 text-white font-semibold text-sm shadow-lg disabled:opacity-60">
+            {payLoading ? "Redirection..." : `💳 Payer ${conversation.demande.prix}`}
           </button>
         </div>
       )}
 
-      {/* INPUT */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t flex gap-2">
-        <input
-          value={text}
-          onChange={e => setText(e.target.value)}
-          className="flex-1 p-2 rounded-xl bg-secondary"
-        />
-        <button onClick={() => sendMessage(text)}>
-          <Send />
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border px-4 py-3">
+        <div className="flex items-center gap-2">
+          <input type="text" placeholder="Écris un message..."
+            value={text} onChange={e => setText(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && sendMessage(text)}
+            className="flex-1 h-11 px-4 rounded-xl bg-secondary border-none text-sm outline-none text-foreground placeholder:text-muted-foreground" />
+          <button onClick={() => sendMessage(text)} disabled={!text.trim() || loading}
+            className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50">
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
