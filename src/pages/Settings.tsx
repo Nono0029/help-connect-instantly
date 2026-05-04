@@ -1,26 +1,63 @@
-import { ArrowLeft, User, Moon, Sun, ChevronRight, Shield, Bell, ShoppingBag, HelpCircle, LogOut, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, User, Moon, Sun, ChevronRight, Shield, Bell, ShoppingBag, HelpCircle, LogOut, Star, MapPin, Home, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { Input } from "@/components/ui/input";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
 
+  const [ville, setVille] = useState("");
+  const [adresse, setAdresse] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const pseudo = user?.email?.split("@")[0] || "Mon compte";
+  const email = user?.email || "";
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("ville, adresse")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        setVille(data.ville || "");
+        setAdresse(data.adresse || "");
+      }
+    };
+    fetchProfile();
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSaving(true);
+    await supabase.from("profiles").upsert({
+      id: user.id,
+      ville,
+      adresse,
+      pseudo,
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
   };
 
-  const pseudo = user?.email?.split("@")[0] || "Mon compte";
-  const email = user?.email || "";
-
   const menuSections = [
     {
       title: "Mon compte",
       items: [
-        { icon: User, label: "Modifier mon profil", desc: "Pseudo, photo, bio", action: () => navigate("/edit-profile"), toggle: false },
         { icon: Shield, label: "Mot de passe & sécurité", desc: "Changer mon mot de passe", action: () => navigate("/change-password"), toggle: false },
         { icon: Bell, label: "Notifications", desc: "Gérer les alertes", action: undefined, toggle: false },
       ],
@@ -41,7 +78,7 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-12">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate("/")} className="p-1">
@@ -51,25 +88,58 @@ const Settings = () => {
         </div>
       </header>
 
-      <div className="mx-4 mt-4 p-4 bg-card rounded-2xl border border-border cursor-pointer" onClick={() => navigate("/edit-profile")}>
-        <div className="flex items-center gap-3">
+      {/* Profil */}
+      <div className="mx-4 mt-4 p-4 bg-card rounded-2xl border border-border">
+        <div className="flex items-center gap-3 mb-4">
           <div className="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xl font-bold">
             {pseudo[0]?.toUpperCase() || "?"}
           </div>
           <div className="flex-1">
             <h2 className="font-bold text-foreground">{pseudo}</h2>
             <p className="text-sm text-muted-foreground">{email}</p>
-            <div className="flex items-center gap-1 mt-1">
-              {[1, 2, 3, 4, 5].map(s => (
-                <Star key={s} className="w-3 h-3 fill-primary text-primary" />
-              ))}
-              <span className="text-xs text-muted-foreground ml-1">4.8 (12 avis)</span>
-            </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        </div>
+
+        {/* Ville */}
+        <div className="space-y-3">
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Ta ville"
+              value={ville}
+              onChange={e => setVille(e.target.value)}
+              className="pl-10 h-11 rounded-xl bg-secondary border-none text-sm"
+            />
+          </div>
+
+          <div className="relative">
+            <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Ton adresse (utilisée dans le chat)"
+              value={adresse}
+              onChange={e => setAdresse(e.target.value)}
+              className="pl-10 h-11 rounded-xl bg-secondary border-none text-sm"
+            />
+          </div>
+
+          <p className="text-[11px] text-muted-foreground">
+            🔒 Ton adresse n'est jamais partagée automatiquement — c'est toi qui choisis de l'envoyer dans le chat.
+          </p>
+
+          <button
+            onClick={handleSaveProfile}
+            disabled={saving}
+            className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              saved ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"
+            }`}
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "Enregistrement..." : saved ? "✅ Enregistré !" : "Enregistrer"}
+          </button>
         </div>
       </div>
 
+      {/* Mes demandes */}
       <div className="mx-4 mt-4">
         <button
           onClick={() => navigate("/mes-demandes")}
@@ -86,7 +156,8 @@ const Settings = () => {
         </button>
       </div>
 
-      <div className="px-4 mt-5 pb-8 space-y-5">
+      {/* Menu sections */}
+      <div className="px-4 mt-5 space-y-5">
         {menuSections.map(section => (
           <div key={section.title}>
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">{section.title}</h3>
@@ -111,10 +182,7 @@ const Settings = () => {
           </div>
         ))}
 
-        <button
-          onClick={handleSignOut}
-          className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm"
-        >
+        <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm">
           <LogOut className="w-4 h-4" />
           Se déconnecter
         </button>
