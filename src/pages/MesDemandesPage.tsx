@@ -51,26 +51,36 @@ const MesDemandesPage = () => {
   }, [user]);
 
   // 🔥 DELETE + FERMETURE CONVERSATIONS + NOTIFS
-  const handleDelete = async (id: number) => {
-    setDeleting(true);
+ const handleDelete = async (id: number) => {
+  setDeleting(true);
 
-    // 1. récupérer conversations liées
-    const { data: conversations } = await supabase
-      .from("conversations")
-      .select("*")
-      .eq("demande_id", id);
-
-    // 2. fermer conversations
+  try {
+    // 1. Fermer toutes les conversations liées
     const { error: convError } = await supabase
       .from("conversations")
       .update({ statut: "fermée" })
       .eq("demande_id", id);
 
-    if (convError) {
-      alert("Erreur conversations : " + convError.message);
-      setDeleting(false);
-      return;
-    }
+    if (convError) throw convError;
+
+    // 2. Supprimer la demande
+    const { error: deleteError } = await supabase
+      .from("demandes")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) throw deleteError;
+
+    // 3. Update UI
+    setDemandes(prev => prev.filter(d => d.id !== id));
+    setConfirmDeleteId(null);
+
+  } catch (err: any) {
+    alert("Erreur : " + err.message);
+  }
+
+  setDeleting(false);
+};
 
     // 3. envoyer notifications
     if (conversations) {
