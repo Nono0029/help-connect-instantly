@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Pencil, Trash2, Euro, Zap, PackageOpen } from "lucide-react";
+import {
+  ArrowLeft,
+  Pencil,
+  Trash2,
+  Euro,
+  Zap,
+  PackageOpen,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -56,7 +63,6 @@ const MesDemandesPage = () => {
     setDeleting(true);
 
     try {
-      // 1. récupérer conversations liées
       const { data: conversations, error: convFetchError } = await supabase
         .from("conversations")
         .select("*")
@@ -64,7 +70,6 @@ const MesDemandesPage = () => {
 
       if (convFetchError) throw convFetchError;
 
-      // 2. fermer conversations
       const { error: convUpdateError } = await supabase
         .from("conversations")
         .update({ statut: "fermée" })
@@ -72,7 +77,6 @@ const MesDemandesPage = () => {
 
       if (convUpdateError) throw convUpdateError;
 
-      // 3. notifications
       if (conversations) {
         for (const conv of conversations) {
           const users = [conv.helper_id, conv.demandeur_id];
@@ -80,17 +84,19 @@ const MesDemandesPage = () => {
           for (const userId of users) {
             if (!userId || userId === "EMPTY") continue;
 
-            await supabase.from("notifications").insert([{
-              user_id: userId,
-              message: "❌ Une demande a été supprimée, la conversation est fermée.",
-              conversation_id: conv.id,
-              lu: false,
-            }]);
+            await supabase.from("notifications").insert([
+              {
+                user_id: userId,
+                message:
+                  "❌ Une demande a été supprimée, la conversation est fermée.",
+                conversation_id: conv.id,
+                lu: false,
+              },
+            ]);
           }
         }
       }
 
-      // 4. supprimer demande
       const { error: deleteError } = await supabase
         .from("demandes")
         .delete()
@@ -98,10 +104,8 @@ const MesDemandesPage = () => {
 
       if (deleteError) throw deleteError;
 
-      // 5. UI
-      setDemandes(prev => prev.filter(d => d.id !== id));
+      setDemandes((prev) => prev.filter((d) => d.id !== id));
       setConfirmDeleteId(null);
-
     } catch (err: any) {
       alert("Erreur : " + err.message);
     }
@@ -117,16 +121,26 @@ const MesDemandesPage = () => {
   return (
     <div className="min-h-screen bg-background">
 
-      {/* HEADER */}
+      {/* HEADER + 🔔 NOTIFICATIONS */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
+
           <button onClick={() => navigate("/")} className="p-1">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-lg font-bold text-foreground">Mes demandes</h1>
-          <span className="ml-auto text-sm text-muted-foreground">
-            {demandes.length} publiée{demandes.length > 1 ? "s" : ""}
-          </span>
+
+          <h1 className="text-lg font-bold text-foreground">
+            Mes demandes
+          </h1>
+
+          {/* 🔔 NOTIFICATION BELL */}
+          <div className="ml-auto flex items-center gap-3">
+            <NotificationBell />
+
+            <span className="text-sm text-muted-foreground">
+              {demandes.length} publiée{demandes.length > 1 ? "s" : ""}
+            </span>
+          </div>
         </div>
       </header>
 
@@ -135,8 +149,11 @@ const MesDemandesPage = () => {
 
         {loading && (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-28 bg-card rounded-2xl border border-border animate-pulse" />
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-28 bg-card rounded-2xl border border-border animate-pulse"
+              />
             ))}
           </div>
         )}
@@ -144,7 +161,9 @@ const MesDemandesPage = () => {
         {!loading && demandes.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
             <PackageOpen className="w-12 h-12 text-muted-foreground/40" />
-            <p className="font-semibold text-foreground">Aucune demande publiée</p>
+            <p className="font-semibold text-foreground">
+              Aucune demande publiée
+            </p>
             <p className="text-sm text-muted-foreground">
               Appuie sur + pour créer ta première demande
             </p>
@@ -174,7 +193,9 @@ const MesDemandesPage = () => {
               </div>
 
               <h3 className="font-semibold">{d.titre}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2">{d.description}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                {d.description}
+              </p>
 
               <div className="flex justify-between mt-3">
                 <span className="flex items-center gap-1 text-xs">
@@ -203,7 +224,6 @@ const MesDemandesPage = () => {
             </motion.div>
           ))}
         </AnimatePresence>
-
       </div>
 
       {/* CONFIRM DELETE */}
@@ -214,7 +234,7 @@ const MesDemandesPage = () => {
             onClick={() => setConfirmDeleteId(null)}
           >
             <motion.div
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
               className="bg-card w-full p-6 rounded-t-3xl space-y-4"
             >
               <h3 className="font-bold text-center">
