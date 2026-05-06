@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import PostDemandeForm from "@/components/PostDemandeForm";
+import NotificationBell from "@/components/NotificationBell";
 
 interface Demande {
   id: number;
