@@ -50,72 +50,62 @@ const MesDemandesPage = () => {
     fetchDemandes();
   }, [user]);
 
-  // 🔥 DELETE + FERMETURE CONVERSATIONS + NOTIFS
- const handleDelete = async (id: number) => {
-  setDeleting(true);
+  // 🔥 DELETE COMPLET
+  const handleDelete = async (id: number) => {
+    setDeleting(true);
 
-  try {
-    // 1. Fermer toutes les conversations liées
-    const { error: convError } = await supabase
-      .from("conversations")
-      .update({ statut: "fermée" })
-      .eq("demande_id", id);
+    try {
+      // 1. récupérer conversations liées
+      const { data: conversations, error: convFetchError } = await supabase
+        .from("conversations")
+        .select("*")
+        .eq("demande_id", id);
 
-    if (convError) throw convError;
+      if (convFetchError) throw convFetchError;
 
-    // 2. Supprimer la demande
-    const { error: deleteError } = await supabase
-      .from("demandes")
-      .delete()
-      .eq("id", id);
+      // 2. fermer conversations
+      const { error: convUpdateError } = await supabase
+        .from("conversations")
+        .update({ statut: "fermée" })
+        .eq("demande_id", id);
 
-    if (deleteError) throw deleteError;
+      if (convUpdateError) throw convUpdateError;
 
-    // 3. Update UI
-    setDemandes(prev => prev.filter(d => d.id !== id));
-    setConfirmDeleteId(null);
+      // 3. notifications
+      if (conversations) {
+        for (const conv of conversations) {
+          const users = [conv.helper_id, conv.demandeur_id];
 
-  } catch (err: any) {
-    alert("Erreur : " + err.message);
-  }
+          for (const userId of users) {
+            if (!userId || userId === "EMPTY") continue;
 
-  setDeleting(false);
-};
-
-    // 3. envoyer notifications
-    if (conversations) {
-      for (const conv of conversations) {
-        const otherUsers = [conv.helper_id, conv.demandeur_id];
-
-        for (const userId of otherUsers) {
-          if (!userId || userId === "EMPTY") continue;
-
-          await supabase.from("notifications").insert([{
-            user_id: userId,
-            message: "❌ Une demande a été supprimée, la conversation est fermée.",
-            conversation_id: conv.id,
-            lu: false,
-          }]);
+            await supabase.from("notifications").insert([{
+              user_id: userId,
+              message: "❌ Une demande a été supprimée, la conversation est fermée.",
+              conversation_id: conv.id,
+              lu: false,
+            }]);
+          }
         }
       }
-    }
 
-    // 4. supprimer demande
-    const { error } = await supabase
-      .from("demandes")
-      .delete()
-      .eq("id", id);
+      // 4. supprimer demande
+      const { error: deleteError } = await supabase
+        .from("demandes")
+        .delete()
+        .eq("id", id);
+
+      if (deleteError) throw deleteError;
+
+      // 5. UI
+      setDemandes(prev => prev.filter(d => d.id !== id));
+      setConfirmDeleteId(null);
+
+    } catch (err: any) {
+      alert("Erreur : " + err.message);
+    }
 
     setDeleting(false);
-
-    if (error) {
-      alert("Erreur suppression : " + error.message);
-      return;
-    }
-
-    // 5. update UI
-    setDemandes(prev => prev.filter(d => d.id !== id));
-    setConfirmDeleteId(null);
   };
 
   const handleEdit = (d: Demande) => {
@@ -125,6 +115,7 @@ const MesDemandesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
@@ -140,10 +131,11 @@ const MesDemandesPage = () => {
 
       {/* LIST */}
       <div className="px-4 pt-4 pb-24 space-y-3">
+
         {loading && (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-28 bg-card rounded-2xl border animate-pulse" />
+              <div key={i} className="h-28 bg-card rounded-2xl border border-border animate-pulse" />
             ))}
           </div>
         )}
@@ -166,7 +158,7 @@ const MesDemandesPage = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ delay: i * 0.04 }}
-              className="bg-card rounded-2xl border p-4"
+              className="bg-card rounded-2xl border border-border p-4"
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
@@ -210,14 +202,21 @@ const MesDemandesPage = () => {
             </motion.div>
           ))}
         </AnimatePresence>
+
       </div>
 
       {/* CONFIRM DELETE */}
       <AnimatePresence>
         {confirmDeleteId !== null && (
-          <motion.div className="fixed inset-0 bg-black/50 flex items-end z-50">
-            <div className="bg-card w-full p-6 rounded-t-3xl">
-              <h3 className="font-bold text-center mb-4">
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end z-50"
+            onClick={() => setConfirmDeleteId(null)}
+          >
+            <motion.div
+              onClick={e => e.stopPropagation()}
+              className="bg-card w-full p-6 rounded-t-3xl space-y-4"
+            >
+              <h3 className="font-bold text-center">
                 Supprimer la demande ?
               </h3>
 
@@ -231,12 +230,13 @@ const MesDemandesPage = () => {
 
                 <button
                   onClick={() => handleDelete(confirmDeleteId)}
-                  className="flex-1 py-3 bg-destructive text-white rounded-xl"
+                  disabled={deleting}
+                  className="flex-1 py-3 bg-destructive text-white rounded-xl disabled:opacity-60"
                 >
-                  {deleting ? "..." : "Supprimer"}
+                  {deleting ? "Suppression..." : "Supprimer"}
                 </button>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
