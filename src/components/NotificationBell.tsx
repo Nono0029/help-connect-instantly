@@ -8,9 +8,10 @@ const NotificationBell = () => {
 
   return (
     <div className="relative">
+
       {/* 🔔 BUTTON */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen((prev) => !prev)}
         className="relative p-2"
       >
         <Bell className="w-5 h-5 text-foreground" />
@@ -22,9 +23,18 @@ const NotificationBell = () => {
         )}
       </button>
 
-      {/* 📩 DROPDOWN */}
+      {/* BACKDROP (important pour mobile) */}
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-xl shadow-xl z-50 max-h-96 overflow-auto">
+        <div
+          className="fixed inset-0 z-[9998]"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* DROPDOWN */}
+      {open && (
+        <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-xl shadow-xl z-[9999] max-h-96 overflow-auto">
+
           <div className="p-3 font-semibold border-b border-border">
             Notifications
           </div>
@@ -48,6 +58,7 @@ const NotificationBell = () => {
           ))}
         </div>
       )}
+
     </div>
   );
 };
