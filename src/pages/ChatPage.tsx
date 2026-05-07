@@ -74,6 +74,47 @@ const ChatPage = () => {
 
   if (data) setMission(data);
 };
+const confirmerMission = async () => {
+  if (!mission || !user) return;
+
+  const updates: any = {};
+
+  if (user.id === mission.helper_id) {
+    updates.helper_confirme = true;
+  }
+
+  if (user.id === mission.demandeur_id) {
+    updates.demandeur_confirme = true;
+  }
+
+  const { error } = await supabase
+    .from("missions")
+    .update(updates)
+    .eq("id", mission.id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  // Vérifier si les 2 ont confirmé
+  const helperConfirme =
+    updates.helper_confirme || mission.helper_confirme;
+
+  const demandeurConfirme =
+    updates.demandeur_confirme || mission.demandeur_confirme;
+
+  if (helperConfirme && demandeurConfirme) {
+    await supabase
+      .from("missions")
+      .update({
+        statut: "terminee"
+      })
+      .eq("id", mission.id);
+  }
+
+  fetchMission();
+};
   };
 
   const fetchAddress = async () => {
@@ -398,7 +439,16 @@ useEffect(() => {
           </div>
         </div>
       )}
-
+{mission?.statut === "en_cours" && (
+  <div className="px-4 pb-2">
+    <button
+      onClick={confirmerMission}
+      className="w-full py-3 rounded-2xl bg-green-500 text-white font-semibold"
+    >
+      ✅ Confirmer la mission
+    </button>
+  </div>
+)}
       {/* INPUT */}
       {!isClosed && (
         <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border px-4 py-3">
