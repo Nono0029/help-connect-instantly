@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Send, MapPin, CreditCard } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
@@ -19,7 +19,12 @@ interface Conversation {
   helper_id: string;
   demandeur_id: string;
   statut: string;
-  demande?: { titre: string; prix?: string; gratuit?: boolean; user_id?: string };
+  demande?: {
+    titre: string;
+    prix?: string;
+    gratuit?: boolean;
+    user_id?: string;
+  };
 }
 
 const ChatPage = () => {
@@ -33,12 +38,6 @@ const ChatPage = () => {
   const [mission, setMission] = useState<any>(null);
 
   const [text, setText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [payLoading, setPayLoading] = useState(false);
-
-  const [userAddress, setUserAddress] = useState("");
-  const [showAddressPrompt, setShowAddressPrompt] = useState(false);
-  const [addressDismissed, setAddressDismissed] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -115,26 +114,12 @@ const ChatPage = () => {
     fetchMission(conversation);
   };
 
-  // ---------------- ADDRESS ----------------
-  const fetchAddress = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("profiles")
-      .select("adresse")
-      .eq("id", user.id)
-      .single();
-
-    if (data?.adresse) setUserAddress(data.adresse);
-  };
-
   // ---------------- INIT ----------------
   useEffect(() => {
     if (!id || !user) return;
 
     fetchConv();
     fetchMessages();
-    fetchAddress();
 
     const channel = supabase
       .channel(`chat-${id}`)
@@ -154,6 +139,13 @@ const ChatPage = () => {
       supabase.removeChannel(channel);
     };
   }, [id, user]);
+
+  // ---------------- LOAD MISSION WHEN CONVERSATION ARRIVES ----------------
+  useEffect(() => {
+    if (conversation) {
+      fetchMission(conversation);
+    }
+  }, [conversation]);
 
   // ---------------- CREATE MISSION AFTER PAYMENT ----------------
   useEffect(() => {
@@ -186,22 +178,16 @@ const ChatPage = () => {
     createMission();
   }, [conversation, searchParams, user]);
 
-  // ---------------- SEND MESSAGE (IMPORTANT RESTAURÉ) ----------------
-  const sendMessage = async (content: string, isAuto = false) => {
-    if (!content.trim() || !user || !id) return;
+  // ---------------- SEND MESSAGE ----------------
+  const sendMessage = async (content: string) => {
+    if (!content?.trim() || !user || !id) return;
     if (conversation?.statut === "fermée") return;
 
-    const { error } = await supabase.from("messages").insert({
+    await supabase.from("messages").insert({
       conversation_id: parseInt(id),
       sender_id: user.id,
       content,
-      is_auto: isAuto,
     });
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
 
     setText("");
     fetchMessages();
@@ -209,40 +195,36 @@ const ChatPage = () => {
 
   const isClosed = conversation?.statut === "fermée";
   const isPaid = conversation?.statut === "payé";
-  const isHelper = user?.id === conversation?.helper_id;
+  const isMe = (idSender: string) => user?.id === idSender;
 
   // ---------------- UI ----------------
   return (
     <div className="min-h-screen bg-background flex flex-col">
 
-      {/* HEADER (inchangé) */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/messages")} className="p-1">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
+      {/* HEADER */}
+      <header className="p-3 border-b flex items-center gap-3">
+        <button onClick={() => navigate("/messages")}>
+          <ArrowLeft />
+        </button>
 
-          <div className="flex-1">
-            <p className="text-sm font-bold text-foreground truncate">
-              {conversation?.demande?.titre || "Conversation"}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {isClosed ? "Fermée" : isPaid ? "Payé" : "En cours"}
-            </p>
-          </div>
+        <div>
+          <p className="font-bold">
+            {conversation?.demande?.titre || "Conversation"}
+          </p>
+          <p className="text-xs text-gray-500">
+            {isClosed ? "Fermée" : isPaid ? "Payé" : "En cours"}
+          </p>
         </div>
       </header>
 
-      {/* MESSAGES (inchangé logique) */}
-      <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto pb-36">
+      {/* MESSAGES */}
+      <div className="flex-1 p-4 space-y-2 overflow-y-auto pb-32">
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${
-              user?.id === msg.sender_id ? "justify-end" : "justify-start"
-            }`}
+            className={`flex ${isMe(msg.sender_id) ? "justify-end" : "justify-start"}`}
           >
-            <div className="px-4 py-2 rounded-2xl bg-card border text-sm">
+            <div className="px-3 py-2 rounded-xl bg-card border text-sm">
               {msg.content}
             </div>
           </div>
@@ -262,27 +244,30 @@ const ChatPage = () => {
         </div>
       )}
 
-     {/* INPUT RESTAURÉ (style original) */}
-{!isClosed && (
-  <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border px-4 py-3">
-    <div className="flex items-center gap-2">
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && sendMessage(text)}
-        placeholder="Écris un message..."
-        className="flex-1 h-11 px-4 rounded-xl bg-secondary border-none text-sm outline-none text-foreground placeholder:text-muted-foreground"
-      />
+      {/* INPUT (TON STYLE RESTAURÉ) */}
+      {!isClosed && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background/90 border-t px-4 py-3">
+          <div className="flex gap-2 items-center">
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage(text)}
+              placeholder="Écris un message..."
+              className="flex-1 h-11 px-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground outline-none"
+            />
 
-      <button
-        onClick={() => sendMessage(text)}
-        disabled={!text.trim()}
-        className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center"
-      >
-        <Send className="w-4 h-4" />
-      </button>
+            <button
+              onClick={() => sendMessage(text)}
+              className="w-11 h-11 bg-primary text-white rounded-xl flex items-center justify-center"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
-  </div>
-)}
+  );
+};
 
 export default ChatPage;
