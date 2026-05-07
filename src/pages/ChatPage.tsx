@@ -91,6 +91,7 @@ const ChatPage = () => {
     fetchConv();
     fetchMessages();
     fetchAddress();
+    fetchMission();
 
     const channel = supabase
       .channel(`chat-${id}`)
