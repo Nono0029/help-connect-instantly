@@ -124,13 +124,58 @@ const ChatPage = () => {
   }, [conversation, userAddress]);
 
   // Après paiement réussi
-  useEffect(() => {
-    if (searchParams.get("success") === "true" && conversation?.statut === "payé") {
-      if (user?.id === conversation.demande?.user_id && userAddress) {
+useEffect(() => {
+  const createMission = async () => {
+    if (
+      searchParams.get("success") === "true" &&
+      conversation?.statut === "payé" &&
+      conversation &&
+      user
+    ) {
+
+      // Vérifie si une mission existe déjà
+      const { data: existingMission } = await supabase
+        .from("missions")
+        .select("*")
+        .eq("demande_id", conversation.demande_id)
+        .maybeSingle();
+
+      // Créer mission si elle n'existe pas
+      if (!existingMission) {
+
+        const prixMission = conversation.demande?.gratuit
+          ? 0
+          : parseFloat(
+              (conversation.demande?.prix || "0")
+                .toString()
+                .replace(/[^0-9.]/g, "")
+            );
+
+        const { error } = await supabase
+          .from("missions")
+          .insert({
+            demande_id: conversation.demande_id,
+            demandeur_id: conversation.demandeur_id,
+            helper_id: conversation.helper_id,
+            statut: "en_cours",
+            prix: prixMission
+          });
+
+        console.log("MISSION ERROR :", error);
+      }
+
+      // Proposition adresse
+      if (
+        user.id === conversation.demande?.user_id &&
+        userAddress
+      ) {
         setShowAddressPrompt(true);
       }
     }
-  }, [conversation, searchParams, user, userAddress]);
+  };
+
+  createMission();
+}, [conversation, searchParams, user, userAddress]);
 
   const sendNotification = async (content: string) => {
     if (!conversation || !user) return;
