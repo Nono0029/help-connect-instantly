@@ -399,7 +399,7 @@ const Index = () => {
                       : "text-foreground"
                   }`}
                 >
-                  {d.gratuit ? "Gratuit ❤️" : d.prix}
+                  {d.prix ? `${d.prix} €` : "Gratuit ❤️"}
                 </span>
               </div>
             </motion.div>
