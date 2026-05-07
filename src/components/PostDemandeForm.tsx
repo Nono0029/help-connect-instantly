@@ -84,43 +84,91 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
     });
   };
 
-  const handleSubmit = async () => {
-    if (!titre || !selectedType || !villeForm) return;
-    setLoading(true);
-    const typeLabel = typesAide.find(t => t.id === selectedType)?.label || selectedType;
-    const payload = {
-      titre,
-      description,
-      categorie: typeLabel,
-      prix: gratuit ? null : prix,
-      gratuit,
-      urgent,
-      ville: villeForm || ville || "",
-    };
+const handleSubmit = async () => {
+  if (!titre || !selectedType || !villeForm) return;
 
-    let error = null;
-    if (isEdit && demandeToEdit) {
-      const res = await supabase.from("demandes").update(payload).eq("id", demandeToEdit.id);
-      error = res.error;
-    } else {
-      const auteur = user?.email?.split("@")[0] || "Anonyme";
-      const res = await supabase.from("demandes").insert([{
-        ...payload,
-        auteur,
-        user_id: user?.id,
-      }]);
-      error = res.error;
-    }
+  setLoading(true);
 
-    setLoading(false);
-    if (error) {
-      alert("Erreur : " + error.message);
-    } else {
-      onDemandeAdded();
-      onClose();
-    }
+  const typeLabel =
+    typesAide.find((t) => t.id === selectedType)?.label ||
+    selectedType;
+
+  // ✅ FIX GRATUIT / PRIX
+  const isGratuit = prix.trim() === "";
+
+  const payload = {
+    titre,
+    description,
+
+    categorie: typeLabel,
+
+    // ✅ IMPORTANT
+    gratuit: isGratuit,
+
+    // ✅ IMPORTANT
+    prix: isGratuit ? null : prix,
+
+    urgent,
+
+    ville: villeForm || ville || "",
   };
 
+  let error = null;
+
+  // ✏️ UPDATE
+  if (isEdit && demandeToEdit) {
+
+    const res = await supabase
+      .from("demandes")
+      .update(payload)
+      .eq("id", demandeToEdit.id);
+
+    error = res.error;
+
+  } else {
+
+    // ➕ INSERT
+    const auteur =
+      user?.email?.split("@")[0] || "Anonyme";
+
+    const res = await supabase
+      .from("demandes")
+      .insert([
+        {
+          ...payload,
+
+          auteur,
+
+          user_id: user?.id,
+        },
+      ]);
+
+    error = res.error;
+  }
+
+  setLoading(false);
+
+  if (error) {
+
+    alert("Erreur : " + error.message);
+
+  } else {
+
+    // ✅ RESET FORM
+    setTitre("");
+    setDescription("");
+    setSelectedType("");
+    setPhotos([]);
+    setPrix("");
+    setGratuit(false);
+    setDuree("");
+    setUrgent(false);
+
+    onDemandeAdded();
+
+    onClose();
+  }
+};
   return (
     <AnimatePresence>
       {open && (
