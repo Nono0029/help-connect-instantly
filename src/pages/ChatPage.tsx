@@ -262,26 +262,27 @@ const ChatPage = () => {
         </div>
       )}
 
-      {/* INPUT RESTAURÉ */}
-      {!isClosed && (
-        <div className="fixed bottom-0 left-0 right-0 border-t bg-background px-4 py-3 flex gap-2">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="flex-1 p-2 border rounded-xl"
-            placeholder="Écrire un message..."
-          />
+     {/* INPUT RESTAURÉ (style original) */}
+{!isClosed && (
+  <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border px-4 py-3">
+    <div className="flex items-center gap-2">
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && sendMessage(text)}
+        placeholder="Écris un message..."
+        className="flex-1 h-11 px-4 rounded-xl bg-secondary border-none text-sm outline-none text-foreground placeholder:text-muted-foreground"
+      />
 
-          <button
-            onClick={() => sendMessage(text)}
-            className="p-2 bg-primary text-white rounded-xl"
-          >
-            <Send />
-          </button>
-        </div>
-      )}
+      <button
+        onClick={() => sendMessage(text)}
+        disabled={!text.trim()}
+        className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center"
+      >
+        <Send className="w-4 h-4" />
+      </button>
     </div>
-  );
-};
+  </div>
+)}
 
 export default ChatPage;
