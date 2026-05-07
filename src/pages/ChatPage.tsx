@@ -31,6 +31,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [text, setText] = useState("");
+  const [mission, setMission] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [payLoading, setPayLoading] = useState(false);
   const [userAddress, setUserAddress] = useState("");
