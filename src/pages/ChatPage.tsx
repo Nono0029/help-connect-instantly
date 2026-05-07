@@ -63,6 +63,17 @@ const ChatPage = () => {
       .eq("id", convData.demande_id)
       .single();
     setConversation({ ...convData, demande: demandeData });
+    const fetchMission = async () => {
+  if (!conversation) return;
+
+  const { data } = await supabase
+    .from("missions")
+    .select("*")
+    .eq("demande_id", conversation.demande_id)
+    .maybeSingle();
+
+  if (data) setMission(data);
+};
   };
 
   const fetchAddress = async () => {
