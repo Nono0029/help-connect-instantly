@@ -42,9 +42,7 @@ const ChatPage = () => {
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // -------------------------
-  // FETCH MESSAGES
-  // -------------------------
+  // ---------------- MESSAGES ----------------
   const fetchMessages = async () => {
     if (!id) return;
 
@@ -57,9 +55,7 @@ const ChatPage = () => {
     setMessages(data || []);
   };
 
-  // -------------------------
-  // FETCH CONVERSATION
-  // -------------------------
+  // ---------------- CONVERSATION ----------------
   const fetchConv = async () => {
     if (!id) return;
 
@@ -77,16 +73,10 @@ const ChatPage = () => {
       .eq("id", convData.demande_id)
       .single();
 
-    const fullConv = { ...convData, demande: demandeData };
-
-    setConversation(fullConv);
-
-    fetchMission(fullConv);
+    setConversation({ ...convData, demande: demandeData });
   };
 
-  // -------------------------
-  // FETCH MISSION
-  // -------------------------
+  // ---------------- MISSION ----------------
   const fetchMission = async (conv: any) => {
     if (!conv) return;
 
@@ -99,21 +89,13 @@ const ChatPage = () => {
     if (data) setMission(data);
   };
 
-  // -------------------------
-  // CONFIRMER MISSION
-  // -------------------------
   const confirmerMission = async () => {
     if (!mission || !user) return;
 
     const updates: any = {};
 
-    if (user.id === mission.helper_id) {
-      updates.helper_confirme = true;
-    }
-
-    if (user.id === mission.demandeur_id) {
-      updates.demandeur_confirme = true;
-    }
+    if (user.id === mission.helper_id) updates.helper_confirme = true;
+    if (user.id === mission.demandeur_id) updates.demandeur_confirme = true;
 
     await supabase
       .from("missions")
@@ -133,9 +115,7 @@ const ChatPage = () => {
     fetchMission(conversation);
   };
 
-  // -------------------------
-  // FETCH ADDRESS
-  // -------------------------
+  // ---------------- ADDRESS ----------------
   const fetchAddress = async () => {
     if (!user) return;
 
@@ -148,9 +128,7 @@ const ChatPage = () => {
     if (data?.adresse) setUserAddress(data.adresse);
   };
 
-  // -------------------------
-  // INIT
-  // -------------------------
+  // ---------------- INIT ----------------
   useEffect(() => {
     if (!id || !user) return;
 
@@ -160,12 +138,16 @@ const ChatPage = () => {
 
     const channel = supabase
       .channel(`chat-${id}`)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "messages",
-        filter: `conversation_id=eq.${parseInt(id)}`,
-      }, fetchMessages)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${parseInt(id)}`,
+        },
+        fetchMessages
+      )
       .subscribe();
 
     return () => {
@@ -173,9 +155,7 @@ const ChatPage = () => {
     };
   }, [id, user]);
 
-  // -------------------------
-  // CREATE MISSION AFTER PAYMENT
-  // -------------------------
+  // ---------------- CREATE MISSION AFTER PAYMENT ----------------
   useEffect(() => {
     const createMission = async () => {
       if (
@@ -195,7 +175,7 @@ const ChatPage = () => {
             demandeur_id: conversation.demandeur_id,
             helper_id: conversation.helper_id,
             statut: "en_cours",
-            prix: conversation.demande?.prix || 0
+            prix: conversation.demande?.prix || 0,
           });
         }
 
@@ -206,18 +186,22 @@ const ChatPage = () => {
     createMission();
   }, [conversation, searchParams, user]);
 
-  // -------------------------
-  // SEND MESSAGE
-  // -------------------------
+  // ---------------- SEND MESSAGE (IMPORTANT RESTAURÉ) ----------------
   const sendMessage = async (content: string, isAuto = false) => {
     if (!content.trim() || !user || !id) return;
+    if (conversation?.statut === "fermée") return;
 
-    await supabase.from("messages").insert({
+    const { error } = await supabase.from("messages").insert({
       conversation_id: parseInt(id),
       sender_id: user.id,
       content,
       is_auto: isAuto,
     });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
     setText("");
     fetchMessages();
@@ -227,32 +211,43 @@ const ChatPage = () => {
   const isPaid = conversation?.statut === "payé";
   const isHelper = user?.id === conversation?.helper_id;
 
-  // -------------------------
-  // UI
-  // -------------------------
+  // ---------------- UI ----------------
   return (
     <div className="min-h-screen bg-background flex flex-col">
 
-      {/* HEADER */}
-      <header className="p-3 border-b flex items-center gap-3">
-        <button onClick={() => navigate("/messages")}>
-          <ArrowLeft />
-        </button>
-        <div>
-          <p className="font-bold">{conversation?.demande?.titre}</p>
-          <p className="text-xs text-gray-500">
-            {isPaid ? "Payé" : isClosed ? "Fermé" : "En cours"}
-          </p>
+      {/* HEADER (inchangé) */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/messages")} className="p-1">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+
+          <div className="flex-1">
+            <p className="text-sm font-bold text-foreground truncate">
+              {conversation?.demande?.titre || "Conversation"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {isClosed ? "Fermée" : isPaid ? "Payé" : "En cours"}
+            </p>
+          </div>
         </div>
       </header>
 
-      {/* MESSAGES */}
-      <div className="flex-1 p-4 space-y-2">
-        {messages.map(m => (
-          <div key={m.id} className="text-sm">
-            {m.content}
+      {/* MESSAGES (inchangé logique) */}
+      <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto pb-36">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${
+              user?.id === msg.sender_id ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div className="px-4 py-2 rounded-2xl bg-card border text-sm">
+              {msg.content}
+            </div>
           </div>
         ))}
+        <div ref={bottomRef} />
       </div>
 
       {/* BOUTON MISSION */}
@@ -260,28 +255,31 @@ const ChatPage = () => {
         <div className="p-3">
           <button
             onClick={confirmerMission}
-            className="w-full bg-green-500 text-white p-3 rounded-xl"
+            className="w-full bg-green-500 text-white py-3 rounded-xl"
           >
-            Confirmer la mission
+            ✅ Confirmer la mission
           </button>
         </div>
       )}
 
-      {/* INPUT */}
+      {/* INPUT RESTAURÉ */}
       {!isClosed && (
-        <div className="p-3 flex gap-2 border-t">
+        <div className="fixed bottom-0 left-0 right-0 border-t bg-background px-4 py-3 flex gap-2">
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="flex-1 border p-2 rounded"
-            placeholder="Message..."
+            className="flex-1 p-2 border rounded-xl"
+            placeholder="Écrire un message..."
           />
-          <button onClick={() => sendMessage(text)}>
+
+          <button
+            onClick={() => sendMessage(text)}
+            className="p-2 bg-primary text-white rounded-xl"
+          >
             <Send />
           </button>
         </div>
       )}
-
     </div>
   );
 };
