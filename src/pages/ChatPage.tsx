@@ -213,16 +213,16 @@ const ChatPage = () => {
       </div>
 
       {/* BOUTON MISSION */}
-      {mission?.statut === "en_cours" && (
-        <div className="p-3">
-          <button
-            onClick={confirmerMission}
-            className="w-full bg-green-500 text-white py-3 rounded-xl"
-          >
-            ✅ Confirmer la mission
-          </button>
-        </div>
-      )}
+     {mission?.statut === "en_cours" && (
+  <div className="fixed bottom-20 left-0 right-0 px-4 z-40">
+    <button
+      onClick={confirmerMission}
+      className="w-full bg-green-500 text-white py-3 rounded-xl shadow-lg"
+    >
+      ✅ Confirmer la mission
+    </button>
+  </div>
+)}
 
       {/* INPUT */}
       {!isClosed && (
