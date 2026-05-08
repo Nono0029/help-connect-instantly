@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Send } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -30,7 +30,6 @@ interface Conversation {
 const ChatPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -140,43 +139,12 @@ const ChatPage = () => {
     };
   }, [id, user]);
 
-  // ---------------- LOAD MISSION WHEN CONVERSATION ARRIVES ----------------
+  // ---------------- LOAD MISSION ----------------
   useEffect(() => {
     if (conversation) {
       fetchMission(conversation);
     }
   }, [conversation]);
-
-  // ---------------- CREATE MISSION AFTER PAYMENT ----------------
-  useEffect(() => {
-    const createMission = async () => {
-      if (
-        searchParams.get("success") === "true" &&
-        conversation &&
-        user
-      ) {
-        const { data: existing } = await supabase
-          .from("missions")
-          .select("*")
-          .eq("demande_id", conversation.demande_id)
-          .maybeSingle();
-
-        if (!existing) {
-          await supabase.from("missions").insert({
-            demande_id: conversation.demande_id,
-            demandeur_id: conversation.demandeur_id,
-            helper_id: conversation.helper_id,
-            statut: "en_cours",
-            prix: conversation.demande?.prix || 0,
-          });
-        }
-
-        fetchMission(conversation);
-      }
-    };
-
-    createMission();
-  }, [conversation, searchParams, user]);
 
   // ---------------- SEND MESSAGE ----------------
   const sendMessage = async (content: string) => {
@@ -194,7 +162,7 @@ const ChatPage = () => {
   };
 
   const isClosed = conversation?.statut === "fermée";
-  const isPaid = conversation?.statut === "payé";
+
   const isMe = (idSender: string) => user?.id === idSender;
 
   // ---------------- UI ----------------
@@ -211,8 +179,15 @@ const ChatPage = () => {
           <p className="font-bold">
             {conversation?.demande?.titre || "Conversation"}
           </p>
+
           <p className="text-xs text-gray-500">
-            {isClosed ? "Fermée" : isPaid ? "Payé" : "En cours"}
+            {isClosed
+              ? "❌ Fermée"
+              : mission?.statut === "terminee"
+              ? "✅ Mission terminée"
+              : mission?.statut === "en_cours"
+              ? "🛠 Mission en cours"
+              : "💬 En cours"}
           </p>
         </div>
       </header>
@@ -222,13 +197,18 @@ const ChatPage = () => {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${isMe(msg.sender_id) ? "justify-end" : "justify-start"}`}
+            className={`flex ${
+              isMe(msg.sender_id)
+                ? "justify-end"
+                : "justify-start"
+            }`}
           >
             <div className="px-3 py-2 rounded-xl bg-card border text-sm">
               {msg.content}
             </div>
           </div>
         ))}
+
         <div ref={bottomRef} />
       </div>
 
@@ -244,14 +224,17 @@ const ChatPage = () => {
         </div>
       )}
 
-      {/* INPUT (TON STYLE RESTAURÉ) */}
+      {/* INPUT */}
       {!isClosed && (
         <div className="fixed bottom-0 left-0 right-0 bg-background/90 border-t px-4 py-3">
           <div className="flex gap-2 items-center">
+
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage(text)}
+              onKeyDown={(e) =>
+                e.key === "Enter" && sendMessage(text)
+              }
               placeholder="Écris un message..."
               className="flex-1 h-11 px-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground outline-none"
             />
@@ -262,6 +245,7 @@ const ChatPage = () => {
             >
               <Send className="w-4 h-4" />
             </button>
+
           </div>
         </div>
       )}
