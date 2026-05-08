@@ -223,6 +223,16 @@ const ChatPage = () => {
     </button>
   </div>
 )}
+      {mission?.statut === "terminee" && (
+  <div className="fixed bottom-20 left-0 right-0 px-4 z-40">
+    <button
+      onClick={laisserAvis}
+      className="w-full bg-yellow-500 text-white py-3 rounded-xl shadow-lg"
+    >
+      ⭐ Laisser un avis
+    </button>
+  </div>
+)}
 
       {/* INPUT */}
       {!isClosed && (
