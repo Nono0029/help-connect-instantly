@@ -164,6 +164,29 @@ const ChatPage = () => {
   const isClosed = conversation?.statut === "fermée";
 
   const isMe = (idSender: string) => user?.id === idSender;
+const laisserAvis = async () => {
+  if (!mission || !user) return;
+
+  const note = prompt("Note sur 5 ?");
+  const commentaire = prompt("Commentaire ?");
+
+  if (!note) return;
+
+  const cibleId =
+    user.id === mission.helper_id
+      ? mission.demandeur_id
+      : mission.helper_id;
+
+  await supabase.from("avis").insert({
+    mission_id: mission.id,
+    auteur_id: user.id,
+    cible_id: cibleId,
+    note: parseInt(note),
+    commentaire,
+  });
+
+  alert("Avis envoyé ⭐");
+};
 
   // ---------------- UI ----------------
   return (
