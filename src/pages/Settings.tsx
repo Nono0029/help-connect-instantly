@@ -212,24 +212,81 @@ const Settings = () => {
 
       <div className="fixed bottom-[-120px] right-[-120px] w-[280px] h-[280px] bg-green-400/20 blur-[120px] rounded-full -z-10" />
 
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl bg-white/5 px-4 py-4">
+     {/* HEADER */}
+<div className="h-16 min-h-16 border-b border-white/10 backdrop-blur-xl bg-white/5 px-4 flex items-center gap-3 z-20">
 
-        <div className="flex items-center gap-3">
+  <button
+    onClick={() => navigate("/messages")}
+    className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0"
+  >
+    <ArrowLeft className="w-5 h-5 text-white" />
+  </button>
 
-          <button
-            onClick={() => navigate("/")}
-            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
+  <div className="flex-1 overflow-hidden">
 
-          <h1 className="text-lg font-bold">
-            Paramètres
-          </h1>
+    <p className="font-semibold truncate text-white">
+      {conversation?.demande?.titre ||
+        "Conversation"}
+    </p>
+
+    <p className="text-xs text-cyan-100/70">
+      {isClosed
+        ? "❌ Fermée"
+        : mission?.statut === "terminee"
+        ? "✅ Mission terminée"
+        : mission?.statut === "en_cours"
+        ? "💙 Mission en cours"
+        : "💬 Discussion active"}
+    </p>
+
+    {/* ✅ BARRE PROGRESSION */}
+    {messages.length < 5 && (
+      <div className="mt-2">
+
+        <div className="flex items-center justify-between text-[10px] text-cyan-100/50 mb-1">
+
+          <span>
+            Débloque le paiement sécurisé
+          </span>
+
+          <span>
+            {messages.length}/5 messages
+          </span>
 
         </div>
-      </header>
+
+        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+
+          <div
+            className="h-full bg-gradient-to-r from-cyan-400 to-green-400 transition-all duration-500"
+            style={{
+              width: `${Math.min(
+                (messages.length / 5) * 100,
+                100
+              )}%`,
+            }}
+          />
+
+        </div>
+
+      </div>
+    )}
+
+    {/* ✅ TEXTE SI DEBLOQUE */}
+    {messages.length >= 5 && (
+      <div className="mt-2 flex items-center gap-2">
+
+        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+
+        <p className="text-[11px] text-green-300 font-medium">
+          Paiement sécurisé débloqué ✅
+        </p>
+
+      </div>
+    )}
+
+  </div>
+</div>
 
       {/* PROFILE CARD */}
       <div className="px-4 pt-5">
