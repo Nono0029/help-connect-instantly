@@ -33,12 +33,14 @@ const ChatPage = () => {
   const { user } = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [mission, setMission] = useState<any>(null);
+  const [conversation, setConversation] =
+    useState<Conversation | null>(null);
+
   const [text, setText] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // FETCH MESSAGES
   const fetchMessages = async () => {
     if (!id) return;
 
@@ -51,6 +53,7 @@ const ChatPage = () => {
     setMessages(data || []);
   };
 
+  // FETCH CONVERSATION
   const fetchConv = async () => {
     if (!id) return;
 
@@ -68,9 +71,13 @@ const ChatPage = () => {
       .eq("id", convData.demande_id)
       .single();
 
-    setConversation({ ...convData, demande: demandeData });
+    setConversation({
+      ...convData,
+      demande: demandeData,
+    });
   };
 
+  // INIT
   useEffect(() => {
     if (!id || !user) return;
 
@@ -87,7 +94,15 @@ const ChatPage = () => {
           table: "messages",
           filter: `conversation_id=eq.${parseInt(id)}`,
         },
-        fetchMessages
+        () => {
+          fetchMessages();
+
+          setTimeout(() => {
+            bottomRef.current?.scrollIntoView({
+              behavior: "smooth",
+            });
+          }, 100);
+        }
       )
       .subscribe();
 
@@ -96,6 +111,14 @@ const ChatPage = () => {
     };
   }, [id, user]);
 
+  // AUTO SCROLL
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
+
+  // SEND MESSAGE
   const sendMessage = async (content: string) => {
     if (!content?.trim() || !user || !id) return;
 
@@ -106,41 +129,40 @@ const ChatPage = () => {
     });
 
     setText("");
-    fetchMessages();
-
-    setTimeout(() => {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
   };
 
-  const isMe = (idSender: string) => user?.id === idSender;
+  const isMe = (idSender: string) =>
+    user?.id === idSender;
 
-  const isClosed = conversation?.statut === "fermée";
+  const isClosed =
+    conversation?.statut === "fermée";
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden text-white">
+    <div className="h-screen flex flex-col bg-[#071118] text-white relative overflow-hidden">
 
-      {/* 🌌 BACKGROUND GLOW */}
+      {/* BACKGROUND */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#050f14] via-[#071a1f] to-[#062a2a]" />
 
       <div className="absolute top-[-100px] left-[-80px] w-[300px] h-[300px] bg-cyan-400/20 blur-[120px] rounded-full" />
+
       <div className="absolute bottom-[-120px] right-[-100px] w-[320px] h-[320px] bg-green-400/20 blur-[140px] rounded-full" />
 
-      {/* HEADER GLASS */}
-      <header className="relative z-10 p-4 border-b border-white/10 backdrop-blur-xl bg-white/5">
+      {/* HEADER */}
+      <header className="relative z-30 flex-shrink-0 p-4 border-b border-white/10 backdrop-blur-xl bg-white/5">
 
         <div className="flex items-center gap-3">
 
           <button
             onClick={() => navigate("/messages")}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition flex items-center justify-center backdrop-blur-md shadow-lg"
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition flex items-center justify-center"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
 
           <div>
-            <p className="font-semibold text-white text-lg drop-shadow">
-              {conversation?.demande?.titre || "Conversation"}
+            <p className="font-semibold text-white text-lg">
+              {conversation?.demande?.titre ||
+                "Conversation"}
             </p>
 
             <p className="text-xs text-gray-300">
@@ -149,64 +171,69 @@ const ChatPage = () => {
                 : "💬 Discussion active"}
             </p>
           </div>
-
         </div>
       </header>
 
       {/* MESSAGES */}
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-32 relative z-10">
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-32 relative z-10">
 
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex items-end gap-2 ${
-              isMe(msg.sender_id) ? "justify-end" : "justify-start"
-            }`}
-          >
+        <div className="space-y-4">
 
-            {/* bubble glass */}
+          {messages.map((msg) => (
             <div
-              className={`px-4 py-3 rounded-2xl text-sm max-w-[75%] backdrop-blur-xl border shadow-lg transition ${
+              key={msg.id}
+              className={`flex ${
                 isMe(msg.sender_id)
-                  ? "bg-gradient-to-r from-cyan-400/90 to-green-400/90 text-white shadow-cyan-500/30"
-                  : "bg-white/10 border-white/10 text-white"
+                  ? "justify-end"
+                  : "justify-start"
               }`}
             >
-              {msg.content}
+              <div
+                className={`px-4 py-3 rounded-2xl text-sm max-w-[75%] shadow-lg backdrop-blur-xl border ${
+                  isMe(msg.sender_id)
+                    ? "bg-gradient-to-r from-cyan-400 to-green-400 text-white border-transparent"
+                    : "bg-white/10 border-white/10 text-white"
+                }`}
+              >
+                {msg.content}
+              </div>
             </div>
+          ))}
 
-          </div>
-        ))}
+          <div ref={bottomRef} />
 
-        <div ref={bottomRef} />
+        </div>
       </div>
 
-      {/* INPUT GLASS */}
+      {/* INPUT */}
       {!isClosed && (
-        <div className="fixed bottom-0 left-0 right-0 p-3 z-20">
+        <div className="relative z-30 flex-shrink-0 p-3 border-t border-white/10 bg-[#071118]/90 backdrop-blur-2xl">
 
-          <div className="flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-xl">
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl p-2">
 
             <input
               value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage(text)}
+              onChange={(e) =>
+                setText(e.target.value)
+              }
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                sendMessage(text)
+              }
               placeholder="Écris un message..."
               className="flex-1 bg-transparent px-3 py-2 text-white placeholder:text-gray-400 outline-none"
             />
 
             <button
               onClick={() => sendMessage(text)}
-              className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-400 to-green-400 flex items-center justify-center shadow-lg hover:scale-105 transition"
+              className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-400 to-green-400 flex items-center justify-center shadow-lg"
             >
               <Send className="w-4 h-4 text-white" />
             </button>
 
           </div>
-
         </div>
       )}
-
     </div>
   );
 };
