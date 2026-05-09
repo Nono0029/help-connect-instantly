@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  Send,
+  Star,
+  MapPin,
+  ShieldCheck,
+} from "lucide-react";
+
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
@@ -42,9 +49,19 @@ const ChatPage = () => {
   const [commentaire, setCommentaire] =
     useState("");
 
+  // 📍 ADRESSE
+  const [showAdresseBox, setShowAdresseBox] =
+    useState(false);
+
+  const [adresse, setAdresse] = useState("");
+  const [ville, setVille] = useState("");
+
+  const [adresseEnvoyee, setAdresseEnvoyee] =
+    useState(false);
+
   const messagesRef = useRef<HTMLDivElement>(null);
 
-  // FETCH MESSAGES
+  // ---------------- FETCH MESSAGES ----------------
   const fetchMessages = async () => {
     if (!id) return;
 
@@ -57,7 +74,7 @@ const ChatPage = () => {
     setMessages(data || []);
   };
 
-  // FETCH CONVERSATION
+  // ---------------- FETCH CONVERSATION ----------------
   const fetchConversation = async () => {
     if (!id) return;
 
@@ -81,7 +98,23 @@ const ChatPage = () => {
     });
   };
 
-  // FETCH MISSION
+  // ---------------- FETCH PROFILE ----------------
+  const fetchProfile = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("profiles")
+      .select("adresse, ville")
+      .eq("id", user.id)
+      .single();
+
+    if (data) {
+      setAdresse(data.adresse || "");
+      setVille(data.ville || "");
+    }
+  };
+
+  // ---------------- FETCH MISSION ----------------
   const fetchMission = async (conv: any) => {
     if (!conv) return;
 
@@ -96,7 +129,7 @@ const ChatPage = () => {
     }
   };
 
-  // CONFIRM MISSION
+  // ---------------- CONFIRM MISSION ----------------
   const confirmerMission = async () => {
     if (!mission || !user) return;
 
@@ -135,7 +168,7 @@ const ChatPage = () => {
     fetchMission(conversation);
   };
 
-  // ⭐ ENVOYER AVIS
+  // ---------------- ENVOYER AVIS ----------------
   const envoyerAvis = async () => {
     if (!mission || !user) return;
 
@@ -157,12 +190,31 @@ const ChatPage = () => {
     setNote(5);
   };
 
-  // INIT
+  // ---------------- ENVOYER ADRESSE ----------------
+  const envoyerAdresse = async () => {
+    if (!adresse.trim()) return;
+
+    const messageAdresse = `📍 Mon adresse :
+${adresse}
+${ville}`;
+
+    await supabase.from("messages").insert({
+      conversation_id: parseInt(id!),
+      sender_id: user?.id,
+      content: messageAdresse,
+    });
+
+    setAdresseEnvoyee(true);
+    setShowAdresseBox(false);
+  };
+
+  // ---------------- INIT ----------------
   useEffect(() => {
     if (!id || !user) return;
 
     fetchConversation();
     fetchMessages();
+    fetchProfile();
 
     const channel = supabase
       .channel(`chat-${id}`)
@@ -185,14 +237,14 @@ const ChatPage = () => {
     };
   }, [id, user]);
 
-  // LOAD MISSION
+  // ---------------- LOAD MISSION ----------------
   useEffect(() => {
     if (conversation) {
       fetchMission(conversation);
     }
   }, [conversation]);
 
-  // AUTO SCROLL
+  // ---------------- AUTO SCROLL ----------------
   useEffect(() => {
     if (messagesRef.current) {
       messagesRef.current.scrollTop =
@@ -200,7 +252,14 @@ const ChatPage = () => {
     }
   }, [messages]);
 
-  // SEND
+  // ---------------- SHOW ADDRESS AFTER 5 MSG ----------------
+  useEffect(() => {
+    if (messages.length >= 5 && !adresseEnvoyee) {
+      setShowAdresseBox(true);
+    }
+  }, [messages]);
+
+  // ---------------- SEND MESSAGE ----------------
   const sendMessage = async () => {
     if (!text.trim() || !user || !id) return;
 
@@ -222,7 +281,7 @@ const ChatPage = () => {
   return (
     <div className="h-screen bg-[#071118] text-white flex flex-col overflow-hidden relative">
 
-      {/* BACKGROUND */}
+      {/* BG */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#06131a] via-[#071118] to-[#0a2222]" />
 
       <div className="absolute top-[-100px] left-[-100px] w-[250px] h-[250px] bg-cyan-400/20 blur-[100px] rounded-full -z-10" />
@@ -260,7 +319,7 @@ const ChatPage = () => {
       {/* MESSAGES */}
       <div
         ref={messagesRef}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-40"
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-56"
       >
         {messages.map((msg) => (
           <div
@@ -284,7 +343,67 @@ const ChatPage = () => {
         ))}
       </div>
 
-      {/* ✅ CONFIRMATION */}
+      {/* 📍 ADRESSE */}
+      {showAdresseBox && !adresseEnvoyee && (
+        <div className="fixed bottom-28 left-4 right-4 z-40">
+
+          <div className="rounded-3xl bg-[#10212a] border border-white/10 p-4 shadow-2xl backdrop-blur-xl">
+
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldCheck className="w-5 h-5 text-cyan-300" />
+
+              <p className="font-semibold text-white">
+                Envoyer ton adresse ?
+              </p>
+            </div>
+
+            <p className="text-sm text-cyan-100/60 mb-4">
+              Tu peux modifier l’adresse avant envoi 💙
+            </p>
+
+            <input
+              value={adresse}
+              onChange={(e) =>
+                setAdresse(e.target.value)
+              }
+              placeholder="Adresse"
+              className="w-full h-11 rounded-2xl bg-white/5 border border-white/10 px-4 text-sm text-white mb-3 outline-none"
+            />
+
+            <input
+              value={ville}
+              onChange={(e) =>
+                setVille(e.target.value)
+              }
+              placeholder="Ville"
+              className="w-full h-11 rounded-2xl bg-white/5 border border-white/10 px-4 text-sm text-white mb-4 outline-none"
+            />
+
+            <div className="flex gap-2">
+
+              <button
+                onClick={() =>
+                  setShowAdresseBox(false)
+                }
+                className="flex-1 h-11 rounded-2xl bg-white/5 border border-white/10"
+              >
+                Plus tard
+              </button>
+
+              <button
+                onClick={envoyerAdresse}
+                className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-cyan-400 to-green-400 text-white font-semibold flex items-center justify-center gap-2"
+              >
+                <MapPin className="w-4 h-4" />
+                Envoyer
+              </button>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM */}
       {mission?.statut === "en_cours" && (
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
           <button
@@ -296,7 +415,7 @@ const ChatPage = () => {
         </div>
       )}
 
-      {/* ⭐ BOUTON AVIS */}
+      {/* AVIS */}
       {mission?.statut === "terminee" &&
         !showAvis && (
           <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
@@ -309,11 +428,11 @@ const ChatPage = () => {
           </div>
         )}
 
-      {/* ⭐ MODAL AVIS */}
+      {/* MODAL AVIS */}
       {showAvis && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end">
 
-          <div className="w-full rounded-t-[30px] bg-[#0d1b22] border-t border-white/10 p-5 animate-in slide-in-from-bottom">
+          <div className="w-full rounded-t-[30px] bg-[#0d1b22] border-t border-white/10 p-5">
 
             <div className="w-14 h-1.5 bg-white/20 rounded-full mx-auto mb-5" />
 
