@@ -226,7 +226,7 @@ return (
 
           <p className="text-2xl font-black text-white leading-tight">
             Trouve de l’aide <br />
-            près de chez toi 💙
+            près de chez toi 🌍
           </p>
 
           <p className="text-sm text-blue-100/70 mt-2">
@@ -332,7 +332,7 @@ return (
         <div className="text-center text-blue-100/60 py-20">
 
           <div className="text-6xl mb-4">
-            🌈
+            🌝
           </div>
 
           <p className="font-bold text-white text-lg">
@@ -340,7 +340,7 @@ return (
           </p>
 
           <p className="text-sm mt-2">
-            Sois le premier à aider quelqu’un aujourd’hui 💙
+            Sois le premier à aider quelqu’un aujourd’hui 🐣 
           </p>
         </div>
       )}
