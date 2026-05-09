@@ -93,15 +93,20 @@ const ChatPage = () => {
     const updates: any = {};
 
     if (user.id === mission.helper_id) updates.helper_confirme = true;
-    if (user.id === mission.demandeur_id) updates.demandeur_confirme = true;
+    if (user.id === mission.demandeur_id)
+      updates.demandeur_confirme = true;
 
     await supabase
       .from("missions")
       .update(updates)
       .eq("id", mission.id);
 
-    const helper = updates.helper_confirme ?? mission.helper_confirme;
-    const demandeur = updates.demandeur_confirme ?? mission.demandeur_confirme;
+    const helper =
+      updates.helper_confirme ?? mission.helper_confirme;
+
+    const demandeur =
+      updates.demandeur_confirme ??
+      mission.demandeur_confirme;
 
     if (helper && demandeur) {
       await supabase
@@ -149,6 +154,7 @@ const ChatPage = () => {
   // ---------------- SEND MESSAGE ----------------
   const sendMessage = async (content: string) => {
     if (!content?.trim() || !user || !id) return;
+
     if (conversation?.statut === "fermée") return;
 
     await supabase.from("messages").insert({
@@ -159,127 +165,198 @@ const ChatPage = () => {
 
     setText("");
     fetchMessages();
+
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }, 100);
   };
 
   const isClosed = conversation?.statut === "fermée";
 
-  const isMe = (idSender: string) => user?.id === idSender;
-const laisserAvis = async () => {
-  if (!mission || !user) return;
+  const isMe = (idSender: string) =>
+    user?.id === idSender;
 
-  const note = prompt("Note sur 5 ?");
-  const commentaire = prompt("Commentaire ?");
+  // ---------------- AVIS ----------------
+  const laisserAvis = async () => {
+    if (!mission || !user) return;
 
-  if (!note) return;
+    const note = prompt("Note sur 5 ?");
+    const commentaire = prompt("Commentaire ?");
 
-  const cibleId =
-    user.id === mission.helper_id
-      ? mission.demandeur_id
-      : mission.helper_id;
+    if (!note) return;
 
-  await supabase.from("avis").insert({
-    mission_id: mission.id,
-    auteur_id: user.id,
-    cible_id: cibleId,
-    note: parseInt(note),
-    commentaire,
-  });
+    const cibleId =
+      user.id === mission.helper_id
+        ? mission.demandeur_id
+        : mission.helper_id;
 
-  alert("Avis envoyé ⭐");
-};
+    await supabase.from("avis").insert({
+      mission_id: mission.id,
+      auteur_id: user.id,
+      cible_id: cibleId,
+      note: parseInt(note),
+      commentaire,
+    });
+
+    alert("Avis envoyé ⭐");
+  };
 
   // ---------------- UI ----------------
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-cyan-50 via-white to-green-50 relative overflow-hidden">
+
+      {/* 🌈 DÉCOS */}
+      <div className="absolute top-24 left-4 text-4xl opacity-20">
+        ☁️
+      </div>
+
+      <div className="absolute top-40 right-6 text-3xl opacity-20">
+        🌱
+      </div>
+
+      <div className="absolute bottom-40 left-10 text-3xl opacity-20">
+        💙
+      </div>
+
+      <div className="absolute bottom-64 right-8 text-4xl opacity-20">
+        ✨
+      </div>
 
       {/* HEADER */}
-      <header className="p-3 border-b flex items-center gap-3">
-        <button onClick={() => navigate("/messages")}>
-          <ArrowLeft />
-        </button>
+      <header className="p-4 border-b border-cyan-100 bg-white/70 backdrop-blur-xl sticky top-0 z-50">
 
-        <div>
-          <p className="font-bold">
-            {conversation?.demande?.titre || "Conversation"}
-          </p>
+        <div className="flex items-center gap-3">
 
-          <p className="text-xs text-gray-500">
-            {isClosed
-              ? "❌ Fermée"
-              : mission?.statut === "terminee"
-              ? "✅ Mission terminée"
-              : mission?.statut === "en_cours"
-              ? "🛠 Mission en cours"
-              : "💬 En cours"}
-          </p>
+          <button
+            onClick={() => navigate("/messages")}
+            className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center"
+          >
+            <ArrowLeft className="w-5 h-5 text-cyan-700" />
+          </button>
+
+          <div>
+            <p className="font-bold text-foreground text-lg">
+              {conversation?.demande?.titre ||
+                "Conversation"}
+            </p>
+
+            <p className="text-xs text-gray-500 mt-0.5">
+              {isClosed
+                ? "❌ Fermée"
+                : mission?.statut === "terminee"
+                ? "✅ Mission terminée"
+                : mission?.statut === "en_cours"
+                ? "🛠 Mission en cours"
+                : "💬 Discussion active"}
+            </p>
+          </div>
+
         </div>
       </header>
 
       {/* MESSAGES */}
-      <div className="flex-1 p-4 space-y-2 overflow-y-auto pb-32">
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-40 z-10">
+
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${
+            className={`flex items-end gap-2 ${
               isMe(msg.sender_id)
                 ? "justify-end"
                 : "justify-start"
             }`}
           >
-            <div className="px-3 py-2 rounded-xl bg-card border text-sm">
+
+            {/* AVATAR AUTRE */}
+            {!isMe(msg.sender_id) && (
+              <div className="w-8 h-8 rounded-full bg-cyan-200 flex items-center justify-center text-xs shadow-sm">
+                🌿
+              </div>
+            )}
+
+            {/* BULLE */}
+            <div
+              className={`px-4 py-3 rounded-3xl text-sm max-w-[75%] shadow-sm ${
+                isMe(msg.sender_id)
+                  ? "bg-gradient-to-r from-cyan-400 to-green-400 text-white"
+                  : "bg-white border border-cyan-100 text-foreground"
+              }`}
+            >
               {msg.content}
             </div>
+
+            {/* AVATAR MOI */}
+            {isMe(msg.sender_id) && (
+              <div className="w-8 h-8 rounded-full bg-green-300 flex items-center justify-center text-xs shadow-sm">
+                😊
+              </div>
+            )}
+
           </div>
         ))}
 
         <div ref={bottomRef} />
+
       </div>
 
-      {/* BOUTON MISSION */}
-     {mission?.statut === "en_cours" && (
-  <div className="fixed bottom-20 left-0 right-0 px-4 z-40">
-    <button
-      onClick={confirmerMission}
-      className="w-full bg-green-500 text-white py-3 rounded-xl shadow-lg"
-    >
-      ✅ Confirmer la mission
-    </button>
-  </div>
-)}
+      {/* BOUTON CONFIRMER */}
+      {mission?.statut === "en_cours" && (
+        <div className="fixed bottom-24 left-0 right-0 px-4 z-40">
+
+          <button
+            onClick={confirmerMission}
+            className="w-full bg-gradient-to-r from-green-400 to-emerald-500 text-white py-3 rounded-2xl shadow-xl text-sm font-semibold"
+          >
+            ✅ Confirmer la mission
+          </button>
+
+        </div>
+      )}
+
+      {/* BOUTON AVIS */}
       {mission?.statut === "terminee" && (
-  <div className="fixed bottom-20 left-0 right-0 px-4 z-40">
-    <button
-      onClick={laisserAvis}
-      className="w-full bg-yellow-500 text-white py-3 rounded-xl shadow-lg"
-    >
-      ⭐ Laisser un avis
-    </button>
-  </div>
-)}
+        <div className="fixed bottom-24 left-0 right-0 px-4 z-40">
+
+          <button
+            onClick={laisserAvis}
+            className="w-full bg-gradient-to-r from-yellow-300 to-orange-400 text-white py-3 rounded-2xl shadow-xl text-sm font-semibold"
+          >
+            ⭐ Laisser un avis
+          </button>
+
+        </div>
+      )}
 
       {/* INPUT */}
       {!isClosed && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background/90 border-t px-4 py-3">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-cyan-100 px-4 py-3 z-50">
+
           <div className="flex gap-2 items-center">
 
             <input
               value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) =>
-                e.key === "Enter" && sendMessage(text)
+              onChange={(e) =>
+                setText(e.target.value)
               }
-              placeholder="Écris un message..."
-              className="flex-1 h-11 px-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground outline-none"
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                sendMessage(text)
+              }
+              placeholder="Écris un message 💬"
+              className="flex-1 h-12 px-5 rounded-2xl bg-cyan-50 border border-cyan-100 text-foreground placeholder:text-gray-400 outline-none"
             />
 
             <button
               onClick={() => sendMessage(text)}
-              className="w-11 h-11 bg-primary text-white rounded-xl flex items-center justify-center"
+              className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-green-400 text-white rounded-2xl flex items-center justify-center shadow-lg"
             >
               <Send className="w-4 h-4" />
             </button>
 
           </div>
+
         </div>
       )}
 
