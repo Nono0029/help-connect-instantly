@@ -10,7 +10,6 @@ interface Message {
   sender_id: string;
   content: string;
   created_at: string;
-  is_auto?: boolean;
 }
 
 interface Conversation {
@@ -21,9 +20,6 @@ interface Conversation {
   statut: string;
   demande?: {
     titre: string;
-    prix?: string;
-    gratuit?: boolean;
-    user_id?: string;
   };
 }
 
@@ -38,7 +34,7 @@ const ChatPage = () => {
 
   const [text, setText] = useState("");
 
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
 
   // FETCH MESSAGES
   const fetchMessages = async () => {
@@ -54,26 +50,26 @@ const ChatPage = () => {
   };
 
   // FETCH CONVERSATION
-  const fetchConv = async () => {
+  const fetchConversation = async () => {
     if (!id) return;
 
-    const { data: convData } = await supabase
+    const { data: conv } = await supabase
       .from("conversations")
       .select("*")
       .eq("id", id)
       .single();
 
-    if (!convData) return;
+    if (!conv) return;
 
-    const { data: demandeData } = await supabase
+    const { data: demande } = await supabase
       .from("demandes")
-      .select("titre, prix, gratuit, user_id")
-      .eq("id", convData.demande_id)
+      .select("titre")
+      .eq("id", conv.demande_id)
       .single();
 
     setConversation({
-      ...convData,
-      demande: demandeData,
+      ...conv,
+      demande,
     });
   };
 
@@ -81,7 +77,7 @@ const ChatPage = () => {
   useEffect(() => {
     if (!id || !user) return;
 
-    fetchConv();
+    fetchConversation();
     fetchMessages();
 
     const channel = supabase
@@ -92,16 +88,10 @@ const ChatPage = () => {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${parseInt(id)}`,
+          filter: `conversation_id=eq.${id}`,
         },
         () => {
           fetchMessages();
-
-          setTimeout(() => {
-            bottomRef.current?.scrollIntoView({
-              behavior: "smooth",
-            });
-          }, 100);
         }
       )
       .subscribe();
@@ -113,127 +103,113 @@ const ChatPage = () => {
 
   // AUTO SCROLL
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop =
+        messagesRef.current.scrollHeight;
+    }
   }, [messages]);
 
-  // SEND MESSAGE
-  const sendMessage = async (content: string) => {
-    if (!content?.trim() || !user || !id) return;
+  // SEND
+  const sendMessage = async () => {
+    if (!text.trim() || !user || !id) return;
 
     await supabase.from("messages").insert({
       conversation_id: parseInt(id),
       sender_id: user.id,
-      content,
+      content: text,
     });
 
     setText("");
   };
 
-  const isMe = (idSender: string) =>
-    user?.id === idSender;
-
-  const isClosed =
-    conversation?.statut === "fermée";
+  const isMe = (senderId: string) =>
+    senderId === user?.id;
 
   return (
-    <div className="h-screen flex flex-col bg-[#071118] text-white relative overflow-hidden">
+    <div className="h-screen bg-[#071118] text-white flex flex-col overflow-hidden relative">
 
       {/* BACKGROUND */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#050f14] via-[#071a1f] to-[#062a2a]" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#06131a] via-[#071118] to-[#0a2222]" />
 
-      <div className="absolute top-[-100px] left-[-80px] w-[300px] h-[300px] bg-cyan-400/20 blur-[120px] rounded-full" />
+      <div className="absolute top-[-100px] left-[-100px] w-[250px] h-[250px] bg-cyan-400/20 blur-[100px] rounded-full -z-10" />
 
-      <div className="absolute bottom-[-120px] right-[-100px] w-[320px] h-[320px] bg-green-400/20 blur-[140px] rounded-full" />
+      <div className="absolute bottom-[-100px] right-[-100px] w-[250px] h-[250px] bg-green-400/20 blur-[100px] rounded-full -z-10" />
 
       {/* HEADER */}
-      <header className="relative z-30 flex-shrink-0 p-4 border-b border-white/10 backdrop-blur-xl bg-white/5">
+      <div className="h-16 min-h-16 border-b border-white/10 backdrop-blur-xl bg-white/5 px-4 flex items-center gap-3">
 
-        <div className="flex items-center gap-3">
+        <button
+          onClick={() => navigate("/messages")}
+          className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center"
+        >
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
 
-          <button
-            onClick={() => navigate("/messages")}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition flex items-center justify-center"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
+        <div className="flex-1 overflow-hidden">
+          <p className="font-semibold truncate text-white">
+            {conversation?.demande?.titre ||
+              "Conversation"}
+          </p>
 
-          <div>
-            <p className="font-semibold text-white text-lg">
-              {conversation?.demande?.titre ||
-                "Conversation"}
-            </p>
-
-            <p className="text-xs text-gray-300">
-              {isClosed
-                ? "❌ Fermée"
-                : "💬 Discussion active"}
-            </p>
-          </div>
-        </div>
-      </header>
-
-      {/* MESSAGES */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-32 relative z-10">
-
-        <div className="space-y-4">
-
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${
-                isMe(msg.sender_id)
-                  ? "justify-end"
-                  : "justify-start"
-              }`}
-            >
-              <div
-                className={`px-4 py-3 rounded-2xl text-sm max-w-[75%] shadow-lg backdrop-blur-xl border ${
-                  isMe(msg.sender_id)
-                    ? "bg-gradient-to-r from-cyan-400 to-green-400 text-white border-transparent"
-                    : "bg-white/10 border-white/10 text-white"
-                }`}
-              >
-                {msg.content}
-              </div>
-            </div>
-          ))}
-
-          <div ref={bottomRef} />
-
+          <p className="text-xs text-gray-400">
+            💬 Discussion active
+          </p>
         </div>
       </div>
 
-      {/* INPUT */}
-      {!isClosed && (
-        <div className="relative z-30 flex-shrink-0 p-3 border-t border-white/10 bg-[#071118]/90 backdrop-blur-2xl">
-
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl p-2">
-
-            <input
-              value={text}
-              onChange={(e) =>
-                setText(e.target.value)
-              }
-              onKeyDown={(e) =>
-                e.key === "Enter" &&
-                sendMessage(text)
-              }
-              placeholder="Écris un message..."
-              className="flex-1 bg-transparent px-3 py-2 text-white placeholder:text-gray-400 outline-none"
-            />
-
-            <button
-              onClick={() => sendMessage(text)}
-              className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-400 to-green-400 flex items-center justify-center shadow-lg"
+      {/* MESSAGES */}
+      <div
+        ref={messagesRef}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
+      >
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${
+              isMe(msg.sender_id)
+                ? "justify-end"
+                : "justify-start"
+            }`}
+          >
+            <div
+              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm shadow-lg ${
+                isMe(msg.sender_id)
+                  ? "bg-gradient-to-r from-cyan-400 to-green-400 text-white"
+                  : "bg-white/10 backdrop-blur-xl border border-white/10 text-white"
+              }`}
             >
-              <Send className="w-4 h-4 text-white" />
-            </button>
-
+              {msg.content}
+            </div>
           </div>
+        ))}
+      </div>
+
+      {/* INPUT */}
+      <div className="border-t border-white/10 bg-[#071118]/90 backdrop-blur-xl px-3 py-2">
+
+        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-2 py-2">
+
+          <input
+            value={text}
+            onChange={(e) =>
+              setText(e.target.value)
+            }
+            onKeyDown={(e) =>
+              e.key === "Enter" && sendMessage()
+            }
+            placeholder="Écris un message..."
+            className="flex-1 bg-transparent text-white placeholder:text-gray-400 outline-none px-2 text-sm"
+          />
+
+          <button
+            onClick={sendMessage}
+            className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-400 to-green-400 flex items-center justify-center"
+          >
+            <Send className="w-4 h-4 text-white" />
+          </button>
+
         </div>
-      )}
+      </div>
     </div>
   );
 };
