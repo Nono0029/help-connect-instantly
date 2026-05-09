@@ -160,285 +160,320 @@ const Index = () => {
     filters.prix !== "all",
   ].filter(Boolean).length;
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+return (
+  <div className="min-h-screen bg-[#071118] flex flex-col relative overflow-hidden">
 
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="px-4 pt-3 pb-2">
+    {/* BLOBS BACKGROUND */}
+    <div className="absolute top-[-120px] left-[-120px] w-80 h-80 bg-blue-500/20 blur-3xl rounded-full" />
 
-          {/* TOP */}
-          <div className="flex items-center justify-between mb-3">
+    <div className="absolute bottom-[-120px] right-[-120px] w-80 h-80 bg-green-500/20 blur-3xl rounded-full" />
 
-            {/* LOGO */}
-            <h1 className="text-xl font-bold text-foreground tracking-tight">
-              Deman<span className="text-primary">dé</span>
+    {/* HEADER */}
+    <header className="sticky top-0 z-50 bg-[#071118]/80 backdrop-blur-2xl border-b border-white/5">
+
+      <div className="px-4 pt-4 pb-3">
+
+        {/* TOP */}
+        <div className="flex items-center justify-between mb-4">
+
+          {/* LOGO */}
+          <div>
+            <h1 className="text-2xl font-black text-white tracking-tight">
+              Deman<span className="text-blue-400">dé</span>
             </h1>
 
-            {/* ACTIONS */}
-            <div className="flex items-center gap-2">
-
-              {/* 🔔 NOTIFICATIONS */}
-              <NotificationBell />
-
-              {/* 📦 MES DEMANDES */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/mes-demandes")}
-                title="Mes demandes"
-              >
-                <ShoppingBag className="w-5 h-5" />
-              </Button>
-
-              {/* 💬 MESSAGES */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/messages")}
-                title="Messages"
-              >
-                <MessageCircle className="w-5 h-5" />
-              </Button>
-
-              {/* 👤 SETTINGS */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/settings")}
-                title="Paramètres"
-              >
-                <User className="w-5 h-5" />
-              </Button>
-            </div>
+            <p className="text-xs text-blue-100/60 mt-0.5">
+              Aidons-nous autour de nous 🌱
+            </p>
           </div>
 
-          {/* SEARCH */}
-          <div className="relative mb-3">
+          {/* ACTIONS */}
+          <div className="flex items-center gap-2">
 
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <NotificationBell />
 
-            <Input
-              placeholder="Rechercher une demande..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-10 h-11 rounded-xl bg-secondary border-none text-sm"
-            />
-
-            {/* FILTER BTN */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 relative"
-              onClick={() => setShowFilters(true)}
+              onClick={() => navigate("/mes-demandes")}
+              className="rounded-2xl bg-white/5 border border-white/10 text-white hover:bg-white/10"
             >
-              <Filter className="w-4 h-4" />
+              <ShoppingBag className="w-5 h-5" />
+            </Button>
 
-              {activeFiltersCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-bold">
-                  {activeFiltersCount}
-                </span>
-              )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/messages")}
+              className="rounded-2xl bg-white/5 border border-white/10 text-white hover:bg-white/10"
+            >
+              <MessageCircle className="w-5 h-5" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/settings")}
+              className="rounded-2xl bg-white/5 border border-white/10 text-white hover:bg-white/10"
+            >
+              <User className="w-5 h-5" />
             </Button>
           </div>
+        </div>
 
-          {/* CITY */}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+        {/* HERO */}
+        <div className="mb-5 rounded-3xl p-5 bg-gradient-to-br from-blue-500/20 to-green-500/20 border border-white/10 shadow-2xl">
 
-            <CityPicker
-              ville={ville}
-              onChange={(v, lat, lng) => {
-                setVille(v);
-                setVilleCoords([lat, lng]);
-              }}
-            />
+          <p className="text-2xl font-black text-white leading-tight">
+            Trouve de l’aide <br />
+            près de chez toi 💙
+          </p>
 
-            <span className="ml-auto text-primary font-medium">
-              {filtered.length} demandes autour de toi
-            </span>
+          <p className="text-sm text-blue-100/70 mt-2">
+            Une communauté bienveillante pour s’entraider au quotidien.
+          </p>
+
+          <div className="flex gap-2 mt-4 flex-wrap">
+
+            <div className="px-3 py-1.5 rounded-full bg-white/10 text-xs text-white">
+              🌱 Bienveillance
+            </div>
+
+            <div className="px-3 py-1.5 rounded-full bg-white/10 text-xs text-white">
+              ⚡ Rapide
+            </div>
+
+            <div className="px-3 py-1.5 rounded-full bg-white/10 text-xs text-white">
+              💬 Humain
+            </div>
+
           </div>
         </div>
 
-        {/* CATEGORIES */}
-        <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCat(cat)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                selectedCat === cat
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                  : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+        {/* SEARCH */}
+        <div className="relative mb-3">
+
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-100/50" />
+
+          <Input
+            placeholder="Rechercher une aide..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 pr-10 h-12 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-blue-100/40"
+          />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-xl text-white"
+            onClick={() => setShowFilters(true)}
+          >
+            <Filter className="w-4 h-4" />
+
+            {activeFiltersCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blue-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                {activeFiltersCount}
+              </span>
+            )}
+          </Button>
         </div>
-      </header>
 
-      {/* 🗺️ MAP */}
-      {!showForm && (
-        <MapView
-          demandes={filtered}
-          ville={ville}
-          lat={villeCoords[0]}
-          lng={villeCoords[1]}
-        />
-      )}
+        {/* CITY */}
+        <div className="flex items-center gap-1 text-xs text-blue-100/60 mb-3">
 
-      {/* LIST */}
-      <div className="flex-1 px-4 pt-4 pb-24 space-y-3">
+          <CityPicker
+            ville={ville}
+            onChange={(v, lat, lng) => {
+              setVille(v);
+              setVilleCoords([lat, lng]);
+            }}
+          />
 
-        {/* EMPTY */}
-        {filtered.length === 0 && (
-          <div className="text-center text-muted-foreground py-20">
-            <p className="text-4xl mb-3">🕊️</p>
-
-            <p className="font-medium">
-              Aucune demande pour l'instant
-            </p>
-
-            <p className="text-sm mt-1">
-              Sois le premier à poster !
-            </p>
-          </div>
-        )}
-
-        {/* DEMANDES */}
-        <AnimatePresence>
-          {filtered.map((d, i) => (
-            <motion.div
-              key={d.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ delay: i * 0.03 }}
-              onClick={() => navigate(`/demande/${d.id}`)}
-              className="bg-card rounded-2xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98]"
-            >
-
-              {/* TOP */}
-              <div className="flex items-start justify-between mb-2">
-
-                <div className="flex items-center gap-2">
-
-                  <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-                    {d.auteur?.slice(0, 2).toUpperCase() || "??"}
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {d.auteur}
-                    </p>
-
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-
-                      <span className="flex items-center gap-0.5">
-                        <MapPin className="w-3 h-3" />
-                        {d.ville || ville}
-                      </span>
-
-                      <span>·</span>
-
-                      <span className="flex items-center gap-0.5">
-                        <Clock className="w-3 h-3" />
-                        {getTemps(d.created_at)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ❤️ LIKE */}
-                <button
-                  onClick={(e) => toggleLike(d.id, e)}
-                  className="p-1"
-                >
-                  <Heart
-                    className={`w-5 h-5 transition-colors ${
-                      likedIds.includes(d.id)
-                        ? "fill-accent text-accent"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* CONTENT */}
-              <h3 className="font-semibold text-foreground mb-1">
-                {d.titre}
-              </h3>
-
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                {d.description}
-              </p>
-
-              {/* FOOTER */}
-              <div className="flex items-center justify-between">
-
-                <div className="flex items-center gap-2">
-
-                  <Badge
-                    variant="secondary"
-                    className="text-xs rounded-lg"
-                  >
-                    {d.categorie}
-                  </Badge>
-
-                  {d.urgent && (
-                    <Badge className="bg-destructive text-destructive-foreground text-xs rounded-lg">
-                      ⚡ Urgent
-                    </Badge>
-                  )}
-                </div>
-
-                <span
-                  className={`text-sm font-bold ${
-                    d.gratuit
-                      ? "text-accent"
-                      : "text-foreground"
-                  }`}
-                >
-                  {d.prix ? `${d.prix} €` : "Gratuit ❤️"}
-                </span>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+          <span className="ml-auto text-green-400 font-semibold">
+            {filtered.length} aides disponibles
+          </span>
+        </div>
       </div>
 
-      {/* ➕ FAB */}
-      <motion.div
-        className="fixed bottom-6 right-6 z-50"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <Button
-          size="lg"
-          className="rounded-full h-14 w-14 shadow-xl shadow-primary/30 bg-primary text-primary-foreground"
-          onClick={() => setShowForm(true)}
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </motion.div>
+      {/* CATEGORIES */}
+      <div className="flex gap-2 overflow-x-auto px-4 pb-4 scrollbar-hide">
 
-      {/* FORM */}
-      <PostDemandeForm
-        open={showForm}
-        onClose={() => setShowForm(false)}
-        onDemandeAdded={fetchDemandes}
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCat(cat)}
+            className={`shrink-0 px-4 py-2 rounded-2xl text-xs font-semibold transition-all ${
+              selectedCat === cat
+                ? "bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-xl"
+                : "bg-white/5 border border-white/10 text-blue-100/70"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+    </header>
+
+    {/* MAP */}
+    {!showForm && (
+      <MapView
+        demandes={filtered}
         ville={ville}
+        lat={villeCoords[0]}
+        lng={villeCoords[1]}
       />
+    )}
 
-      {/* FILTERS */}
-      <SearchFilters
-        open={showFilters}
-        onClose={() => setShowFilters(false)}
-        filters={filters}
-        onApply={setFilters}
-      />
+    {/* LIST */}
+    <div className="flex-1 px-4 pt-5 pb-28 space-y-4 relative z-10">
+
+      {/* EMPTY */}
+      {filtered.length === 0 && (
+        <div className="text-center text-blue-100/60 py-20">
+
+          <div className="text-6xl mb-4">
+            🌈
+          </div>
+
+          <p className="font-bold text-white text-lg">
+            Aucune aide trouvée
+          </p>
+
+          <p className="text-sm mt-2">
+            Sois le premier à aider quelqu’un aujourd’hui 💙
+          </p>
+        </div>
+      )}
+
+      {/* DEMANDES */}
+      <AnimatePresence>
+
+        {filtered.map((d, i) => (
+          <motion.div
+            key={d.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: i * 0.03 }}
+            onClick={() => navigate(`/demande/${d.id}`)}
+            className="rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 p-4 shadow-2xl hover:bg-white/[0.07] transition-all cursor-pointer active:scale-[0.98]"
+          >
+
+            {/* TOP */}
+            <div className="flex items-start justify-between mb-3">
+
+              <div className="flex items-center gap-3">
+
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-green-400 text-white flex items-center justify-center text-sm font-bold shadow-lg">
+                  {d.auteur?.slice(0, 2).toUpperCase() || "??"}
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-white">
+                    {d.auteur}
+                  </p>
+
+                  <div className="flex items-center gap-2 text-xs text-blue-100/50">
+
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {d.ville || ville}
+                    </span>
+
+                    <span>•</span>
+
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {getTemps(d.created_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* LIKE */}
+              <button
+                onClick={(e) => toggleLike(d.id, e)}
+                className="p-1"
+              >
+                <Heart
+                  className={`w-5 h-5 transition-all ${
+                    likedIds.includes(d.id)
+                      ? "fill-pink-500 text-pink-500 scale-110"
+                      : "text-blue-100/40"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* CONTENT */}
+            <h3 className="font-bold text-white mb-1 text-[15px]">
+              {d.titre}
+            </h3>
+
+            <p className="text-sm text-blue-100/60 line-clamp-2 mb-4">
+              {d.description}
+            </p>
+
+            {/* FOOTER */}
+            <div className="flex items-center justify-between">
+
+              <div className="flex items-center gap-2 flex-wrap">
+
+                <Badge className="rounded-xl bg-blue-500/20 text-blue-200 border-none">
+                  {d.categorie}
+                </Badge>
+
+                {d.urgent && (
+                  <Badge className="rounded-xl bg-red-500/20 text-red-300 border-none">
+                    ⚡ Urgent
+                  </Badge>
+                )}
+              </div>
+
+              <span
+                className={`text-sm font-black ${
+                  d.gratuit
+                    ? "text-green-400"
+                    : "text-white"
+                }`}
+              >
+                {d.prix ? `${d.prix} €` : "Gratuit ❤️"}
+              </span>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
-  );
-};
 
-export default Index;
+    {/* FAB */}
+    <motion.div
+      className="fixed bottom-6 right-6 z-50"
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <Button
+        size="lg"
+        className="rounded-full h-16 w-16 shadow-2xl bg-gradient-to-r from-blue-500 to-green-500 text-white border-0"
+        onClick={() => setShowForm(true)}
+      >
+        <Plus className="w-7 h-7" />
+      </Button>
+    </motion.div>
+
+    {/* FORM */}
+    <PostDemandeForm
+      open={showForm}
+      onClose={() => setShowForm(false)}
+      onDemandeAdded={fetchDemandes}
+      ville={ville}
+    />
+
+    {/* FILTERS */}
+    <SearchFilters
+      open={showFilters}
+      onClose={() => setShowFilters(false)}
+      filters={filters}
+      onApply={setFilters}
+    />
+  </div>
+);
