@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
@@ -35,6 +35,12 @@ const ChatPage = () => {
   const [mission, setMission] = useState<any>(null);
 
   const [text, setText] = useState("");
+
+  // ⭐ AVIS
+  const [showAvis, setShowAvis] = useState(false);
+  const [note, setNote] = useState(5);
+  const [commentaire, setCommentaire] =
+    useState("");
 
   const messagesRef = useRef<HTMLDivElement>(null);
 
@@ -129,14 +135,9 @@ const ChatPage = () => {
     fetchMission(conversation);
   };
 
-  // AVIS
-  const laisserAvis = async () => {
+  // ⭐ ENVOYER AVIS
+  const envoyerAvis = async () => {
     if (!mission || !user) return;
-
-    const note = prompt("Note sur 5 ?");
-    const commentaire = prompt("Commentaire ?");
-
-    if (!note) return;
 
     const cibleId =
       user.id === mission.helper_id
@@ -147,11 +148,13 @@ const ChatPage = () => {
       mission_id: mission.id,
       auteur_id: user.id,
       cible_id: cibleId,
-      note: parseInt(note),
+      note,
       commentaire,
     });
 
-    alert("Avis envoyé ⭐");
+    setShowAvis(false);
+    setCommentaire("");
+    setNote(5);
   };
 
   // INIT
@@ -257,7 +260,7 @@ const ChatPage = () => {
       {/* MESSAGES */}
       <div
         ref={messagesRef}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-36"
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-40"
       >
         {messages.map((msg) => (
           <div
@@ -281,9 +284,9 @@ const ChatPage = () => {
         ))}
       </div>
 
-      {/* MISSION BUTTON */}
+      {/* ✅ CONFIRMATION */}
       {mission?.statut === "en_cours" && (
-        <div className="fixed bottom-20 left-0 right-0 px-4 z-30">
+        <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
           <button
             onClick={confirmerMission}
             className="w-full py-3 rounded-2xl bg-gradient-to-r from-green-400 to-emerald-500 text-white font-semibold shadow-xl"
@@ -293,15 +296,82 @@ const ChatPage = () => {
         </div>
       )}
 
-      {/* AVIS BUTTON */}
-      {mission?.statut === "terminee" && (
-        <div className="fixed bottom-20 left-0 right-0 px-4 z-30">
-          <button
-            onClick={laisserAvis}
-            className="w-full py-3 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-semibold shadow-xl"
-          >
-            ⭐ Laisser un avis
-          </button>
+      {/* ⭐ BOUTON AVIS */}
+      {mission?.statut === "terminee" &&
+        !showAvis && (
+          <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
+            <button
+              onClick={() => setShowAvis(true)}
+              className="w-full py-3 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-semibold shadow-xl"
+            >
+              ⭐ Laisser un avis
+            </button>
+          </div>
+        )}
+
+      {/* ⭐ MODAL AVIS */}
+      {showAvis && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end">
+
+          <div className="w-full rounded-t-[30px] bg-[#0d1b22] border-t border-white/10 p-5 animate-in slide-in-from-bottom">
+
+            <div className="w-14 h-1.5 bg-white/20 rounded-full mx-auto mb-5" />
+
+            <h2 className="text-xl font-bold text-center mb-1">
+              Laisser un avis
+            </h2>
+
+            <p className="text-sm text-center text-cyan-100/60 mb-6">
+              Ton avis aide la communauté 💙
+            </p>
+
+            {/* STARS */}
+            <div className="flex justify-center gap-2 mb-6">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setNote(n)}
+                >
+                  <Star
+                    className={`w-9 h-9 transition ${
+                      n <= note
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-white/20"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+
+            {/* TEXTAREA */}
+            <textarea
+              value={commentaire}
+              onChange={(e) =>
+                setCommentaire(e.target.value)
+              }
+              placeholder="Écris ton commentaire..."
+              className="w-full h-28 rounded-2xl bg-white/5 border border-white/10 p-4 text-sm text-white placeholder:text-gray-400 outline-none resize-none"
+            />
+
+            {/* BUTTONS */}
+            <div className="flex gap-3 mt-5">
+
+              <button
+                onClick={() => setShowAvis(false)}
+                className="flex-1 h-12 rounded-2xl bg-white/5 border border-white/10 text-white"
+              >
+                Annuler
+              </button>
+
+              <button
+                onClick={envoyerAvis}
+                className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-semibold"
+              >
+                Envoyer
+              </button>
+
+            </div>
+          </div>
         </div>
       )}
 
