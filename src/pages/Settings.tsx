@@ -1,5 +1,22 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, User, Moon, Sun, ChevronRight, Shield, Bell, ShoppingBag, HelpCircle, LogOut, Star, MapPin, Home, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  Moon,
+  Sun,
+  ChevronRight,
+  Shield,
+  Bell,
+  ShoppingBag,
+  HelpCircle,
+  LogOut,
+  Star,
+  MapPin,
+  Home,
+  Save,
+  User,
+  CheckCircle2,
+} from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
@@ -8,47 +25,110 @@ import { Input } from "@/components/ui/input";
 
 const Settings = () => {
   const navigate = useNavigate();
+
   const { theme, toggleTheme } = useTheme();
+
   const { user, signOut } = useAuth();
 
+  const [pseudo, setPseudo] = useState("");
   const [ville, setVille] = useState("");
   const [adresse, setAdresse] = useState("");
+
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const pseudo = user?.email?.split("@")[0] || "Mon compte";
+  const [moyenne, setMoyenne] = useState(0);
+  const [avisCount, setAvisCount] = useState(0);
+
   const email = user?.email || "";
 
+  // LOAD PROFILE
   useEffect(() => {
-    if (!user) return;
     const fetchProfile = async () => {
+      if (!user) return;
+
       const { data } = await supabase
         .from("profiles")
-        .select("ville, adresse")
+        .select("*")
         .eq("id", user.id)
         .single();
+
       if (data) {
+        setPseudo(
+          data.pseudo ||
+            user.email?.split("@")[0] ||
+            ""
+        );
+
         setVille(data.ville || "");
+
         setAdresse(data.adresse || "");
       }
     };
+
     fetchProfile();
   }, [user]);
 
+  // LOAD AVIS
+  useEffect(() => {
+    const fetchAvis = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("avis")
+        .select("note")
+        .eq("cible_id", user.id);
+
+      if (data) {
+        setAvisCount(data.length);
+
+        const total = data.reduce(
+          (acc, item) => acc + item.note,
+          0
+        );
+
+        const moyenneCalc =
+          data.length > 0
+            ? total / data.length
+            : 0;
+
+        setMoyenne(moyenneCalc);
+      }
+    };
+
+    fetchAvis();
+  }, [user]);
+
+  // SAVE
   const handleSaveProfile = async () => {
     if (!user) return;
+
     setSaving(true);
-    await supabase.from("profiles").upsert({
-      id: user.id,
-      ville,
-      adresse,
-      pseudo,
-    });
+
+    const { error } = await supabase
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        pseudo,
+        ville,
+        adresse,
+      });
+
     setSaving(false);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+
+    setTimeout(() => {
+      setSaved(false);
+    }, 2500);
   };
 
+  // LOGOUT
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
@@ -56,136 +136,330 @@ const Settings = () => {
 
   const menuSections = [
     {
-      title: "Mon compte",
+      title: "Compte",
       items: [
-        { icon: Shield, label: "Mot de passe & sécurité", desc: "Changer mon mot de passe", action: () => navigate("/change-password"), toggle: false },
-        { icon: Bell, label: "Notifications", desc: "Gérer les alertes", action: undefined, toggle: false },
+        {
+          icon: Shield,
+          label: "Sécurité",
+          desc: "Mot de passe et sécurité",
+          action: () =>
+            navigate("/change-password"),
+          toggle: false,
+        },
+
+        {
+          icon: Bell,
+          label: "Notifications",
+          desc: "Bientôt disponible",
+          action: undefined,
+          toggle: false,
+        },
       ],
     },
+
     {
       title: "Préférences",
       items: [
-        { icon: theme === "dark" ? Sun : Moon, label: "Mode nuit", desc: theme === "dark" ? "Activé" : "Désactivé", action: toggleTheme, toggle: true },
+        {
+          icon:
+            theme === "dark"
+              ? Sun
+              : Moon,
+
+          label: "Mode nuit",
+
+          desc:
+            theme === "dark"
+              ? "Activé"
+              : "Désactivé",
+
+          action: toggleTheme,
+
+          toggle: true,
+        },
       ],
     },
+
     {
-      title: "Aide",
+      title: "Support",
       items: [
-        { icon: HelpCircle, label: "Centre d'aide", desc: "FAQ et support", action: undefined, toggle: false },
-        { icon: Star, label: "Noter l'appli", desc: "Donne-nous 5 étoiles !", action: undefined, toggle: false },
+        {
+          icon: HelpCircle,
+          label: "Centre d'aide",
+          desc: "FAQ et assistance",
+          action: undefined,
+          toggle: false,
+        },
+
+        {
+          icon: Star,
+          label: "Noter l'application",
+          desc: "Merci pour ton soutien 💙",
+          action: undefined,
+          toggle: false,
+        },
       ],
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-12">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
+    <div className="min-h-screen bg-[#071118] text-white pb-24">
+
+      {/* BACKGROUND */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-[#06131a] via-[#071118] to-[#0a2222]" />
+
+      <div className="fixed top-[-120px] left-[-120px] w-[280px] h-[280px] bg-cyan-400/20 blur-[120px] rounded-full -z-10" />
+
+      <div className="fixed bottom-[-120px] right-[-120px] w-[280px] h-[280px] bg-green-400/20 blur-[120px] rounded-full -z-10" />
+
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl bg-white/5 px-4 py-4">
+
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="p-1">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+
+          <button
+            onClick={() => navigate("/")}
+            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
+          >
+            <ArrowLeft className="w-5 h-5 text-white" />
           </button>
-          <h1 className="text-lg font-bold text-foreground">Paramètres</h1>
+
+          <h1 className="text-lg font-bold">
+            Paramètres
+          </h1>
+
         </div>
       </header>
 
-      {/* Profil */}
-      <div className="mx-4 mt-4 p-4 bg-card rounded-2xl border border-border">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xl font-bold">
-            {pseudo[0]?.toUpperCase() || "?"}
-          </div>
-          <div className="flex-1">
-            <h2 className="font-bold text-foreground">{pseudo}</h2>
-            <p className="text-sm text-muted-foreground">{email}</p>
-          </div>
-        </div>
+      {/* PROFILE CARD */}
+      <div className="px-4 pt-5">
 
-        {/* Ville */}
-        <div className="space-y-3">
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Ta ville"
-              value={ville}
-              onChange={e => setVille(e.target.value)}
-              className="pl-10 h-11 rounded-xl bg-secondary border-none text-sm"
-            />
+        <div className="rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 p-5 shadow-2xl">
+
+          {/* TOP */}
+          <div className="flex items-center gap-4 mb-5">
+
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-green-400 flex items-center justify-center text-white text-2xl font-black shadow-xl">
+
+              {pseudo?.[0]?.toUpperCase() || "?"}
+
+            </div>
+
+            <div className="flex-1">
+
+              <h2 className="font-bold text-lg">
+                {pseudo || "Mon profil"}
+              </h2>
+
+              <p className="text-sm text-cyan-100/60">
+                {email}
+              </p>
+
+              {/* NOTE */}
+              <div className="flex items-center gap-1 mt-1">
+
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+
+                <span className="text-sm font-semibold">
+                  {moyenne.toFixed(1)}
+                </span>
+
+                <span className="text-xs text-cyan-100/50">
+                  ({avisCount} avis)
+                </span>
+
+              </div>
+            </div>
           </div>
 
-          <div className="relative">
-            <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Ton adresse (utilisée dans le chat)"
-              value={adresse}
-              onChange={e => setAdresse(e.target.value)}
-              className="pl-10 h-11 rounded-xl bg-secondary border-none text-sm"
-            />
+          {/* PSEUDO */}
+          <div className="space-y-4">
+
+            <div className="relative">
+
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-100/40" />
+
+              <Input
+                value={pseudo}
+                onChange={(e) =>
+                  setPseudo(e.target.value)
+                }
+                placeholder="Pseudo"
+                className="pl-10 h-12 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-cyan-100/30"
+              />
+            </div>
+
+            {/* VILLE */}
+            <div className="relative">
+
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-100/40" />
+
+              <Input
+                value={ville}
+                onChange={(e) =>
+                  setVille(e.target.value)
+                }
+                placeholder="Ta ville"
+                className="pl-10 h-12 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-cyan-100/30"
+              />
+            </div>
+
+            {/* ADRESSE */}
+            <div className="relative">
+
+              <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-100/40" />
+
+              <Input
+                value={adresse}
+                onChange={(e) =>
+                  setAdresse(e.target.value)
+                }
+                placeholder="Adresse pour les remises"
+                className="pl-10 h-12 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-cyan-100/30"
+              />
+            </div>
+
+            <p className="text-xs text-cyan-100/50 leading-relaxed">
+              🔒 Ton adresse reste privée.
+              Elle peut être envoyée dans
+              le chat uniquement si tu le
+              souhaites.
+            </p>
+
+            {/* SAVE BUTTON */}
+            <button
+              onClick={handleSaveProfile}
+              disabled={saving}
+              className={`w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-semibold transition-all ${
+                saved
+                  ? "bg-green-500 text-white"
+                  : "bg-gradient-to-r from-cyan-400 to-green-400 text-white"
+              }`}
+            >
+
+              {saved ? (
+                <>
+                  <CheckCircle2 className="w-5 h-5" />
+                  Enregistré
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+
+                  {saving
+                    ? "Enregistrement..."
+                    : "Enregistrer"}
+                </>
+              )}
+
+            </button>
+
           </div>
-
-          <p className="text-[11px] text-muted-foreground">
-            🔒 Ton adresse n'est jamais partagée automatiquement — c'est toi qui choisis de l'envoyer dans le chat.
-          </p>
-
-          <button
-            onClick={handleSaveProfile}
-            disabled={saving}
-            className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              saved ? "bg-green-500 text-white" : "bg-primary text-primary-foreground"
-            }`}
-          >
-            <Save className="w-4 h-4" />
-            {saving ? "Enregistrement..." : saved ? "✅ Enregistré !" : "Enregistrer"}
-          </button>
         </div>
       </div>
 
-      {/* Mes demandes */}
-      <div className="mx-4 mt-4">
+      {/* MES DEMANDES */}
+      <div className="px-4 mt-5">
+
         <button
-          onClick={() => navigate("/mes-demandes")}
-          className="w-full flex items-center gap-3 p-4 bg-card rounded-2xl border border-border hover:bg-secondary/50 transition-colors"
+          onClick={() =>
+            navigate("/mes-demandes")
+          }
+          className="w-full flex items-center gap-4 p-4 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10"
         >
-          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-            <ShoppingBag className="w-5 h-5" />
+
+          <div className="w-11 h-11 rounded-2xl bg-cyan-400/15 flex items-center justify-center">
+
+            <ShoppingBag className="w-5 h-5 text-cyan-300" />
+
           </div>
+
           <div className="flex-1 text-left">
-            <p className="font-semibold text-foreground">Mes demandes</p>
-            <p className="text-sm text-muted-foreground">Voir, modifier ou supprimer mes demandes</p>
+
+            <p className="font-semibold text-white">
+              Mes demandes
+            </p>
+
+            <p className="text-sm text-cyan-100/50">
+              Voir mes annonces
+            </p>
+
           </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+
+          <ChevronRight className="w-5 h-5 text-cyan-100/40" />
+
         </button>
       </div>
 
-      {/* Menu sections */}
-      <div className="px-4 mt-5 space-y-5">
-        {menuSections.map(section => (
+      {/* MENU */}
+      <div className="px-4 mt-6 space-y-5">
+
+        {menuSections.map((section) => (
           <div key={section.title}>
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">{section.title}</h3>
-            <div className="bg-card rounded-2xl border border-border overflow-hidden divide-y divide-border">
-              {section.items.map(item => (
-                <button key={item.label} onClick={item.action} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors">
-                  <item.icon className="w-5 h-5 text-primary" />
+
+            <h3 className="text-xs uppercase tracking-wider text-cyan-100/40 font-bold mb-2 px-1">
+
+              {section.title}
+
+            </h3>
+
+            <div className="rounded-3xl overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 divide-y divide-white/5">
+
+              {section.items.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className="w-full flex items-center gap-4 px-4 py-4 hover:bg-white/[0.03] transition"
+                >
+
+                  <item.icon className="w-5 h-5 text-cyan-300 shrink-0" />
+
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-foreground">{item.label}</p>
-                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+
+                    <p className="font-medium text-white text-sm">
+                      {item.label}
+                    </p>
+
+                    <p className="text-xs text-cyan-100/50">
+                      {item.desc}
+                    </p>
+
                   </div>
+
                   {item.toggle ? (
-                    <div className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${theme === "dark" ? "bg-primary justify-end" : "bg-muted-foreground/20 justify-start"}`}>
-                      <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+                    <div
+                      className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
+                        theme === "dark"
+                          ? "bg-cyan-400 justify-end"
+                          : "bg-white/20 justify-start"
+                      }`}
+                    >
+
+                      <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+
                     </div>
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <ChevronRight className="w-4 h-4 text-cyan-100/40" />
                   )}
+
                 </button>
               ))}
             </div>
           </div>
         ))}
 
-        <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 py-3 text-destructive font-medium text-sm">
+        {/* LOGOUT */}
+        <button
+          onClick={handleSignOut}
+          className="w-full h-12 rounded-2xl border border-red-500/20 bg-red-500/10 text-red-300 font-semibold flex items-center justify-center gap-2 mt-8"
+        >
+
           <LogOut className="w-4 h-4" />
+
           Se déconnecter
+
         </button>
+
       </div>
     </div>
   );
