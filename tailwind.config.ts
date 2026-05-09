@@ -1,8 +1,14 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -13,162 +19,121 @@ export default {
       },
     },
     extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
 
-colors: {
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
 
-```
-border: "hsl(var(--border))",
-input: "hsl(var(--input))",
-ring: "hsl(var(--ring))",
-background: "hsl(var(--background))",
-foreground: "hsl(var(--foreground))",
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
 
-primary: {
-  DEFAULT: "hsl(var(--primary))",
-  foreground: "hsl(var(--primary-foreground))",
-},
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
 
-secondary: {
-  DEFAULT: "hsl(var(--secondary))",
-  foreground: "hsl(var(--secondary-foreground))",
-},
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
 
-destructive: {
-  DEFAULT: "hsl(var(--destructive))",
-  foreground: "hsl(var(--destructive-foreground))",
-},
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
 
-muted: {
-  DEFAULT: "hsl(var(--muted))",
-  foreground: "hsl(var(--muted-foreground))",
-},
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
 
-accent: {
-  DEFAULT: "hsl(var(--accent))",
-  foreground: "hsl(var(--accent-foreground))",
-},
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
 
-popover: {
-  DEFAULT: "hsl(var(--popover))",
-  foreground: "hsl(var(--popover-foreground))",
-},
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
 
-card: {
-  DEFAULT: "hsl(var(--card))",
-  foreground: "hsl(var(--card-foreground))",
-},
+        pastel: {
+          yellow: "#f6e58d",
+          green: "#badc58",
+          cream: "#fffef6",
+          soft: "#f8f7f2",
+          mint: "#dfffd8",
+          glow: "#fff4b5",
+        },
+      },
 
-sidebar: {
-  DEFAULT: "hsl(var(--sidebar-background))",
-  foreground: "hsl(var(--sidebar-foreground))",
-  primary: "hsl(var(--sidebar-primary))",
-  "primary-foreground":
-    "hsl(var(--sidebar-primary-foreground))",
-  accent: "hsl(var(--sidebar-accent))",
-  "accent-foreground":
-    "hsl(var(--sidebar-accent-foreground))",
-  border: "hsl(var(--sidebar-border))",
-  ring: "hsl(var(--sidebar-ring))",
-},
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+        xl: "1.5rem",
+        "2xl": "2rem",
+        "3xl": "2.5rem",
+      },
 
-/* 🌼 PASTEL MAGIC */
-pastel: {
-  yellow: "#f6e58d",
-  green: "#badc58",
-  cream: "#fffef6",
-  soft: "#f8f7f2",
-  mint: "#dfffd8",
-  glow: "#fff4b5",
-},
-```
+      boxShadow: {
+        glow: "0 8px 30px rgba(255, 230, 120, 0.25)",
+        soft: "0 8px 25px rgba(180, 220, 120, 0.15)",
+        magic: "0 10px 40px rgba(255, 240, 170, 0.35)",
+      },
 
-},
+      backgroundImage: {
+        "pastel-gradient":
+          "linear-gradient(135deg, #fff7c2 0%, #dfffd8 100%)",
+        "magic-gradient":
+          "linear-gradient(135deg, #fff4b5 0%, #badc58 100%)",
+      },
 
-borderRadius: {
-lg: "var(--radius)",
-md: "calc(var(--radius) - 2px)",
-sm: "calc(var(--radius) - 4px)",
-xl: "1.5rem",
-"2xl": "2rem",
-"3xl": "2.5rem",
-},
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
 
-boxShadow: {
-glow: "0 8px 30px rgba(255, 230, 120, 0.25)",
-soft: "0 8px 25px rgba(180, 220, 120, 0.15)",
-magic: "0 10px 40px rgba(255, 240, 170, 0.35)",
-},
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
 
-backgroundImage: {
-"pastel-gradient":
-"linear-gradient(135deg, #fff7c2 0%, #dfffd8 100%)",
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-5px)" },
+        },
 
-```
-"magic-gradient":
-  "linear-gradient(135deg, #fff4b5 0%, #badc58 100%)",
-```
+        glow: {
+          "0%, 100%": { opacity: "0.8" },
+          "50%": { opacity: "1" },
+        },
+      },
 
-},
-
-keyframes: {
-
-```
-"accordion-down": {
-  from: {
-    height: "0",
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        float: "float 4s ease-in-out infinite",
+        glow: "glow 3s ease-in-out infinite",
+      },
+    },
   },
-  to: {
-    height:
-      "var(--radix-accordion-content-height)",
-  },
-},
 
-"accordion-up": {
-  from: {
-    height:
-      "var(--radix-accordion-content-height)",
-  },
-  to: {
-    height: "0",
-  },
-},
-
-float: {
-  "0%, 100%": {
-    transform: "translateY(0px)",
-  },
-  "50%": {
-    transform: "translateY(-5px)",
-  },
-},
-
-glow: {
-  "0%, 100%": {
-    opacity: "0.8",
-  },
-  "50%": {
-    opacity: "1",
-  },
-},
-```
-
-},
-
-animation: {
-"accordion-down":
-"accordion-down 0.2s ease-out",
-
-```
-"accordion-up":
-  "accordion-up 0.2s ease-out",
-
-float: "float 4s ease-in-out infinite",
-
-glow: "glow 3s ease-in-out infinite",
-```
-
-},
-},
-
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;
