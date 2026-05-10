@@ -478,6 +478,72 @@ ${ville}`;
         </div>
       )}
 
+    {/* 🌟 MODAL AVIS */}
+    {showAvis && (
+      <div className="fixed inset-0 bg-white/20 backdrop-blur-md z-50 flex items-end">
+
+        <div className="w-full rounded-t-[34px] bg-[#fffef8] border-t border-[#eef1d7] p-5 shadow-[0_-10px_40px_rgba(255,230,150,0.25)]">
+
+          <div className="w-16 h-1.5 bg-[#e7e5d3] rounded-full mx-auto mb-5" />
+
+          <h2 className="text-xl font-bold text-center text-[#6f7b5c] mb-1">
+            Laisser un avis ✨
+          </h2>
+
+          <p className="text-sm text-center text-[#9aa48a] mb-6">
+            Ton avis aide la communauté 🌼
+          </p>
+
+          {/* STARS */}
+          <div className="flex justify-center gap-2 mb-6">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                onClick={() => setNote(n)}
+              >
+                <Star
+                  className={`w-9 h-9 transition ${
+                    n <= note
+                      ? "fill-[#ffd76a] text-[#ffd76a]"
+                      : "text-[#d8dcc8]"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+
+          {/* TEXTAREA */}
+          <textarea
+            value={commentaire}
+            onChange={(e) =>
+              setCommentaire(e.target.value)
+            }
+            placeholder="Écris ton commentaire 🌸"
+            className="w-full h-28 rounded-3xl bg-[#fffef7] border border-[#eef1d7] p-4 text-sm text-[#5f5f52] placeholder:text-[#b5baa6] outline-none resize-none"
+          />
+
+          {/* BUTTONS */}
+          <div className="flex gap-3 mt-5">
+
+            <button
+              onClick={() => setShowAvis(false)}
+              className="flex-1 h-12 rounded-2xl bg-[#f8f8ef] border border-[#eef1d7] text-[#8d947b]"
+            >
+              Annuler
+            </button>
+
+            <button
+              onClick={envoyerAvis}
+              className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#ffe27a] to-[#bdf59f] text-[#5f5f52] font-bold shadow-lg"
+            >
+              Envoyer ✨
+            </button>
+
+          </div>
+        </div>
+      </div>
+    )}
+
     {/* 🌟 INPUT */}
     {!isClosed && (
       <div className="border-t border-[#eef1d7] bg-white/70 backdrop-blur-2xl px-3 py-3">
@@ -509,4 +575,7 @@ ${ville}`;
     )}
   </div>
 );
-  export default ChatPage;
+
+};
+
+export default ChatPage;
