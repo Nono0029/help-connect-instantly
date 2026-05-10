@@ -25,42 +25,34 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
-
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
-
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
-
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
-
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
-
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
-
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -71,7 +63,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-
         pastel: {
           yellow: "#f6e58d",
           green: "#badc58",
@@ -81,7 +72,6 @@ export default {
           glow: "#fff4b5",
         },
       },
-
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -90,42 +80,33 @@ export default {
         "2xl": "2rem",
         "3xl": "2.5rem",
       },
-
       boxShadow: {
         glow: "0 8px 30px rgba(255, 230, 120, 0.25)",
         soft: "0 8px 25px rgba(180, 220, 120, 0.15)",
         magic: "0 10px 40px rgba(255, 240, 170, 0.35)",
       },
-
       backgroundImage: {
-        "pastel-gradient":
-          "linear-gradient(135deg, #fff7c2 0%, #dfffd8 100%)",
-        "magic-gradient":
-          "linear-gradient(135deg, #fff4b5 0%, #badc58 100%)",
+        "pastel-gradient": "linear-gradient(135deg, #fff7c2 0%, #dfffd8 100%)",
+        "magic-gradient": "linear-gradient(135deg, #fff4b5 0%, #badc58 100%)",
       },
-
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
-
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-5px)" },
         },
-
         glow: {
           "0%, 100%": { opacity: "0.8" },
           "50%": { opacity: "1" },
         },
       },
-
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
@@ -134,6 +115,5 @@ export default {
       },
     },
   },
-
   plugins: [tailwindcssAnimate],
 } satisfies Config;
