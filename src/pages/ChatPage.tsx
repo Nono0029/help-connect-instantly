@@ -279,300 +279,234 @@ ${ville}`;
     conversation?.statut === "fermée";
 
   return (
-    <div className="h-screen bg-[#071118] text-white flex flex-col overflow-hidden relative">
+  <div className="h-screen text-[#5f5f52] flex flex-col overflow-hidden relative bg-[#fffdf4]">
 
-      {/* BG */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#06131a] via-[#071118] to-[#0a2222]" />
+    {/* 🌈 BACKGROUND */}
+    <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#fff9dc] via-[#f4ffe9] to-[#ffffff]" />
 
-      <div className="absolute top-[-100px] left-[-100px] w-[250px] h-[250px] bg-cyan-400/20 blur-[100px] rounded-full -z-10" />
+    <div className="absolute top-[-120px] left-[-120px] w-[260px] h-[260px] bg-[#fff3a6]/40 blur-[120px] rounded-full -z-10" />
 
-      <div className="absolute bottom-[-100px] right-[-100px] w-[250px] h-[250px] bg-green-400/20 blur-[100px] rounded-full -z-10" />
+    <div className="absolute bottom-[-120px] right-[-120px] w-[260px] h-[260px] bg-[#c8ffb0]/40 blur-[120px] rounded-full -z-10" />
 
-{/* HEADER */}
-<div className="h-16 min-h-16 border-b border-white/10 backdrop-blur-xl bg-white/5 px-4 flex items-center gap-3 z-20">
+    <div className="absolute top-[40%] left-[10%] w-[140px] h-[140px] bg-[#ffffff]/60 blur-[80px] rounded-full -z-10" />
 
-  <button
-    onClick={() => navigate("/messages")}
-    className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0"
-  >
-    <ArrowLeft className="w-5 h-5 text-white" />
-  </button>
+    {/* 🌟 HEADER */}
+    <div className="min-h-[88px] border-b border-[#edf1d6] backdrop-blur-2xl bg-white/60 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-[0_4px_30px_rgba(255,240,180,0.15)]">
 
-  <div className="flex-1 overflow-hidden">
+      <button
+        onClick={() => navigate("/messages")}
+        className="w-10 h-10 rounded-full bg-white shadow-md border border-[#f5efc9] flex items-center justify-center shrink-0"
+      >
+        <ArrowLeft className="w-5 h-5 text-[#87b96d]" />
+      </button>
 
-    <p className="font-semibold truncate text-white">
-      {conversation?.demande?.titre ||
-        "Conversation"}
-    </p>
+      <div className="flex-1 overflow-hidden">
 
-    <p className="text-xs text-cyan-100/70">
-      {isClosed
-        ? "❌ Fermée"
-        : mission?.statut === "terminee"
-        ? "✅ Mission terminée"
-        : mission?.statut === "en_cours"
-        ? "💙 Mission en cours"
-        : "💬 Discussion active"}
-    </p>
-
-    {/* ✅ BARRE PROGRESSION */}
-    {messages.length < 5 && (
-      <div className="mt-2">
-
-        <div className="flex items-center justify-between text-[10px] text-cyan-100/50 mb-1">
-
-          <span>
-            Débloque le paiement sécurisé
-          </span>
-
-          <span>
-            {messages.length}/5 messages
-          </span>
-
-        </div>
-
-        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-
-          <div
-            className="h-full bg-gradient-to-r from-cyan-400 to-green-400 transition-all duration-500"
-            style={{
-              width: `${Math.min(
-                (messages.length / 5) * 100,
-                100
-              )}%`,
-            }}
-          />
-
-        </div>
-
-      </div>
-    )}
-
-    {/* ✅ TEXTE SI DEBLOQUE */}
-    {messages.length >= 5 && (
-      <div className="mt-2 flex items-center gap-2">
-
-        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-
-        <p className="text-[11px] text-green-300 font-medium">
-          Paiement sécurisé débloqué ✅
+        <p className="font-bold truncate text-[#6f7b5c] text-[15px]">
+          {conversation?.demande?.titre ||
+            "Conversation"}
         </p>
 
+        <p className="text-xs text-[#98a67c] mt-0.5">
+          {isClosed
+            ? "❌ Conversation fermée"
+            : mission?.statut === "terminee"
+            ? "⭐ Mission terminée"
+            : mission?.statut === "en_cours"
+            ? "🌱 Mission en cours"
+            : "💬 Discussion bienveillante"}
+        </p>
+
+        {/* 🌈 PROGRESSION */}
+        {messages.length < 5 && (
+          <div className="mt-3">
+
+            <div className="flex items-center justify-between text-[10px] text-[#a3ad8d] mb-1">
+
+              <span>
+                Débloque le paiement sécurisé ✨
+              </span>
+
+              <span>
+                {messages.length}/5
+              </span>
+
+            </div>
+
+            <div className="w-full h-2 bg-[#f3f1df] rounded-full overflow-hidden shadow-inner">
+
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#ffe27a] via-[#fff1a6] to-[#b8f593] transition-all duration-500 shadow-[0_0_12px_rgba(220,255,150,0.8)]"
+                style={{
+                  width: `${Math.min(
+                    (messages.length / 5) * 100,
+                    100
+                  )}%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+        )}
+
+        {/* ✅ DÉBLOQUÉ */}
+        {messages.length >= 5 && (
+          <div className="mt-3 flex items-center gap-2">
+
+            <div className="w-2 h-2 rounded-full bg-[#98e97d] animate-pulse shadow-[0_0_10px_#98e97d]" />
+
+            <p className="text-[11px] text-[#7eb36a] font-semibold">
+              Paiement sécurisé débloqué ✨
+            </p>
+
+          </div>
+        )}
+
+      </div>
+    </div>
+
+    {/* 💬 MESSAGES */}
+    <div
+      ref={messagesRef}
+      className="flex-1 overflow-y-auto px-4 py-5 space-y-3 pb-56"
+    >
+      {messages.map((msg) => (
+        <div
+          key={msg.id}
+          className={`flex ${
+            isMe(msg.sender_id)
+              ? "justify-end"
+              : "justify-start"
+          }`}
+        >
+          <div
+            className={`max-w-[78%] px-4 py-3 rounded-[26px] text-sm shadow-lg break-words backdrop-blur-xl ${
+              isMe(msg.sender_id)
+                ? "bg-gradient-to-r from-[#ffe27a] to-[#c6f7a6] text-[#5f5f52] shadow-[0_8px_25px_rgba(255,226,122,0.35)]"
+                : "bg-white/75 border border-[#edf1d6] text-[#68715d] shadow-[0_8px_25px_rgba(220,230,190,0.18)]"
+            }`}
+          >
+            {msg.content}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* 📍 ADRESSE */}
+    {showAdresseBox && !adresseEnvoyee && (
+      <div className="fixed bottom-28 left-4 right-4 z-40">
+
+        <div className="rounded-[30px] bg-white/75 border border-[#edf1d6] p-5 shadow-[0_10px_40px_rgba(255,230,150,0.25)] backdrop-blur-2xl">
+
+          <div className="flex items-center gap-2 mb-3">
+            <ShieldCheck className="w-5 h-5 text-[#9ad67d]" />
+
+            <p className="font-bold text-[#6f7b5c]">
+              Envoyer ton adresse ?
+            </p>
+          </div>
+
+          <p className="text-sm text-[#9aa48a] mb-4">
+            Tu peux la modifier avant l’envoi 🌼
+          </p>
+
+          <input
+            value={adresse}
+            onChange={(e) =>
+              setAdresse(e.target.value)
+            }
+            placeholder="Adresse"
+            className="w-full h-12 rounded-2xl bg-[#fffef7] border border-[#eef1d7] px-4 text-sm text-[#5f5f52] mb-3 outline-none"
+          />
+
+          <input
+            value={ville}
+            onChange={(e) =>
+              setVille(e.target.value)
+            }
+            placeholder="Ville"
+            className="w-full h-12 rounded-2xl bg-[#fffef7] border border-[#eef1d7] px-4 text-sm text-[#5f5f52] mb-4 outline-none"
+          />
+
+          <div className="flex gap-2">
+
+            <button
+              onClick={() =>
+                setShowAdresseBox(false)
+              }
+              className="flex-1 h-11 rounded-2xl bg-[#f8f8ef] border border-[#eef1d7] text-[#8d947b]"
+            >
+              Plus tard
+            </button>
+
+            <button
+              onClick={envoyerAdresse}
+              className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-[#ffe27a] to-[#bdf59f] text-[#5f5f52] font-bold flex items-center justify-center gap-2 shadow-lg"
+            >
+              <MapPin className="w-4 h-4" />
+              Envoyer
+            </button>
+
+          </div>
+        </div>
       </div>
     )}
 
-  </div>
-</div>
-
-      {/* MESSAGES */}
-      <div
-        ref={messagesRef}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-56"
-      >
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${
-              isMe(msg.sender_id)
-                ? "justify-end"
-                : "justify-start"
-            }`}
-          >
-            <div
-              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm shadow-lg break-words ${
-                isMe(msg.sender_id)
-                  ? "bg-gradient-to-r from-cyan-400 to-green-400 text-white"
-                  : "bg-white/10 backdrop-blur-xl border border-white/10 text-white"
-              }`}
-            >
-              {msg.content}
-            </div>
-          </div>
-        ))}
+    {/* ✅ CONFIRM */}
+    {mission?.statut === "en_cours" && (
+      <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
+        <button
+          onClick={confirmerMission}
+          className="w-full py-3 rounded-[24px] bg-gradient-to-r from-[#bff7a5] to-[#fff09f] text-[#5f5f52] font-bold shadow-[0_10px_30px_rgba(220,255,170,0.4)]"
+        >
+          🌱 Confirmer la mission
+        </button>
       </div>
+    )}
 
-      {/* 📍 ADRESSE */}
-      {showAdresseBox && !adresseEnvoyee && (
-        <div className="fixed bottom-28 left-4 right-4 z-40">
-
-          <div className="rounded-3xl bg-[#10212a] border border-white/10 p-4 shadow-2xl backdrop-blur-xl">
-
-            <div className="flex items-center gap-2 mb-3">
-              <ShieldCheck className="w-5 h-5 text-cyan-300" />
-
-              <p className="font-semibold text-white">
-                Envoyer ton adresse ?
-              </p>
-            </div>
-
-            <p className="text-sm text-cyan-100/60 mb-4">
-              Tu peux modifier l’adresse avant envoi 💙
-            </p>
-
-            <input
-              value={adresse}
-              onChange={(e) =>
-                setAdresse(e.target.value)
-              }
-              placeholder="Adresse"
-              className="w-full h-11 rounded-2xl bg-white/5 border border-white/10 px-4 text-sm text-white mb-3 outline-none"
-            />
-
-            <input
-              value={ville}
-              onChange={(e) =>
-                setVille(e.target.value)
-              }
-              placeholder="Ville"
-              className="w-full h-11 rounded-2xl bg-white/5 border border-white/10 px-4 text-sm text-white mb-4 outline-none"
-            />
-
-            <div className="flex gap-2">
-
-              <button
-                onClick={() =>
-                  setShowAdresseBox(false)
-                }
-                className="flex-1 h-11 rounded-2xl bg-white/5 border border-white/10"
-              >
-                Plus tard
-              </button>
-
-              <button
-                onClick={envoyerAdresse}
-                className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-cyan-400 to-green-400 text-white font-semibold flex items-center justify-center gap-2"
-              >
-                <MapPin className="w-4 h-4" />
-                Envoyer
-              </button>
-
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CONFIRM */}
-      {mission?.statut === "en_cours" && (
+    {/* ⭐ AVIS */}
+    {mission?.statut === "terminee" &&
+      !showAvis && (
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
           <button
-            onClick={confirmerMission}
-            className="w-full py-3 rounded-2xl bg-gradient-to-r from-green-400 to-emerald-500 text-white font-semibold shadow-xl"
+            onClick={() => setShowAvis(true)}
+            className="w-full py-3 rounded-[24px] bg-gradient-to-r from-[#ffe27a] to-[#ffd9a8] text-[#6d6650] font-bold shadow-[0_10px_30px_rgba(255,220,120,0.35)]"
           >
-            ✅ Confirmer la mission
+            ⭐ Laisser un avis
           </button>
         </div>
       )}
 
-      {/* AVIS */}
-      {mission?.statut === "terminee" &&
-        !showAvis && (
-          <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
-            <button
-              onClick={() => setShowAvis(true)}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-semibold shadow-xl"
-            >
-              ⭐ Laisser un avis
-            </button>
-          </div>
-        )}
+    {/* 🌟 INPUT */}
+    {!isClosed && (
+      <div className="border-t border-[#eef1d7] bg-white/70 backdrop-blur-2xl px-3 py-3">
 
-      {/* MODAL AVIS */}
-      {showAvis && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end">
+        <div className="flex items-center gap-2 bg-[#fffef8] border border-[#edf1d6] rounded-[24px] px-2 py-2 shadow-lg">
 
-          <div className="w-full rounded-t-[30px] bg-[#0d1b22] border-t border-white/10 p-5">
+          <input
+            value={text}
+            onChange={(e) =>
+              setText(e.target.value)
+            }
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              sendMessage()
+            }
+            placeholder="Écris un message 🌼"
+            className="flex-1 bg-transparent text-[#5f5f52] placeholder:text-[#b0b79d] outline-none px-2 text-sm"
+          />
 
-            <div className="w-14 h-1.5 bg-white/20 rounded-full mx-auto mb-5" />
+          <button
+            onClick={sendMessage}
+            className="w-11 h-11 rounded-2xl bg-gradient-to-r from-[#ffe27a] to-[#bdf59f] flex items-center justify-center shrink-0 shadow-md"
+          >
+            <Send className="w-4 h-4 text-[#5f5f52]" />
+          </button>
 
-            <h2 className="text-xl font-bold text-center mb-1">
-              Laisser un avis
-            </h2>
-
-            <p className="text-sm text-center text-cyan-100/60 mb-6">
-              Ton avis aide la communauté 💙
-            </p>
-
-            {/* STARS */}
-            <div className="flex justify-center gap-2 mb-6">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setNote(n)}
-                >
-                  <Star
-                    className={`w-9 h-9 transition ${
-                      n <= note
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-white/20"
-                    }`}
-                  />
-                </button>
-              ))}
-            </div>
-
-            {/* TEXTAREA */}
-            <textarea
-              value={commentaire}
-              onChange={(e) =>
-                setCommentaire(e.target.value)
-              }
-              placeholder="Écris ton commentaire..."
-              className="w-full h-28 rounded-2xl bg-white/5 border border-white/10 p-4 text-sm text-white placeholder:text-gray-400 outline-none resize-none"
-            />
-
-            {/* BUTTONS */}
-            <div className="flex gap-3 mt-5">
-
-              <button
-                onClick={() => setShowAvis(false)}
-                className="flex-1 h-12 rounded-2xl bg-white/5 border border-white/10 text-white"
-              >
-                Annuler
-              </button>
-
-              <button
-                onClick={envoyerAvis}
-                className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-semibold"
-              >
-                Envoyer
-              </button>
-
-            </div>
-          </div>
         </div>
-      )}
-
-      {/* INPUT */}
-      {!isClosed && (
-        <div className="border-t border-white/10 bg-[#071118]/90 backdrop-blur-xl px-3 py-3">
-
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-2 py-2">
-
-            <input
-              value={text}
-              onChange={(e) =>
-                setText(e.target.value)
-              }
-              onKeyDown={(e) =>
-                e.key === "Enter" &&
-                sendMessage()
-              }
-              placeholder="Écris un message..."
-              className="flex-1 bg-transparent text-white placeholder:text-gray-400 outline-none px-2 text-sm"
-            />
-
-            <button
-              onClick={sendMessage}
-              className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-400 to-green-400 flex items-center justify-center shrink-0"
-            >
-              <Send className="w-4 h-4 text-white" />
-            </button>
-
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default ChatPage;
+      </div>
+    )}
+  </div>
+);
+  export default ChatPage;
