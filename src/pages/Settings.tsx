@@ -38,9 +38,9 @@ const Settings = () => {
   const [moyenne, setMoyenne] = useState(0);
   const [avisCount, setAvisCount] = useState(0);
 
-  const email = user?.email ?? "";
+  const email = user?.email || "";
 
-  // LOAD PROFILE
+  // PROFILE
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user) return;
@@ -61,7 +61,7 @@ const Settings = () => {
     fetchProfile();
   }, [user]);
 
-  // LOAD AVIS
+  // AVIS
   useEffect(() => {
     const fetchAvis = async () => {
       if (!user) return;
@@ -73,12 +73,15 @@ const Settings = () => {
 
       if (!data) return;
 
-      const notes = data.map((a) => a.note ?? 0);
+      const total = data.reduce(
+        (acc, item) => acc + (item.note || 0),
+        0
+      );
 
-      const total = notes.reduce((acc, n) => acc + n, 0);
+      const count = data.length;
 
-      setAvisCount(notes.length);
-      setMoyenne(notes.length ? total / notes.length : 0);
+      setAvisCount(count);
+      setMoyenne(count ? total / count : 0);
     };
 
     fetchAvis();
@@ -90,12 +93,14 @@ const Settings = () => {
 
     setSaving(true);
 
-    const { error } = await supabase.from("profiles").upsert({
-      id: user.id,
-      pseudo,
-      ville,
-      adresse,
-    });
+    const { error } = await supabase
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        pseudo,
+        ville,
+        adresse,
+      });
 
     setSaving(false);
 
@@ -174,7 +179,7 @@ const Settings = () => {
       <div className="h-16 border-b border-border bg-card/70 px-4 flex items-center gap-3">
         <button
           onClick={() => navigate("/")}
-          className="w-9 h-9 rounded-full border flex items-center justify-center"
+          className="w-9 h-9 rounded-full flex items-center justify-center"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -190,8 +195,9 @@ const Settings = () => {
       {/* PROFILE */}
       <div className="px-4 pt-5">
         <div className="card-magic">
+
           <div className="flex items-center gap-4 mb-5">
-            <div className="w-16 h-16 rounded-full bg-magic-gradient flex items-center justify-center text-white text-2xl font-bold">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-black bg-magic-gradient">
               {pseudo?.[0]?.toUpperCase() || "?"}
             </div>
 
@@ -214,9 +220,9 @@ const Settings = () => {
           {/* FORM */}
           <div className="space-y-4">
 
-            <Input value={pseudo} onChange={(e) => setPseudo(e.target.value)} placeholder="Pseudo" />
-            <Input value={ville} onChange={(e) => setVille(e.target.value)} placeholder="Ville" />
-            <Input value={adresse} onChange={(e) => setAdresse(e.target.value)} placeholder="Adresse" />
+            <Input value={pseudo} onChange={(e) => setPseudo(e.target.value)} />
+            <Input value={ville} onChange={(e) => setVille(e.target.value)} />
+            <Input value={adresse} onChange={(e) => setAdresse(e.target.value)} />
 
             <button
               onClick={handleSaveProfile}
@@ -237,8 +243,58 @@ const Settings = () => {
                 </>
               )}
             </button>
+
           </div>
         </div>
+      </div>
+
+      {/* MENU */}
+      <div className="px-4 mt-6 space-y-5">
+
+        {menuSections.map((section) => (
+          <div key={section.title}>
+            <h3 className="text-xs uppercase text-muted-foreground mb-2">
+              {section.title}
+            </h3>
+
+            <div className="card-magic divide-y divide-border">
+
+              {section.items.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  disabled={!item.action && !item.toggle}
+                  className="w-full flex items-center gap-4 px-4 py-4"
+                >
+
+                  <item.icon className="w-5 h-5" />
+
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-medium">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+                  </div>
+
+                  {item.toggle ? (
+                    <div
+                      className={`w-11 h-6 rounded-full flex items-center px-0.5 ${
+                        theme === "dark"
+                          ? "justify-end bg-cyan-400"
+                          : "justify-start bg-yellow-300"
+                      }`}
+                    >
+                      <div className="w-5 h-5 bg-white rounded-full" />
+                    </div>
+                  ) : (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
+
+                </button>
+              ))}
+
+            </div>
+          </div>
+        ))}
+
       </div>
 
       {/* LOGOUT */}
