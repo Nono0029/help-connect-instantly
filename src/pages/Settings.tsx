@@ -203,270 +203,271 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#071118] text-white pb-24">
+  <div className="min-h-screen bg-background text-foreground pb-24 transition-colors duration-300">
 
-      {/* BACKGROUND */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-[#06131a] via-[#071118] to-[#0a2222]" />
+    {/* BACKGROUND */}
+    <div className="fixed inset-0 -z-10 bg-gradient-to-b from-pastel-soft via-background to-background dark:from-[#06131a] dark:via-[#071118] dark:to-[#0a2222]" />
 
-      <div className="fixed top-[-120px] left-[-120px] w-[280px] h-[280px] bg-cyan-400/20 blur-[120px] rounded-full -z-10" />
+    <div className="fixed top-[-120px] left-[-120px] w-[280px] h-[280px] bg-pastel-yellow/20 dark:bg-cyan-400/20 blur-[120px] rounded-full -z-10" />
 
-      <div className="fixed bottom-[-120px] right-[-120px] w-[280px] h-[280px] bg-green-400/20 blur-[120px] rounded-full -z-10" />
+    <div className="fixed bottom-[-120px] right-[-120px] w-[280px] h-[280px] bg-pastel-green/20 dark:bg-green-400/20 blur-[120px] rounded-full -z-10" />
 
-   {/* HEADER */}
-<div className="h-16 min-h-16 border-b border-white/10 backdrop-blur-xl bg-white/5 px-4 flex items-center gap-3 z-20">
+    {/* HEADER */}
+    <div className="h-16 min-h-16 border-b border-border backdrop-blur-xl bg-card/70 px-4 flex items-center gap-3 z-20">
 
-  <button
-    onClick={() => navigate("/")}
-    className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0"
-  >
-    <ArrowLeft className="w-5 h-5 text-white" />
-  </button>
+      <button
+        onClick={() => navigate("/")}
+        className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center shrink-0 shadow-card"
+      >
+        <ArrowLeft className="w-5 h-5 text-foreground" />
+      </button>
 
-  <div className="flex-1">
+      <div className="flex-1">
 
-    <p className="font-semibold text-white">
-      Paramètres
-    </p>
+        <p className="font-semibold text-foreground">
+          Paramètres
+        </p>
 
-    <p className="text-xs text-cyan-100/60">
-      Gère ton compte et tes préférences
-    </p>
+        <p className="text-xs text-muted-foreground">
+          Gère ton compte et tes préférences
+        </p>
 
-  </div>
+      </div>
 
-</div>
-      {/* PROFILE CARD */}
-      <div className="px-4 pt-5">
+    </div>
 
-        <div className="rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 p-5 shadow-2xl">
+    {/* PROFILE CARD */}
+    <div className="px-4 pt-5">
 
-          {/* TOP */}
-          <div className="flex items-center gap-4 mb-5">
+      <div className="card-magic">
 
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-green-400 flex items-center justify-center text-white text-2xl font-black shadow-xl">
+        {/* TOP */}
+        <div className="flex items-center gap-4 mb-5">
 
-              {pseudo?.[0]?.toUpperCase() || "?"}
+          <div className="w-16 h-16 rounded-full bg-magic-gradient dark:bg-[linear-gradient(135deg,#00b4d8_0%,#00c875_100%)] flex items-center justify-center text-white text-2xl font-black shadow-magic">
 
-            </div>
+            {pseudo?.[0]?.toUpperCase() || "?"}
 
-            <div className="flex-1">
-
-              <h2 className="font-bold text-lg">
-                {pseudo || "Mon profil"}
-              </h2>
-
-              <p className="text-sm text-cyan-100/60">
-                {email}
-              </p>
-
-              {/* NOTE */}
-              <div className="flex items-center gap-1 mt-1">
-
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-
-                <span className="text-sm font-semibold">
-                  {moyenne.toFixed(1)}
-                </span>
-
-                <span className="text-xs text-cyan-100/50">
-                  ({avisCount} avis)
-                </span>
-
-              </div>
-            </div>
           </div>
 
-          {/* PSEUDO */}
-          <div className="space-y-4">
+          <div className="flex-1">
 
-            <div className="relative">
+            <h2 className="font-bold text-lg text-foreground">
+              {pseudo || "Mon profil"}
+            </h2>
 
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-100/40" />
-
-              <Input
-                value={pseudo}
-                onChange={(e) =>
-                  setPseudo(e.target.value)
-                }
-                placeholder="Pseudo"
-                className="pl-10 h-12 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-cyan-100/30"
-              />
-            </div>
-
-            {/* VILLE */}
-            <div className="relative">
-
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-100/40" />
-
-              <Input
-                value={ville}
-                onChange={(e) =>
-                  setVille(e.target.value)
-                }
-                placeholder="Ta ville"
-                className="pl-10 h-12 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-cyan-100/30"
-              />
-            </div>
-
-            {/* ADRESSE */}
-            <div className="relative">
-
-              <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-100/40" />
-
-              <Input
-                value={adresse}
-                onChange={(e) =>
-                  setAdresse(e.target.value)
-                }
-                placeholder="Adresse pour les remises"
-                className="pl-10 h-12 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-cyan-100/30"
-              />
-            </div>
-
-            <p className="text-xs text-cyan-100/50 leading-relaxed">
-              🔒 Ton adresse reste privée.
-              Elle peut être envoyée dans
-              le chat uniquement si tu le
-              souhaites.
+            <p className="text-sm text-muted-foreground">
+              {email}
             </p>
 
-            {/* SAVE BUTTON */}
-            <button
-              onClick={handleSaveProfile}
-              disabled={saving}
-              className={`w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-semibold transition-all ${
-                saved
-                  ? "bg-green-500 text-white"
-                  : "bg-gradient-to-r from-cyan-400 to-green-400 text-white"
-              }`}
-            >
+            {/* NOTE */}
+            <div className="flex items-center gap-1 mt-1">
 
-              {saved ? (
-                <>
-                  <CheckCircle2 className="w-5 h-5" />
-                  Enregistré
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
 
-                  {saving
-                    ? "Enregistrement..."
-                    : "Enregistrer"}
-                </>
-              )}
+              <span className="text-sm font-semibold text-foreground">
+                {moyenne.toFixed(1)}
+              </span>
 
-            </button>
+              <span className="text-xs text-muted-foreground">
+                ({avisCount} avis)
+              </span>
 
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* MES DEMANDES */}
-      <div className="px-4 mt-5">
+        {/* FORM */}
+        <div className="space-y-4">
 
-        <button
-          onClick={() =>
-            navigate("/mes-demandes")
-          }
-          className="w-full flex items-center gap-4 p-4 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10"
-        >
+          {/* PSEUDO */}
+          <div className="relative">
 
-          <div className="w-11 h-11 rounded-2xl bg-cyan-400/15 flex items-center justify-center">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 
-            <ShoppingBag className="w-5 h-5 text-cyan-300" />
-
+            <Input
+              value={pseudo}
+              onChange={(e) =>
+                setPseudo(e.target.value)
+              }
+              placeholder="Pseudo"
+              className="pl-10 h-12 rounded-2xl bg-background border border-border text-foreground placeholder:text-muted-foreground"
+            />
           </div>
 
-          <div className="flex-1 text-left">
+          {/* VILLE */}
+          <div className="relative">
 
-            <p className="font-semibold text-white">
-              Mes demandes
-            </p>
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 
-            <p className="text-sm text-cyan-100/50">
-              Voir mes annonces
-            </p>
-
+            <Input
+              value={ville}
+              onChange={(e) =>
+                setVille(e.target.value)
+              }
+              placeholder="Ta ville"
+              className="pl-10 h-12 rounded-2xl bg-background border border-border text-foreground placeholder:text-muted-foreground"
+            />
           </div>
 
-          <ChevronRight className="w-5 h-5 text-cyan-100/40" />
+          {/* ADRESSE */}
+          <div className="relative">
 
-        </button>
-      </div>
+            <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 
-      {/* MENU */}
-      <div className="px-4 mt-6 space-y-5">
-
-        {menuSections.map((section) => (
-          <div key={section.title}>
-
-            <h3 className="text-xs uppercase tracking-wider text-cyan-100/40 font-bold mb-2 px-1">
-
-              {section.title}
-
-            </h3>
-
-            <div className="rounded-3xl overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 divide-y divide-white/5">
-
-              {section.items.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={item.action}
-                  className="w-full flex items-center gap-4 px-4 py-4 hover:bg-white/[0.03] transition"
-                >
-
-                  <item.icon className="w-5 h-5 text-cyan-300 shrink-0" />
-
-                  <div className="flex-1 text-left">
-
-                    <p className="font-medium text-white text-sm">
-                      {item.label}
-                    </p>
-
-                    <p className="text-xs text-cyan-100/50">
-                      {item.desc}
-                    </p>
-
-                  </div>
-
-                  {item.toggle ? (
-                    <div
-                      className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
-                        theme === "dark"
-                          ? "bg-cyan-400 justify-end"
-                          : "bg-white/20 justify-start"
-                      }`}
-                    >
-
-                      <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-
-                    </div>
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-cyan-100/40" />
-                  )}
-
-                </button>
-              ))}
-            </div>
+            <Input
+              value={adresse}
+              onChange={(e) =>
+                setAdresse(e.target.value)
+              }
+              placeholder="Adresse pour les remises"
+              className="pl-10 h-12 rounded-2xl bg-background border border-border text-foreground placeholder:text-muted-foreground"
+            />
           </div>
-        ))}
 
-        {/* LOGOUT */}
-        <button
-          onClick={handleSignOut}
-          className="w-full h-12 rounded-2xl border border-red-500/20 bg-red-500/10 text-red-300 font-semibold flex items-center justify-center gap-2 mt-8"
-        >
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            🔒 Ton adresse reste privée.
+            Elle peut être envoyée dans
+            le chat uniquement si tu le
+            souhaites.
+          </p>
 
-          <LogOut className="w-4 h-4" />
+          {/* SAVE BUTTON */}
+          <button
+            onClick={handleSaveProfile}
+            disabled={saving}
+            className={`w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-semibold transition-all ${
+              saved
+                ? "bg-green-500 text-white"
+                : "btn-magic"
+            }`}
+          >
 
-          Se déconnecter
+            {saved ? (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                Enregistré
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
 
-        </button>
+                {saving
+                  ? "Enregistrement..."
+                  : "Enregistrer"}
+              </>
+            )}
 
+          </button>
+
+        </div>
       </div>
     </div>
-  );
-};
+
+    {/* MES DEMANDES */}
+    <div className="px-4 mt-5">
+
+      <button
+        onClick={() =>
+          navigate("/mes-demandes")
+        }
+        className="w-full flex items-center gap-4 p-4 card-magic"
+      >
+
+        <div className="w-11 h-11 rounded-2xl bg-primary/15 flex items-center justify-center">
+
+          <ShoppingBag className="w-5 h-5 text-primary dark:text-cyan-300" />
+
+        </div>
+
+        <div className="flex-1 text-left">
+
+          <p className="font-semibold text-foreground">
+            Mes demandes
+          </p>
+
+          <p className="text-sm text-muted-foreground">
+            Voir mes annonces
+          </p>
+
+        </div>
+
+        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+
+      </button>
+    </div>
+
+    {/* MENU */}
+    <div className="px-4 mt-6 space-y-5">
+
+      {menuSections.map((section) => (
+        <div key={section.title}>
+
+          <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-bold mb-2 px-1">
+
+            {section.title}
+
+          </h3>
+
+          <div className="card-magic overflow-hidden divide-y divide-border">
+
+            {section.items.map((item) => (
+              <button
+                key={item.label}
+                onClick={item.action}
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-white/[0.03] dark:hover:bg-white/[0.02] transition"
+              >
+
+                <item.icon className="w-5 h-5 text-primary dark:text-cyan-300 shrink-0" />
+
+                <div className="flex-1 text-left">
+
+                  <p className="font-medium text-foreground text-sm">
+                    {item.label}
+                  </p>
+
+                  <p className="text-xs text-muted-foreground">
+                    {item.desc}
+                  </p>
+
+                </div>
+
+                {item.toggle ? (
+                  <div
+                    className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
+                      theme === "dark"
+                        ? "bg-cyan-400 justify-end"
+                        : "bg-pastel-yellow justify-start"
+                    }`}
+                  >
+
+                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+
+                  </div>
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                )}
+
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* LOGOUT */}
+      <button
+        onClick={handleSignOut}
+        className="w-full h-12 rounded-2xl border border-red-500/20 bg-red-500/10 text-red-400 font-semibold flex items-center justify-center gap-2 mt-8"
+      >
+
+        <LogOut className="w-4 h-4" />
+
+        Se déconnecter
+
+      </button>
+
+    </div>
+  </div>
+);
 
 export default Settings;
