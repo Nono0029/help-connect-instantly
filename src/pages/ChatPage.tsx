@@ -277,37 +277,35 @@ ${ville}`;
 
   const isClosed =
     conversation?.statut === "fermée";
-
-  return (
-  <div className="h-screen text-[#5f5f52] flex flex-col overflow-hidden relative bg-[#fffdf4]">
+return (
+  <div className="h-screen flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
 
     {/* 🌈 BACKGROUND */}
-    <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#fff9dc] via-[#f4ffe9] to-[#ffffff]" />
+    <div className="absolute inset-0 -z-10 bg-gradient-to-b from-pastel-soft via-background to-background dark:from-[#06131a] dark:via-[#071c24] dark:to-[#06131a]" />
 
-    <div className="absolute top-[-120px] left-[-120px] w-[260px] h-[260px] bg-[#fff3a6]/40 blur-[120px] rounded-full -z-10" />
+    <div className="absolute top-[-120px] left-[-120px] w-[260px] h-[260px] bg-pastel-yellow/30 dark:bg-cyan-500/10 blur-[120px] rounded-full -z-10" />
 
-    <div className="absolute bottom-[-120px] right-[-120px] w-[260px] h-[260px] bg-[#c8ffb0]/40 blur-[120px] rounded-full -z-10" />
+    <div className="absolute bottom-[-120px] right-[-120px] w-[260px] h-[260px] bg-pastel-green/30 dark:bg-emerald-500/10 blur-[120px] rounded-full -z-10" />
 
-    <div className="absolute top-[40%] left-[10%] w-[140px] h-[140px] bg-[#ffffff]/60 blur-[80px] rounded-full -z-10" />
+    <div className="absolute top-[40%] left-[10%] w-[140px] h-[140px] bg-white/40 dark:bg-cyan-400/5 blur-[80px] rounded-full -z-10" />
 
     {/* 🌟 HEADER */}
-    <div className="min-h-[88px] border-b border-[#edf1d6] backdrop-blur-2xl bg-white/60 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-[0_4px_30px_rgba(255,240,180,0.15)]">
+    <div className="min-h-[88px] border-b border-border backdrop-blur-2xl bg-white/60 dark:bg-[#071c24]/70 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-card">
 
       <button
         onClick={() => navigate("/messages")}
-        className="w-10 h-10 rounded-full bg-white shadow-md border border-[#f5efc9] flex items-center justify-center shrink-0"
+        className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shrink-0 shadow-card"
       >
-        <ArrowLeft className="w-5 h-5 text-[#87b96d]" />
+        <ArrowLeft className="w-5 h-5 text-accent dark:text-cyan-400" />
       </button>
 
       <div className="flex-1 overflow-hidden">
 
-        <p className="font-bold truncate text-[#6f7b5c] text-[15px]">
-          {conversation?.demande?.titre ||
-            "Conversation"}
+        <p className="font-bold truncate text-foreground text-[15px]">
+          {conversation?.demande?.titre || "Conversation"}
         </p>
 
-        <p className="text-xs text-[#98a67c] mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           {isClosed
             ? "❌ Conversation fermée"
             : mission?.statut === "terminee"
@@ -321,7 +319,7 @@ ${ville}`;
         {messages.length < 5 && (
           <div className="mt-3">
 
-            <div className="flex items-center justify-between text-[10px] text-[#a3ad8d] mb-1">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
 
               <span>
                 Débloque le paiement sécurisé ✨
@@ -333,10 +331,10 @@ ${ville}`;
 
             </div>
 
-            <div className="w-full h-2 bg-[#f3f1df] rounded-full overflow-hidden shadow-inner">
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden shadow-inner">
 
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#ffe27a] via-[#fff1a6] to-[#b8f593] transition-all duration-500 shadow-[0_0_12px_rgba(220,255,150,0.8)]"
+                className="h-full rounded-full bg-magic-gradient dark:bg-[linear-gradient(135deg,#00b4d8_0%,#00c875_100%)] transition-all duration-500"
                 style={{
                   width: `${Math.min(
                     (messages.length / 5) * 100,
@@ -354,9 +352,9 @@ ${ville}`;
         {messages.length >= 5 && (
           <div className="mt-3 flex items-center gap-2">
 
-            <div className="w-2 h-2 rounded-full bg-[#98e97d] animate-pulse shadow-[0_0_10px_#98e97d]" />
+            <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-glow-green" />
 
-            <p className="text-[11px] text-[#7eb36a] font-semibold">
+            <p className="text-[11px] text-accent font-semibold">
               Paiement sécurisé débloqué ✨
             </p>
 
@@ -381,10 +379,10 @@ ${ville}`;
           }`}
         >
           <div
-            className={`max-w-[78%] px-4 py-3 rounded-[26px] text-sm shadow-lg break-words backdrop-blur-xl ${
+            className={`max-w-[78%] px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
               isMe(msg.sender_id)
-                ? "bg-gradient-to-r from-[#ffe27a] to-[#c6f7a6] text-[#5f5f52] shadow-[0_8px_25px_rgba(255,226,122,0.35)]"
-                : "bg-white/75 border border-[#edf1d6] text-[#68715d] shadow-[0_8px_25px_rgba(220,230,190,0.18)]"
+                ? "bg-magic-gradient dark:bg-[linear-gradient(135deg,#00b4d8_0%,#00c875_100%)] text-foreground dark:text-white shadow-soft"
+                : "bg-white/75 dark:bg-[#0d2530]/80 border border-border text-foreground dark:text-cyan-50 shadow-card"
             }`}
           >
             {msg.content}
@@ -397,17 +395,17 @@ ${ville}`;
     {showAdresseBox && !adresseEnvoyee && (
       <div className="fixed bottom-28 left-4 right-4 z-40">
 
-        <div className="rounded-[30px] bg-white/75 border border-[#edf1d6] p-5 shadow-[0_10px_40px_rgba(255,230,150,0.25)] backdrop-blur-2xl">
+        <div className="rounded-[30px] bg-card/80 border border-border p-5 shadow-magic backdrop-blur-2xl">
 
           <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck className="w-5 h-5 text-[#9ad67d]" />
+            <ShieldCheck className="w-5 h-5 text-accent dark:text-cyan-400" />
 
-            <p className="font-bold text-[#6f7b5c]">
+            <p className="font-bold text-foreground">
               Envoyer ton adresse ?
             </p>
           </div>
 
-          <p className="text-sm text-[#9aa48a] mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Tu peux la modifier avant l’envoi 🌼
           </p>
 
@@ -417,7 +415,7 @@ ${ville}`;
               setAdresse(e.target.value)
             }
             placeholder="Adresse"
-            className="w-full h-12 rounded-2xl bg-[#fffef7] border border-[#eef1d7] px-4 text-sm text-[#5f5f52] mb-3 outline-none"
+            className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground mb-3 outline-none"
           />
 
           <input
@@ -426,7 +424,7 @@ ${ville}`;
               setVille(e.target.value)
             }
             placeholder="Ville"
-            className="w-full h-12 rounded-2xl bg-[#fffef7] border border-[#eef1d7] px-4 text-sm text-[#5f5f52] mb-4 outline-none"
+            className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground mb-4 outline-none"
           />
 
           <div className="flex gap-2">
@@ -435,14 +433,14 @@ ${ville}`;
               onClick={() =>
                 setShowAdresseBox(false)
               }
-              className="flex-1 h-11 rounded-2xl bg-[#f8f8ef] border border-[#eef1d7] text-[#8d947b]"
+              className="flex-1 h-11 rounded-2xl bg-muted border border-border text-muted-foreground"
             >
               Plus tard
             </button>
 
             <button
               onClick={envoyerAdresse}
-              className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-[#ffe27a] to-[#bdf59f] text-[#5f5f52] font-bold flex items-center justify-center gap-2 shadow-lg"
+              className="flex-1 h-11 rounded-2xl btn-magic font-bold flex items-center justify-center gap-2"
             >
               <MapPin className="w-4 h-4" />
               Envoyer
@@ -458,7 +456,7 @@ ${ville}`;
       <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
         <button
           onClick={confirmerMission}
-          className="w-full py-3 rounded-[24px] bg-gradient-to-r from-[#bff7a5] to-[#fff09f] text-[#5f5f52] font-bold shadow-[0_10px_30px_rgba(220,255,170,0.4)]"
+          className="w-full py-3 rounded-[24px] btn-magic font-bold"
         >
           🌱 Confirmer la mission
         </button>
@@ -471,7 +469,7 @@ ${ville}`;
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
           <button
             onClick={() => setShowAvis(true)}
-            className="w-full py-3 rounded-[24px] bg-gradient-to-r from-[#ffe27a] to-[#ffd9a8] text-[#6d6650] font-bold shadow-[0_10px_30px_rgba(255,220,120,0.35)]"
+            className="w-full py-3 rounded-[24px] btn-magic font-bold"
           >
             ⭐ Laisser un avis
           </button>
@@ -480,17 +478,17 @@ ${ville}`;
 
     {/* 🌟 MODAL AVIS */}
     {showAvis && (
-      <div className="fixed inset-0 bg-white/20 backdrop-blur-md z-50 flex items-end">
+      <div className="fixed inset-0 bg-black/20 backdrop-blur-md z-50 flex items-end">
 
-        <div className="w-full rounded-t-[34px] bg-[#fffef8] border-t border-[#eef1d7] p-5 shadow-[0_-10px_40px_rgba(255,230,150,0.25)]">
+        <div className="w-full rounded-t-[34px] bg-card border-t border-border p-5 shadow-magic">
 
-          <div className="w-16 h-1.5 bg-[#e7e5d3] rounded-full mx-auto mb-5" />
+          <div className="w-16 h-1.5 bg-muted rounded-full mx-auto mb-5" />
 
-          <h2 className="text-xl font-bold text-center text-[#6f7b5c] mb-1">
+          <h2 className="text-xl font-bold text-center text-foreground mb-1">
             Laisser un avis ✨
           </h2>
 
-          <p className="text-sm text-center text-[#9aa48a] mb-6">
+          <p className="text-sm text-center text-muted-foreground mb-6">
             Ton avis aide la communauté 🌼
           </p>
 
@@ -504,8 +502,8 @@ ${ville}`;
                 <Star
                   className={`w-9 h-9 transition ${
                     n <= note
-                      ? "fill-[#ffd76a] text-[#ffd76a]"
-                      : "text-[#d8dcc8]"
+                      ? "fill-primary text-primary"
+                      : "text-muted-foreground"
                   }`}
                 />
               </button>
@@ -519,7 +517,7 @@ ${ville}`;
               setCommentaire(e.target.value)
             }
             placeholder="Écris ton commentaire 🌸"
-            className="w-full h-28 rounded-3xl bg-[#fffef7] border border-[#eef1d7] p-4 text-sm text-[#5f5f52] placeholder:text-[#b5baa6] outline-none resize-none"
+            className="w-full h-28 rounded-3xl bg-background border border-border p-4 text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none"
           />
 
           {/* BUTTONS */}
@@ -527,14 +525,14 @@ ${ville}`;
 
             <button
               onClick={() => setShowAvis(false)}
-              className="flex-1 h-12 rounded-2xl bg-[#f8f8ef] border border-[#eef1d7] text-[#8d947b]"
+              className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground"
             >
               Annuler
             </button>
 
             <button
               onClick={envoyerAvis}
-              className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#ffe27a] to-[#bdf59f] text-[#5f5f52] font-bold shadow-lg"
+              className="flex-1 h-12 rounded-2xl btn-magic font-bold"
             >
               Envoyer ✨
             </button>
@@ -546,9 +544,9 @@ ${ville}`;
 
     {/* 🌟 INPUT */}
     {!isClosed && (
-      <div className="border-t border-[#eef1d7] bg-white/70 backdrop-blur-2xl px-3 py-3">
+      <div className="border-t border-border bg-card/70 backdrop-blur-2xl px-3 py-3">
 
-        <div className="flex items-center gap-2 bg-[#fffef8] border border-[#edf1d6] rounded-[24px] px-2 py-2 shadow-lg">
+        <div className="flex items-center gap-2 bg-background border border-border rounded-[24px] px-2 py-2 shadow-card">
 
           <input
             value={text}
@@ -560,14 +558,14 @@ ${ville}`;
               sendMessage()
             }
             placeholder="Écris un message 🌼"
-            className="flex-1 bg-transparent text-[#5f5f52] placeholder:text-[#b0b79d] outline-none px-2 text-sm"
+            className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none px-2 text-sm"
           />
 
           <button
             onClick={sendMessage}
-            className="w-11 h-11 rounded-2xl bg-gradient-to-r from-[#ffe27a] to-[#bdf59f] flex items-center justify-center shrink-0 shadow-md"
+            className="w-11 h-11 rounded-2xl btn-magic flex items-center justify-center shrink-0"
           >
-            <Send className="w-4 h-4 text-[#5f5f52]" />
+            <Send className="w-4 h-4 text-foreground dark:text-white" />
           </button>
 
         </div>
