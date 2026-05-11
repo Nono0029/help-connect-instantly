@@ -465,9 +465,8 @@ const Settings = () => {
         Se déconnecter
 
       </button>
-
     </div>
-  </div>
-);
+  );
+};
 
 export default Settings;
