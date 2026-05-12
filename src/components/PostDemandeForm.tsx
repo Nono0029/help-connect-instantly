@@ -54,6 +54,8 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   const [urgent, setUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [villeForm, setVilleForm] = useState("");
+  const [villeLat, setVilleLat] = useState(0);
+  const [villeLng, setVilleLng] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const isEdit = !!demandeToEdit;
@@ -84,7 +86,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
     });
   };
 
-const handleSubmit = async () => {
+  const handleSubmit = async () => {
   if (!titre || !selectedType || !villeForm) return;
 
   setLoading(true);
@@ -93,24 +95,18 @@ const handleSubmit = async () => {
     typesAide.find((t) => t.id === selectedType)?.label ||
     selectedType;
 
-  // ✅ FIX GRATUIT / PRIX
   const isGratuit = prix.trim() === "";
 
   const payload = {
     titre,
     description,
-
     categorie: typeLabel,
-
-    // ✅ IMPORTANT
     gratuit: isGratuit,
-
-    // ✅ IMPORTANT
     prix: isGratuit ? null : prix,
-
     urgent,
-
     ville: villeForm || ville || "",
+    lat: villeLat || null,
+    lng: villeLng || null,
   };
 
   let error = null;
@@ -163,6 +159,8 @@ const handleSubmit = async () => {
     setGratuit(false);
     setDuree("");
     setUrgent(false);
+    setVilleLat(0);
+    setVilleLng(0);
 
     onDemandeAdded();
 
@@ -238,7 +236,7 @@ const handleSubmit = async () => {
                 <div className="h-11 rounded-xl bg-secondary px-4 flex items-center">
                   <CityPicker
                     ville={villeForm || "Choisir une ville..."}
-                    onChange={(v) => setVilleForm(v)}
+                    onChange={(v, lat, lng) => { setVilleForm(v); setVilleLat(lat); setVilleLng(lng); }}
                   />
                 </div>
               </div>

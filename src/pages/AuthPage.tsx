@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { signupSchema, authSchema } from "@/lib/validations";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -22,10 +23,20 @@ const AuthPage = () => {
 
   const handleSubmit = async () => {
     setError("");
-    if (!email || !password) { setError("Remplis tous les champs."); return; }
-    if (tab === "signup" && password !== confirm) { setError("Les mots de passe ne correspondent pas."); return; }
-    if (password.length < 6) { setError("Le mot de passe doit faire au moins 6 caractères."); return; }
-    if (tab === "signup" && !ville) { setError("Indique ta ville."); return; }
+
+    if (tab === "login") {
+      const result = authSchema.safeParse({ email, password });
+      if (!result.success) {
+        setError(result.error.errors[0].message);
+        return;
+      }
+    } else {
+      const result = signupSchema.safeParse({ email, password, confirm, ville });
+      if (!result.success) {
+        setError(result.error.errors[0].message);
+        return;
+      }
+    }
 
     setLoading(true);
     const { error: err } = tab === "signup"

@@ -111,8 +111,11 @@ const DemandeDetail = () => {
 
       <div className="px-4 pt-4 pb-32 space-y-4">
         {/* Auteur */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-2xl border border-border p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-2xl border border-border p-4 cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => demande.user_id && navigate(`/profile/${demande.user_id}`)}
+        >
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-lg font-bold">
               {demande.auteur?.slice(0, 2).toUpperCase() || "??"}

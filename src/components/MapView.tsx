@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Demande {
   id: number;
@@ -6,6 +7,10 @@ interface Demande {
   categorie: string;
   ville?: string;
   urgent?: boolean;
+  prix?: string;
+  gratuit?: boolean;
+  lat?: number;
+  lng?: number;
 }
 
 interface Props {
@@ -13,17 +18,22 @@ interface Props {
   ville: string;
   lat: number;
   lng: number;
+  userLat?: number;
+  userLng?: number;
 }
 
-const MapView = ({ demandes, ville, lat, lng }: Props) => {
+const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!mapRef.current) return;
 
     const loadLeaflet = async () => {
-      if (!(window as any).L) {
+      const W = window as any;
+
+      if (!W.L) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
@@ -36,46 +46,96 @@ const MapView = ({ demandes, ville, lat, lng }: Props) => {
         });
       }
 
-      const L = (window as any).L;
+      const L = W.L;
+
+      if (!W.LeafletCluster) {
+        await new Promise<void>((resolve) => {
+          const script = document.createElement("script");
+          script.src = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js";
+          script.onload = () => resolve();
+          document.head.appendChild(script);
+        });
+        const clusterCss = document.createElement("link");
+        clusterCss.rel = "stylesheet";
+        clusterCss.href = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css";
+        document.head.appendChild(clusterCss);
+        const clusterCss2 = document.createElement("link");
+        clusterCss2.rel = "stylesheet";
+        clusterCss2.href = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css";
+        document.head.appendChild(clusterCss2);
+        W.LeafletCluster = true;
+      }
+
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
 
-      const centerCoords: [number, number] = [lat, lng];
-      const map = L.map(mapRef.current, { zoomControl: false }).setView(centerCoords, 13);
+      const centerLat = userLat || lat;
+      const centerLng = userLng || lng;
+      const centerCoords: [number, number] = [centerLat, centerLng];
+
+      const map = L.map(mapRef.current, { zoomControl: false }).setView(centerCoords, 12);
       mapInstanceRef.current = map;
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap",
       }).addTo(map);
 
-      // Point utilisateur
       const userIcon = L.divIcon({
-        html: `<div style="width:14px;height:14px;background:#3b82f6;border:2px solid white;border-radius:50%;box-shadow:0 0 0 4px rgba(59,130,246,0.3)"></div>`,
+        html: `<div style="width:16px;height:16px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 0 4px rgba(59,130,246,0.3),0 2px 8px rgba(0,0,0,0.2)"></div>`,
         className: "",
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
       });
       L.marker(centerCoords, { icon: userIcon }).addTo(map);
 
-      // Demandes dans la ville sélectionnée
-      const demandesLocales = demandes.filter(d => !d.ville || d.ville === ville);
-      if (demandesLocales.length > 0) {
-        const hasUrgent = demandesLocales.some(d => d.urgent);
-        const color = hasUrgent ? "#ef4444" : "#22c55e";
-        const icon = L.divIcon({
-          html: `<div style="background:${color};color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)">${demandesLocales.length}</div>`,
-          className: "",
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
+      const demandesAvecCoords = demandes.filter(d => d.lat && d.lng);
+      if (demandesAvecCoords.length > 0) {
+        const mcg = L.markerClusterGroup({
+          chunkedLoading: true,
+          maxClusterRadius: 50,
+          iconCreateFunction: (cluster: any) => {
+            const count = cluster.getChildCount();
+            const urgentCount = cluster.getAllChildMarkers().filter((m: any) => m.options.urgent).length;
+            const color = urgentCount > 0 ? "#ef4444" : "#22c55e";
+            return L.divIcon({
+              html: `<div style="background:${color};color:white;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)">${count}</div>`,
+              className: "",
+              iconSize: [40, 40],
+              iconAnchor: [20, 20],
+            });
+          },
         });
-        const popup = demandesLocales.slice(0, 3).map(d => `<div style="margin-bottom:4px;font-size:12px">• ${d.titre}</div>`).join("") +
-          (demandesLocales.length > 3 ? `<div style="font-size:11px;color:#888">+${demandesLocales.length - 3} autres</div>` : "");
-        L.marker([lat + 0.002, lng + 0.002], { icon })
-          .addTo(map)
-          .bindPopup(`<div style="font-family:sans-serif;min-width:160px"><b style="font-size:13px">${ville}</b><br/><span style="font-size:11px;color:#888">${demandesLocales.length} demande${demandesLocales.length > 1 ? "s" : ""}</span><div style="margin-top:6px">${popup}</div></div>`);
+
+        demandesAvecCoords.forEach((d) => {
+          const dist = getDistance(centerLat, centerLng, d.lat!, d.lng!);
+          const color = d.urgent ? "#ef4444" : "#22c55e";
+
+          const icon = L.divIcon({
+            html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${d.gratuit ? "❤️" : "€"}</div>`,
+            className: "",
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+          });
+
+          const marker = L.marker([d.lat!, d.lng!], { icon, urgent: d.urgent });
+          marker.bindPopup(`
+            <div style="font-family:sans-serif;min-width:180px;cursor:pointer" onclick="window.__mapNavigate(${d.id})">
+              <b style="font-size:13px">${d.titre}</b><br/>
+              <span style="font-size:11px;color:#888">${d.categorie}${d.ville ? " · " + d.ville : ""}</span><br/>
+              <span style="font-size:11px;color:#666">📍 ${dist < 1 ? (dist * 1000).toFixed(0) + "m" : dist.toFixed(1) + "km"}</span>
+            </div>
+          `);
+          mcg.addLayer(marker);
+        });
+
+        map.addLayer(mcg);
       }
+
+      (window as any).__mapNavigate = (id: number) => {
+        navigate(`/demande/${id}`);
+      };
     };
 
     loadLeaflet();
@@ -85,14 +145,29 @@ const MapView = ({ demandes, ville, lat, lng }: Props) => {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+      delete (window as any).__mapNavigate;
     };
-  }, [demandes, ville, lat, lng]);
+  }, [demandes, ville, lat, lng, userLat, userLng]);
 
   return (
-    <div className="mx-4 mt-3 rounded-2xl overflow-hidden border border-border relative h-44">
+    <div className="mx-4 mt-3 rounded-2xl overflow-hidden border border-border relative h-52">
       <div ref={mapRef} className="w-full h-full" />
     </div>
   );
 };
+
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 export default MapView;

@@ -15,12 +15,14 @@ import {
   Save,
   User,
   CheckCircle2,
+  CreditCard,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 
 const Settings = () => {
@@ -37,6 +39,7 @@ const Settings = () => {
 
   const [moyenne, setMoyenne] = useState(0);
   const [avisCount, setAvisCount] = useState(0);
+  const [stripeLinked, setStripeLinked] = useState(false);
 
   const email = user?.email || "";
 
@@ -55,6 +58,7 @@ const Settings = () => {
         setPseudo(data.pseudo || email.split("@")[0] || "");
         setVille(data.ville || "");
         setAdresse(data.adresse || "");
+        setStripeLinked(data.stripe_onboarding || false);
       }
     };
 
@@ -131,10 +135,17 @@ const Settings = () => {
           toggle: false,
         },
         {
+          icon: CreditCard,
+          label: "Paiements Stripe",
+          desc: stripeLinked ? "✅ Compte connecté" : "Recevoir des paiements",
+          action: () => navigate("/payment-setup"),
+          toggle: false,
+        },
+        {
           icon: Bell,
           label: "Notifications",
           desc: "Bientôt disponible",
-          action: undefined,
+          action: () => toast.info("Bientôt disponible ✨"),
           toggle: false,
         },
       ],
@@ -158,14 +169,14 @@ const Settings = () => {
           icon: HelpCircle,
           label: "Centre d'aide",
           desc: "FAQ et assistance",
-          action: undefined,
+          action: () => toast.info("Bientôt disponible ✨"),
           toggle: false,
         },
         {
           icon: Star,
           label: "Noter l'application",
           desc: "Merci pour ton soutien 💙",
-          action: undefined,
+          action: () => toast.info("Bientôt disponible ✨"),
           toggle: false,
         },
       ],
@@ -194,16 +205,18 @@ const Settings = () => {
 
       {/* PROFILE */}
       <div className="px-4 pt-5">
-        <div className="card-magic">
-
-          <div className="flex items-center gap-4 mb-5">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-black bg-magic-gradient">
+        <div
+          className="card-magic cursor-pointer"
+          onClick={() => navigate("/edit-profile")}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-black bg-magic-gradient shrink-0">
               {pseudo?.[0]?.toUpperCase() || "?"}
             </div>
 
-            <div className="flex-1">
-              <h2 className="font-bold text-lg">{pseudo || "Mon profil"}</h2>
-              <p className="text-sm text-muted-foreground">{email}</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-bold text-lg truncate">{pseudo || "Mon profil"}</h2>
+              <p className="text-sm text-muted-foreground truncate">{email}</p>
 
               <div className="flex items-center gap-1 mt-1">
                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -215,35 +228,8 @@ const Settings = () => {
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* FORM */}
-          <div className="space-y-4">
-
-            <Input value={pseudo} onChange={(e) => setPseudo(e.target.value)} />
-            <Input value={ville} onChange={(e) => setVille(e.target.value)} />
-            <Input value={adresse} onChange={(e) => setAdresse(e.target.value)} />
-
-            <button
-              onClick={handleSaveProfile}
-              disabled={saving}
-              className="w-full h-12 rounded-2xl btn-magic"
-            >
-              {saved ? (
-                <>
-                  <CheckCircle2 className="w-5 h-5" />
-                  Enregistré
-                </>
-              ) : saving ? (
-                "Enregistrement..."
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  Enregistrer
-                </>
-              )}
-            </button>
-
+            <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
           </div>
         </div>
       </div>

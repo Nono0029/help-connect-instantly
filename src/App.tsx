@@ -19,6 +19,8 @@ import NotFound from "./pages/NotFound";
 // ✅ AJOUT
 import MessagesPage from "./pages/MessagesPage";
 import ChatPage from "./pages/ChatPage";
+import ProfilePage from "./pages/ProfilePage";
+import PaymentSetup from "./pages/PaymentSetup";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,8 @@ export default function App() {
                   {/* ✅ NOUVEAU */}
                   <Route path="/messages" element={<MessagesPage />} />
                   <Route path="/chat/:id" element={<ChatPage />} />
+                  <Route path="/profile/:id" element={<ProfilePage />} />
+                  <Route path="/payment-setup" element={<PaymentSetup />} />
                 </Route>
 
                 {/* 404 */}

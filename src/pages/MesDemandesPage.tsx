@@ -7,6 +7,8 @@ import {
   Euro,
   Zap,
   PackageOpen,
+  Archive,
+  ArchiveX,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -37,6 +39,7 @@ const MesDemandesPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const fetchDemandes = async () => {
     if (!user) return;
@@ -113,6 +116,11 @@ const MesDemandesPage = () => {
     setDeleting(false);
   };
 
+  const handleArchive = async (id: number, archived: boolean) => {
+    await supabase.from("demandes").update({ archived }).eq("id", id);
+    setDemandes(prev => prev.map(d => d.id === id ? { ...d, archived: archived as any } : d));
+  };
+
   const handleEdit = (d: Demande) => {
     setDemandeToEdit(d);
     setShowForm(true);
@@ -150,80 +158,78 @@ const MesDemandesPage = () => {
         {loading && (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-28 bg-card rounded-2xl border border-border animate-pulse"
-              />
+              <div key={i} className="h-28 bg-card rounded-2xl border border-border animate-pulse" />
             ))}
           </div>
         )}
 
-        {!loading && demandes.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-            <PackageOpen className="w-12 h-12 text-muted-foreground/40" />
-            <p className="font-semibold text-foreground">
-              Aucune demande publiée
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Appuie sur + pour créer ta première demande
-            </p>
-          </div>
-        )}
-
-        <AnimatePresence>
-          {demandes.map((d, i) => (
-            <motion.div
-              key={d.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ delay: i * 0.04 }}
-              className="bg-card rounded-2xl border border-border p-4"
+        {!loading && (
+          <>
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className="flex items-center gap-2 text-xs text-muted-foreground mb-2"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                  {d.categorie}
-                </span>
+              {showArchived ? <ArchiveX className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
+              {showArchived ? "Voir les demandes actives" : `Voir les archives (${demandes.filter(d => d.archived).length})`}
+            </button>
 
-                {d.urgent && (
-                  <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded flex items-center gap-1">
-                    <Zap className="w-3 h-3" /> Urgent
-                  </span>
-                )}
+            {demandes.filter(d => showArchived ? d.archived : !d.archived).length === 0 && (
+              <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+                <PackageOpen className="w-12 h-12 text-muted-foreground/40" />
+                <p className="font-semibold text-foreground">
+                  {showArchived ? "Aucune demande archivée" : "Aucune demande publiée"}
+                </p>
               </div>
+            )}
 
-              <h3 className="font-semibold">{d.titre}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {d.description}
-              </p>
+            <AnimatePresence>
+              {demandes.filter(d => showArchived ? d.archived : !d.archived).map((d, i) => (
+                <motion.div
+                  key={d.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="bg-card rounded-2xl border border-border p-4"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">{d.categorie}</span>
+                    {d.urgent && (
+                      <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded flex items-center gap-1">
+                        <Zap className="w-3 h-3" /> Urgent
+                      </span>
+                    )}
+                  </div>
 
-              <div className="flex justify-between mt-3">
-                <span className="flex items-center gap-1 text-xs">
-                  <Euro className="w-3 h-3" />
-                  {d.gratuit ? "Gratuit" : d.prix || "—"}
-                </span>
+                  <h3 className="font-semibold">{d.titre}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{d.description}</p>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(d)}
-                    className="px-3 py-1 rounded-xl bg-primary/10 text-primary text-xs"
-                  >
-                    <Pencil className="w-3 h-3 inline mr-1" />
-                    Modifier
-                  </button>
+                  <div className="flex justify-between mt-3">
+                    <span className="flex items-center gap-1 text-xs">
+                      <Euro className="w-3 h-3" />
+                      {d.gratuit ? "Gratuit" : d.prix || "—"}
+                    </span>
 
-                  <button
-                    onClick={() => setConfirmDeleteId(d.id)}
-                    className="px-3 py-1 rounded-xl bg-destructive/10 text-destructive text-xs"
-                  >
-                    <Trash2 className="w-3 h-3 inline mr-1" />
-                    Supprimer
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleArchive(d.id, !d.archived)}
+                        className={`px-3 py-1 rounded-xl text-xs ${d.archived ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}
+                      >
+                        <Archive className="w-3 h-3 inline mr-1" />
+                        {d.archived ? "Restaurer" : "Archiver"}
+                      </button>
+                      <button onClick={() => handleEdit(d)} className="px-3 py-1 rounded-xl bg-primary/10 text-primary text-xs">
+                        <Pencil className="w-3 h-3 inline mr-1" /> Modifier
+                      </button>
+                      <button onClick={() => setConfirmDeleteId(d.id)} className="px-3 py-1 rounded-xl bg-destructive/10 text-destructive text-xs">
+                        <Trash2 className="w-3 h-3 inline mr-1" /> Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </>
+        )}
       </div>
 
       {/* CONFIRM DELETE */}

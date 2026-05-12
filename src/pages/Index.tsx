@@ -37,6 +37,8 @@ interface Demande {
   prix?: string;
   created_at: string;
   ville?: string;
+  lat?: number;
+  lng?: number;
 }
 
 const categories = [
@@ -82,6 +84,8 @@ const Index = () => {
       2.3794,
     ]);
 
+  const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+
   const [demandes, setDemandes] = useState<
     Demande[]
   >([]);
@@ -100,6 +104,11 @@ const Index = () => {
 
   useEffect(() => {
     fetchDemandes();
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserCoords([pos.coords.latitude, pos.coords.longitude]),
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   }, []);
 
   // TIME
@@ -176,6 +185,22 @@ const Index = () => {
       matchPrix
     );
   });
+
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const sorted = userCoords
+    ? [...filtered].sort((a, b) => {
+        const dA = a.lat && a.lng ? getDistance(userCoords[0], userCoords[1], a.lat, a.lng) : 999;
+        const dB = b.lat && b.lng ? getDistance(userCoords[0], userCoords[1], b.lat, b.lng) : 999;
+        return dA - dB;
+      })
+    : filtered;
 
   const activeFiltersCount = [
     filters.type !== "Tout",
@@ -339,8 +364,8 @@ const Index = () => {
             />
 
             <span className="ml-auto text-accent font-semibold">
-              {filtered.length} aides
-              disponibles 🌟
+              {sorted.length} aides
+              disponibles {userCoords ? "📍 près de toi" : "🌟"}
             </span>
 
           </div>
@@ -376,13 +401,15 @@ const Index = () => {
           ville={ville}
           lat={villeCoords[0]}
           lng={villeCoords[1]}
+          userLat={userCoords?.[0]}
+          userLng={userCoords?.[1]}
         />
       )}
 
       {/* LIST */}
       <div className="flex-1 px-4 pt-5 pb-28 space-y-4 relative z-10">
 
-        {filtered.length === 0 && (
+        {sorted.length === 0 && (
           <div className="text-center py-20">
 
             <div className="text-6xl mb-4 animate-float">
@@ -403,7 +430,7 @@ const Index = () => {
 
         <AnimatePresence>
 
-          {filtered.map((d, i) => (
+          {sorted.map((d, i) => (
 
             <motion.div
               key={d.id}
