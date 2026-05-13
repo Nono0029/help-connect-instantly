@@ -82,6 +82,7 @@ const ChatPage = () => {
   const [commentaire, setCommentaire] = useState("");
 
   const [showAdresseBox, setShowAdresseBox] = useState(false);
+  const [adresseDismissed, setAdresseDismissed] = useState(false);
   const [adresse, setAdresse] = useState("");
   const [ville, setVille] = useState("");
   const [adresseEnvoyee, setAdresseEnvoyee] = useState(false);
@@ -501,7 +502,7 @@ const ChatPage = () => {
   }, [messages]);
 
   useEffect(() => {
-    if (messages.length >= 5 && !adresseEnvoyee && mission?.statut === "en_cours") {
+    if (messages.length >= 5 && !adresseEnvoyee && !adresseDismissed && mission?.statut === "en_cours") {
       setShowAdresseBox(true);
     }
   }, [messages, mission]);
@@ -663,7 +664,7 @@ const ChatPage = () => {
             <input value={ville} onChange={(e) => setVille(e.target.value)} placeholder="Ville"
               className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground mb-4 outline-none" />
             <div className="flex gap-2">
-              <button onClick={() => setShowAdresseBox(false)} className="flex-1 h-11 rounded-2xl bg-muted border border-border text-muted-foreground">Plus tard</button>
+              <button onClick={() => { setShowAdresseBox(false); setAdresseDismissed(true); }} className="flex-1 h-11 rounded-2xl bg-muted border border-border text-muted-foreground">Plus tard</button>
               <button onClick={envoyerAdresse} className="flex-1 h-11 rounded-2xl btn-magic font-bold flex items-center justify-center gap-2">
                 <MapPin className="w-4 h-4" /> Envoyer
               </button>
@@ -727,17 +728,15 @@ const ChatPage = () => {
             >
               {uploading ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : <ImageIcon className="w-4 h-4 text-muted-foreground" />}
             </button>
-            {adresse && (
-              <button
-                onClick={() => setShowAdresseBox(true)}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                  adresseEnvoyee ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground hover:text-accent"
-                }`}
-                title={adresseEnvoyee ? "Adresse déjà envoyée" : "Envoyer mon adresse"}
-              >
-                <Home className="w-4 h-4" />
-              </button>
-            )}
+            <button
+              onClick={() => { setShowAdresseBox(true); setAdresseDismissed(false); }}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                adresseEnvoyee ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground hover:text-accent"
+              }`}
+              title={adresseEnvoyee ? "Adresse déjà envoyée" : "Envoyer mon adresse"}
+            >
+              <Home className="w-4 h-4" />
+            </button>
             <input value={text} onChange={(e) => { setText(e.target.value); handleTyping(); }}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Écris un message 🌼"

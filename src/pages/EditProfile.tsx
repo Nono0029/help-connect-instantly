@@ -133,21 +133,19 @@ const EditProfile = () => {
 
     setLoading(true);
 
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({
-        id: user.id,
-        pseudo,
-        bio,
-        ville,
-        adresse,
-        avatar_url: avatarUrl,
-      });
+    const updates: Record<string, any> = { id: user.id };
+    if (pseudo) updates.pseudo = pseudo;
+    updates.bio = bio;
+    if (ville) updates.ville = ville;
+    if (adresse) updates.adresse = adresse;
+    if (avatarUrl) updates.avatar_url = avatarUrl;
+
+    const { error } = await supabase.from("profiles").upsert(updates);
 
     setLoading(false);
 
     if (error) {
-      toast.error("Erreur lors de la sauvegarde");
+      toast.error("Erreur: " + error.message);
       console.error(error);
       return;
     }
