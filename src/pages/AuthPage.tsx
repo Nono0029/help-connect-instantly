@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { signupSchema, authSchema } from "@/lib/validations";
+import { CommunityIllustration, HelpIllustration } from "@/components/Illustrations";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -69,9 +70,18 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-5">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-5 relative overflow-hidden">
+      {/* Fond décoratif */}
+      <div className="absolute top-[-80px] left-[-80px] w-64 h-64 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-80px] right-[-80px] w-64 h-64 bg-accent/10 blur-[120px] rounded-full pointer-events-none" />
+
+      {/* Illustration */}
+      <div className="mb-2 flex justify-center">
+        <CommunityIllustration className="w-56 h-44 sm:w-64 sm:h-48" />
+      </div>
+
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-foreground tracking-tight mb-1">
             Deman<span className="text-primary">dé</span>
           </h1>

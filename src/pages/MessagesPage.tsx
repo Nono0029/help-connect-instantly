@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChatIllustration, EmptyChatIllustration } from "@/components/Illustrations";
 
 interface Conversation {
   id: number;
@@ -193,16 +194,20 @@ const MessagesPage = () => {
             </button>
 
             {filtered.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <MessageCircle className="w-8 h-8 text-primary/40" />
-                </div>
+              <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+                {showArchived ? (
+                  <ChatIllustration className="w-48 h-48" />
+                ) : (
+                  <EmptyChatIllustration className="w-48 h-48" />
+                )}
                 <div>
-                  <p className="font-semibold text-foreground">
+                  <p className="font-semibold text-foreground text-lg">
                     {showArchived ? "Aucune conversation archivée" : "Aucune conversation"}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {showArchived ? "Les conversations archivées apparaîtront ici" : "Commence par répondre à une demande"}
+                  <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                    {showArchived
+                      ? "Les conversations archivées apparaîtront ici"
+                      : "Explore les demandes près de chez toi et envoie un message pour proposer ton aide 🌱"}
                   </p>
                 </div>
               </div>
