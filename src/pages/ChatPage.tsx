@@ -300,7 +300,7 @@ const ChatPage = () => {
         .from("payments")
         .select("*")
         .eq("mission_id", mission.id)
-        .single();
+        .maybeSingle();
       if (p) setPayment(p);
 
       window.location.href = data.url;

@@ -12,42 +12,50 @@ serve(async (req) => {
   const { mission_id, user_id, conversation_id } = await req.json();
   if (!mission_id || !user_id) return new Response(JSON.stringify({ error: "missing fields" }), { status: 400 });
 
-  const { data: mission } = await supabase.from("missions").select("*, demandes(*)").eq("id", mission_id).single();
+  const { data: mission } = await supabase.from("missions").select("*, demandes(*)").eq("id", mission_id).maybeSingle();
   if (!mission) return new Response(JSON.stringify({ error: "mission not found" }), { status: 404 });
 
-  const prix = mission.demandes?.prix ? parseFloat(mission.demandes.prix.replace(/[^0-9.]/g, "")) : 0;
+  const prix = mission.demandes?.prix ? parseFloat(String(mission.demandes.prix).replace(/[^0-9.]/g, "")) : 0;
   if (prix <= 0) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400 });
 
-  // Get conversation_id from mission or use the one passed
   const convId = conversation_id || mission.conversation_id;
+  const frais = 200; // Platform fee: 2€ in cents
+  const montantCents = Math.round(prix * 100);
 
-  const frais = 200; // 2€ en centimes
-  const total = Math.round(prix * 100) + frais; // en centimes
+  // Get helper's connected Stripe account for destination charge
+  const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", mission.helper_id).maybeSingle();
+  const helperAccountId = profile?.stripe_account_id;
 
-  const { data: helper } = await supabase.from("profiles").select("stripe_account_id").eq("id", mission.helper_id).single();
-
-  const session = await stripe.checkout.sessions.create({
+  const sessionConfig: any = {
     payment_method_types: ["card"],
     mode: "payment",
     line_items: [{
       price_data: {
         currency: "eur",
         product_data: { name: mission.demandes?.titre || "Mission" },
-        unit_amount: Math.round(prix * 100),
-      },
-      quantity: 1,
-    }, {
-      price_data: {
-        currency: "eur",
-        product_data: { name: "Frais de service" },
-        unit_amount: frais,
+        unit_amount: montantCents,
       },
       quantity: 1,
     }],
-    metadata: { mission_id: mission_id.toString(), helper_id: mission.helper_id, conversation_id: convId.toString() },
+    metadata: {
+      mission_id: mission_id.toString(),
+      helper_id: mission.helper_id,
+      payeur_id: user_id,
+      conversation_id: convId?.toString() || "",
+    },
     success_url: `${req.headers.get("origin")}/chat/${convId}?payment=success`,
     cancel_url: `${req.headers.get("origin")}/chat/${convId}?payment=cancel`,
-  });
+  };
+
+  // Stripe Connect Express: auto-split to helper's connected account
+  if (helperAccountId) {
+    sessionConfig.payment_intent_data = {
+      transfer_data: { destination: helperAccountId },
+      application_fee_amount: frais, // Platform keeps 2€
+    };
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionConfig);
 
   if (!session.url) return new Response(JSON.stringify({ error: "stripe error" }), { status: 500 });
 
