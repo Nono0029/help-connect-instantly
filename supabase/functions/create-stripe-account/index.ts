@@ -8,9 +8,17 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
   const { user_id } = await req.json();
-  if (!user_id) return new Response(JSON.stringify({ error: "missing user_id" }), { status: 400 });
+  if (!user_id) return new Response(JSON.stringify({ error: "missing user_id" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
   const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", user_id).maybeSingle();
 
@@ -34,5 +42,5 @@ serve(async (req) => {
     type: "account_onboarding",
   });
 
-  return new Response(JSON.stringify({ url: accountLink.url }), { headers: { "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({ url: accountLink.url }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
 });

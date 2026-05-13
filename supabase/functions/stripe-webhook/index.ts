@@ -8,7 +8,15 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
   const sig = req.headers.get("stripe-signature")!;
   const body = await req.text();
 
@@ -16,7 +24,7 @@ serve(async (req) => {
   try {
     event = stripe.webhooks.constructEvent(body, sig, Deno.env.get("STRIPE_WEBHOOK_SECRET")!);
   } catch {
-    return new Response("Invalid signature", { status: 400 });
+    return new Response("Invalid signature", { status: 400, headers: corsHeaders });
   }
 
   if (event.type === "checkout.session.completed") {

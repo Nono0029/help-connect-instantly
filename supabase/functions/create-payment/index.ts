@@ -8,15 +8,23 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
   const { mission_id, user_id, conversation_id } = await req.json();
-  if (!mission_id || !user_id) return new Response(JSON.stringify({ error: "missing fields" }), { status: 400 });
+  if (!mission_id || !user_id) return new Response(JSON.stringify({ error: "missing fields" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
   const { data: mission } = await supabase.from("missions").select("*, demandes(*)").eq("id", mission_id).maybeSingle();
-  if (!mission) return new Response(JSON.stringify({ error: "mission not found" }), { status: 404 });
+  if (!mission) return new Response(JSON.stringify({ error: "mission not found" }), { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
   const prix = mission.demandes?.prix ? parseFloat(String(mission.demandes.prix).replace(/[^0-9.]/g, "")) : 0;
-  if (prix <= 0) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400 });
+  if (prix <= 0) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
   const convId = conversation_id || mission.conversation_id;
   const frais = 200; // Platform fee: 2€ in cents
@@ -57,7 +65,7 @@ serve(async (req) => {
 
   const session = await stripe.checkout.sessions.create(sessionConfig);
 
-  if (!session.url) return new Response(JSON.stringify({ error: "stripe error" }), { status: 500 });
+  if (!session.url) return new Response(JSON.stringify({ error: "stripe error" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
   await supabase.from("payments").insert({
     mission_id,
@@ -69,5 +77,5 @@ serve(async (req) => {
     statut: "en_attente",
   });
 
-  return new Response(JSON.stringify({ url: session.url }), { headers: { "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({ url: session.url }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
 });
