@@ -11,9 +11,22 @@ export interface Notification {
   created_at: string;
 }
 
+const notifType = (msg: string): "messages" | "demandes" | "missions" => {
+  if (msg.includes(":")) return "messages";
+  if (msg.includes("veut t'aider") || msg.includes("refusée") || msg.includes("acceptée")) return "demandes";
+  return "missions";
+};
+
 export const useNotifications = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [prefs, setPrefs] = useState<Record<string, boolean>>({ messages: true, demandes: true, missions: true });
+
+  const loadPrefs = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("profiles").select("notif_prefs").eq("id", user.id).maybeSingle();
+    if (data?.notif_prefs) setPrefs(data.notif_prefs);
+  };
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -26,6 +39,7 @@ export const useNotifications = () => {
   };
 
   useEffect(() => {
+    loadPrefs();
     fetchNotifications();
   }, [user]);
 
@@ -56,7 +70,9 @@ export const useNotifications = () => {
     setNotifications(prev => prev.map(n => ({ ...n, lu: true })));
   };
 
-  const unreadCount = notifications.filter(n => !n.lu).length;
+  const filtered = notifications.filter(n => prefs[notifType(n.message)] !== false);
 
-  return { notifications, unreadCount, markAsRead, markAllAsRead, fetchNotifications };
+  const unreadCount = filtered.filter(n => !n.lu).length;
+
+  return { notifications: filtered, allNotifications: notifications, unreadCount, markAsRead, markAllAsRead, fetchNotifications, prefs };
 };

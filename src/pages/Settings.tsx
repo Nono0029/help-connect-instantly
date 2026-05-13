@@ -6,6 +6,8 @@ import {
   ChevronRight,
   Shield,
   Bell,
+  BellOff,
+  MessageCircle,
   ShoppingBag,
   HelpCircle,
   LogOut,
@@ -16,6 +18,7 @@ import {
   User,
   CheckCircle2,
   CreditCard,
+  Medal,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -24,6 +27,8 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+
+const defaultNotifPrefs = { messages: true, demandes: true, missions: true };
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -36,10 +41,12 @@ const Settings = () => {
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [notifSaving, setNotifSaving] = useState(false);
 
   const [moyenne, setMoyenne] = useState(0);
   const [avisCount, setAvisCount] = useState(0);
   const [stripeLinked, setStripeLinked] = useState(false);
+  const [notifPrefs, setNotifPrefs] = useState(defaultNotifPrefs);
 
   const email = user?.email || "";
 
@@ -64,6 +71,7 @@ const Settings = () => {
         setVille(data.ville || "");
         setAdresse(data.adresse || "");
         setStripeLinked(data.stripe_onboarding || false);
+        if (data.notif_prefs) setNotifPrefs(data.notif_prefs);
       } else {
         const { error: insertError } = await supabase.from("profiles").upsert({
           id: user.id,
@@ -76,6 +84,14 @@ const Settings = () => {
 
     fetchProfile();
   }, [user]);
+
+  const toggleNotifPref = async (key: keyof typeof defaultNotifPrefs) => {
+    const next = { ...notifPrefs, [key]: !notifPrefs[key] };
+    setNotifPrefs(next);
+    setNotifSaving(true);
+    await supabase.from("profiles").upsert({ id: user!.id, notif_prefs: next });
+    setNotifSaving(false);
+  };
 
   // AVIS
   useEffect(() => {
@@ -155,12 +171,34 @@ const Settings = () => {
           action: () => navigate("/payment-setup"),
           toggle: false,
         },
+      ],
+    },
+    {
+      title: "Notifications",
+      items: [
         {
-          icon: Bell,
-          label: "Notifications",
-          desc: "Bientôt disponible",
-          action: () => toast.info("Bientôt disponible ✨"),
-          toggle: false,
+          icon: notifPrefs.messages ? Bell : BellOff,
+          label: "Messages",
+          desc: notifPrefs.messages ? "Activées" : "Désactivées",
+          action: () => toggleNotifPref("messages"),
+          toggle: true,
+          toggled: notifPrefs.messages,
+        },
+        {
+          icon: notifPrefs.demandes ? Bell : BellOff,
+          label: "Demandes",
+          desc: notifPrefs.demandes ? "Activées" : "Désactivées",
+          action: () => toggleNotifPref("demandes"),
+          toggle: true,
+          toggled: notifPrefs.demandes,
+        },
+        {
+          icon: notifPrefs.missions ? Bell : BellOff,
+          label: "Missions",
+          desc: notifPrefs.missions ? "Activées" : "Désactivées",
+          action: () => toggleNotifPref("missions"),
+          toggle: true,
+          toggled: notifPrefs.missions,
         },
       ],
     },
@@ -173,6 +211,7 @@ const Settings = () => {
           desc: theme === "dark" ? "Activé" : "Désactivé",
           action: toggleTheme,
           toggle: true,
+          toggled: theme === "dark",
         },
       ],
     },
@@ -276,13 +315,13 @@ const Settings = () => {
 
                   {item.toggle ? (
                     <div
-                      className={`w-11 h-6 rounded-full flex items-center px-0.5 ${
-                        theme === "dark"
+                      className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-colors ${
+                        (item as any).toggled
                           ? "justify-end bg-cyan-400"
-                          : "justify-start bg-yellow-300"
-                      }`}
+                          : "justify-start bg-gray-400"
+                      } ${notifSaving ? "opacity-50" : ""}`}
                     >
-                      <div className="w-5 h-5 bg-white rounded-full" />
+                      <div className="w-5 h-5 bg-white rounded-full shadow-sm transition-transform" />
                     </div>
                   ) : (
                     <ChevronRight className="w-4 h-4" />
