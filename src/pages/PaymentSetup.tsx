@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, CreditCard, CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 const PaymentSetup = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [stripeAccountId, setStripeAccountId] = useState("");
   const [onboarding, setOnboarding] = useState(false);
@@ -14,6 +16,21 @@ const PaymentSetup = () => {
 
   useEffect(() => {
     if (!user) return;
+
+    // Handle return from Stripe onboarding
+    if (searchParams.get("success") === "true") {
+      supabase
+        .from("profiles")
+        .update({ stripe_onboarding: true })
+        .eq("id", user.id)
+        .then(() => {
+          setOnboarding(true);
+          toast.success("Compte Stripe connecté ✅");
+          navigate("/payment-setup", { replace: true });
+        });
+      return;
+    }
+
     const fetch = async () => {
       const { data } = await supabase
         .from("profiles")
@@ -27,7 +44,7 @@ const PaymentSetup = () => {
       setLoading(false);
     };
     fetch();
-  }, [user]);
+  }, [user, searchParams]);
 
   const handleConnect = async () => {
     if (!user) return;

@@ -34,9 +34,5 @@ serve(async (req) => {
     type: "account_onboarding",
   });
 
-  if (req.url.includes("success=true")) {
-    await supabase.from("profiles").update({ stripe_onboarding: true }).eq("id", user_id);
-  }
-
   return new Response(JSON.stringify({ url: accountLink.url }), { headers: { "Content-Type": "application/json" } });
 });

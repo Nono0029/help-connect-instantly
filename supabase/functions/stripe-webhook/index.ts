@@ -23,20 +23,23 @@ serve(async (req) => {
     const session = event.data.object as Stripe.Checkout.Session;
     const missionId = session.metadata?.mission_id;
     const helperId = session.metadata?.helper_id;
-    const payeurId = session.metadata?.payeur_id;
+    const conversationId = session.metadata?.conversation_id;
 
     if (missionId) {
       await supabase.from("payments").update({ statut: "payé", stripe_payment_intent: session.payment_intent as string }).eq("stripe_session_id", session.id);
       await supabase.from("missions").update({ statut: "en_cours" }).eq("id", parseInt(missionId));
-      await supabase.from("conversations").update({ statut: "en_cours" }).eq("demande_id", parseInt(missionId));
 
-      if (helperId) {
-        await supabase.from("notifications").insert({
-          user_id: helperId,
-          message: "💰 Paiement reçu ! La mission peut commencer.",
-          conversation_id: parseInt(missionId),
-          lu: false,
-        });
+      if (conversationId) {
+        await supabase.from("conversations").update({ statut: "en_cours" }).eq("id", parseInt(conversationId));
+
+        if (helperId) {
+          await supabase.from("notifications").insert({
+            user_id: helperId,
+            message: "💰 Paiement reçu ! La mission peut commencer.",
+            conversation_id: parseInt(conversationId),
+            lu: false,
+          });
+        }
       }
     }
   }

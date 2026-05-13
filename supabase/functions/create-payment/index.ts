@@ -9,7 +9,7 @@ const supabase = createClient(
 );
 
 serve(async (req) => {
-  const { mission_id, user_id } = await req.json();
+  const { mission_id, user_id, conversation_id } = await req.json();
   if (!mission_id || !user_id) return new Response(JSON.stringify({ error: "missing fields" }), { status: 400 });
 
   const { data: mission } = await supabase.from("missions").select("*, demandes(*)").eq("id", mission_id).single();
@@ -17,6 +17,9 @@ serve(async (req) => {
 
   const prix = mission.demandes?.prix ? parseFloat(mission.demandes.prix.replace(/[^0-9.]/g, "")) : 0;
   if (prix <= 0) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400 });
+
+  // Get conversation_id from mission or use the one passed
+  const convId = conversation_id || mission.conversation_id;
 
   const frais = 200; // 2€ en centimes
   const total = Math.round(prix * 100) + frais; // en centimes
@@ -41,9 +44,9 @@ serve(async (req) => {
       },
       quantity: 1,
     }],
-    metadata: { mission_id: mission_id.toString(), helper_id: mission.helper_id },
-    success_url: `${req.headers.get("origin")}/chat/${mission_id}?payment=success`,
-    cancel_url: `${req.headers.get("origin")}/chat/${mission_id}?payment=cancel`,
+    metadata: { mission_id: mission_id.toString(), helper_id: mission.helper_id, conversation_id: convId.toString() },
+    success_url: `${req.headers.get("origin")}/chat/${convId}?payment=success`,
+    cancel_url: `${req.headers.get("origin")}/chat/${convId}?payment=cancel`,
   });
 
   if (!session.url) return new Response(JSON.stringify({ error: "stripe error" }), { status: 500 });

@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   Lock,
   CreditCard,
+  Home,
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
@@ -266,7 +267,7 @@ const ChatPage = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: { mission_id: mission.id, user_id: user.id },
+        body: { mission_id: mission.id, user_id: user.id, conversation_id: id },
       });
 
       if (error || !data?.url) throw new Error(error?.message || "Erreur paiement");
@@ -544,13 +545,30 @@ const ChatPage = () => {
         <div className="px-4 py-3 bg-card/80 border-b border-border">
           <div className="flex items-center gap-2 mb-2">
             <Lock className="w-4 h-4 text-accent" />
-            <p className="text-sm font-semibold text-foreground">Paiement sécurisé requis</p>
+            <p className="text-sm font-semibold text-foreground">
+              {messages.length >= 5 ? "Paiement sécurisé débloqué" : "Paiement sécurisé"}
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">Le paiement est bloqué jusqu'à confirmation de la mission. Frais de service : 2€.</p>
-          <button onClick={handlePayment} disabled={paymentLoading}
-            className="w-full h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
-            {paymentLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-            Payer avec Stripe 💳
+          <p className="text-xs text-muted-foreground mb-3">
+            {messages.length >= 5
+              ? "Le paiement est bloqué jusqu'à confirmation de la mission. Frais de service : 2€."
+              : "💬 Envoie au moins 5 messages pour débloquer le paiement sécurisé."}
+          </p>
+          <button
+            onClick={handlePayment}
+            disabled={paymentLoading || messages.length < 5}
+            className={`w-full h-11 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
+              messages.length >= 5
+                ? "btn-magic"
+                : "bg-muted border border-border text-muted-foreground cursor-not-allowed"
+            }`}
+          >
+            {paymentLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <CreditCard className="w-4 h-4" />
+            )}
+            {messages.length >= 5 ? "Payer avec Stripe 💳" : `🔒 ${5 - messages.length} messages restants`}
           </button>
         </div>
       )}
@@ -659,6 +677,17 @@ const ChatPage = () => {
             >
               {uploading ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : <ImageIcon className="w-4 h-4 text-muted-foreground" />}
             </button>
+            {adresse && (
+              <button
+                onClick={() => setShowAdresseBox(true)}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                  adresseEnvoyee ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground hover:text-accent"
+                }`}
+                title={adresseEnvoyee ? "Adresse déjà envoyée" : "Envoyer mon adresse"}
+              >
+                <Home className="w-4 h-4" />
+              </button>
+            )}
             <input value={text} onChange={(e) => { setText(e.target.value); handleTyping(); }}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Écris un message 🌼"

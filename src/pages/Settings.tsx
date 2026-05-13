@@ -109,10 +109,12 @@ const Settings = () => {
     setSaving(false);
 
     if (error) {
+      toast.error("Erreur lors de la sauvegarde");
       console.error(error);
       return;
     }
 
+    toast.success("Profil mis à jour 💙");
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
