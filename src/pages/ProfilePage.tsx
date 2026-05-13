@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 interface Profile {
   id: string;
@@ -28,9 +29,21 @@ interface Mission {
   titre?: string;
 }
 
+interface Demande {
+  id: number;
+  titre: string;
+  description: string;
+  categorie: string;
+  urgent: boolean;
+  gratuit: boolean;
+  prix?: string;
+  created_at: string;
+}
+
 const ProfilePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [avis, setAvis] = useState<Review[]>([]);
@@ -39,6 +52,8 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [helperCount, setHelperCount] = useState(0);
   const [demandeurCount, setDemandeurCount] = useState(0);
+  const [demandes, setDemandes] = useState<Demande[]>([]);
+  const [contacting, setContacting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -88,6 +103,14 @@ const ProfilePage = () => {
           titre: titreMap[m.demande_id] || "Mission",
         })));
       }
+
+      const { data: demandesData } = await supabase
+        .from("demandes")
+        .select("id, titre, description, categorie, urgent, gratuit, prix, created_at")
+        .eq("user_id", id)
+        .order("created_at", { ascending: false });
+
+      if (demandesData) setDemandes(demandesData);
 
       setLoading(false);
     };
@@ -142,6 +165,36 @@ const ProfilePage = () => {
             <p className="text-sm text-foreground/70 mt-3 max-w-md mx-auto leading-relaxed">{profile.bio}</p>
           )}
 
+          {user && user.id !== id && (
+            <Button
+              onClick={async () => {
+                if (!user || !id) return;
+                setContacting(true);
+                const { data: existing } = await supabase
+                  .from("conversations")
+                  .select("id")
+                  .or(`and(helper_id.eq.${user.id},demandeur_id.eq.${id}),and(helper_id.eq.${id},demandeur_id.eq.${user.id})`)
+                  .maybeSingle();
+                if (existing) {
+                  navigate(`/chat/${existing.id}`);
+                } else {
+                  const { data: newConv } = await supabase
+                    .from("conversations")
+                    .insert({ helper_id: user.id, demandeur_id: id, statut: "en_attente" })
+                    .select()
+                    .single();
+                  if (newConv) navigate(`/chat/${newConv.id}`);
+                }
+                setContacting(false);
+              }}
+              disabled={contacting}
+              className="mt-4 w-full h-11 rounded-xl btn-magic font-semibold"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              {contacting ? "Connexion..." : "Contacter"}
+            </Button>
+          )}
+
           <div className="flex items-center justify-center gap-1 mt-4">
             <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
             <span className="text-lg font-bold text-foreground">{moyenne.toFixed(1)}</span>
@@ -185,6 +238,43 @@ const ProfilePage = () => {
             <p className="text-xs text-muted-foreground mt-0.5">Moyenne</p>
           </div>
         </div>
+
+        {/* SES DEMANDES */}
+        {demandes.length > 0 && (
+          <div>
+            <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-blue-500" />
+              Ses demandes
+            </h3>
+            <div className="space-y-2">
+              {demandes.slice(0, 5).map(d => (
+                <div
+                  key={d.id}
+                  onClick={() => navigate(`/demande/${d.id}`)}
+                  className="bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground text-sm truncate">{d.titre}</p>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{d.description}</p>
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        <Badge variant="secondary" className="rounded-lg text-[10px]">{d.categorie}</Badge>
+                        {d.urgent && <Badge className="bg-destructive text-destructive-foreground rounded-lg text-[10px]"><Zap className="w-3 h-3 mr-0.5" />Urgent</Badge>}
+                        <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                          <Clock className="w-3 h-3" />
+                          {new Date(d.created_at).toLocaleDateString("fr-FR")}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={`text-sm font-bold shrink-0 ${d.gratuit ? "text-accent" : "text-foreground"}`}>
+                      {d.gratuit ? "Gratuit" : d.prix}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* MISSIONS */}
         {missions.length > 0 && (
