@@ -11,7 +11,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 import { toast } from "sonner";
 
@@ -135,7 +134,6 @@ const EditProfile = () => {
 
     const updates: Record<string, any> = { id: user.id };
     if (pseudo) updates.pseudo = pseudo;
-    updates.bio = bio;
     if (ville) updates.ville = ville;
     if (adresse) updates.adresse = adresse;
     if (avatarUrl) updates.avatar_url = avatarUrl;
@@ -238,19 +236,6 @@ const EditProfile = () => {
             placeholder="Ton pseudo"
           />
           <p className="text-[11px] text-muted-foreground mt-1 text-right">{pseudo.length}/30</p>
-        </div>
-
-        {/* BIO */}
-        <div>
-          <label className="text-sm font-semibold mb-2 block text-foreground">Bio</label>
-          <Textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            className="min-h-[100px] rounded-2xl bg-secondary border-none text-foreground resize-none"
-            maxLength={200}
-            placeholder="Parle un peu de toi 🌱"
-          />
-          <p className="text-[11px] text-muted-foreground mt-1 text-right">{bio.length}/200</p>
         </div>
 
         {/* VILLE */}

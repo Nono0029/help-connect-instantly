@@ -191,10 +191,6 @@ const ProfilePage = () => {
             </p>
           )}
 
-          {profile.bio && (
-            <p className="text-sm text-foreground/70 mt-3 max-w-md mx-auto leading-relaxed">{profile.bio}</p>
-          )}
-
           {user && user.id !== id && (
             <Button
               onClick={async () => {
