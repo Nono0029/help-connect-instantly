@@ -56,6 +56,7 @@ const PaymentSetup = () => {
       if (error) throw error;
       if (data?.url) window.location.href = data.url;
     } catch (err: any) {
+      toast.error("Erreur de connexion Stripe. Vérifie les clés API dans Supabase.");
       console.error(err);
     }
   };

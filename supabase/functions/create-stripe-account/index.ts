@@ -12,7 +12,7 @@ serve(async (req) => {
   const { user_id } = await req.json();
   if (!user_id) return new Response(JSON.stringify({ error: "missing user_id" }), { status: 400 });
 
-  const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", user_id).single();
+  const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", user_id).maybeSingle();
 
   let accountId = profile?.stripe_account_id;
 

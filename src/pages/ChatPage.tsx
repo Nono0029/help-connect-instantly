@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Illu } from "@/components/Illustrations";
+import { toast } from "sonner";
 
 interface Message {
   id: number;
@@ -305,6 +306,7 @@ const ChatPage = () => {
 
       window.location.href = data.url;
     } catch (err: any) {
+      toast.error(err?.message || "Erreur de paiement. Vérifie que le prestataire a configuré Stripe.");
       console.error(err);
     }
 
