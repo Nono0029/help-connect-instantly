@@ -48,17 +48,29 @@ const Settings = () => {
     const fetchProfile = async () => {
       if (!user) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error(error);
+        return;
+      }
 
       if (data) {
         setPseudo(data.pseudo || email.split("@")[0] || "");
         setVille(data.ville || "");
         setAdresse(data.adresse || "");
         setStripeLinked(data.stripe_onboarding || false);
+      } else {
+        const { error: insertError } = await supabase.from("profiles").upsert({
+          id: user.id,
+          pseudo: email.split("@")[0],
+        });
+        if (insertError) console.error(insertError);
+        setPseudo(email.split("@")[0] || "");
       }
     };
 
@@ -171,7 +183,7 @@ const Settings = () => {
           icon: HelpCircle,
           label: "Centre d'aide",
           desc: "FAQ et assistance",
-          action: () => toast.info("Bientôt disponible ✨"),
+          action: () => navigate("/aide"),
           toggle: false,
         },
         {

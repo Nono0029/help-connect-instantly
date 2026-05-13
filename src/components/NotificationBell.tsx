@@ -1,12 +1,26 @@
 import { Bell } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
+
+const FILTERS = ["Toutes", "Messages", "Demandes", "Missions"] as const;
+type Filter = typeof FILTERS[number];
+
+const matchFilter = (msg: string, filter: Filter): boolean => {
+  if (filter === "Toutes") return true;
+  if (filter === "Messages") return msg.includes(":") || msg.includes("veut t'aider");
+  if (filter === "Demandes") return msg.includes("veut t'aider") || msg.includes("refusée") || msg.includes("acceptée");
+  if (filter === "Missions") return msg.includes("confirmé") || msg.includes("Mission terminée") || msg.includes("terminée");
+  return true;
+};
 
 const NotificationBell = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<Filter>("Toutes");
   const navigate = useNavigate();
+
+  const filtered = useMemo(() => notifications.filter(n => matchFilter(n.message, filter)), [notifications, filter]);
 
   const handleClick = async (n: { id: number; conversation_id?: number; lu: boolean }) => {
     await markAsRead(n.id);
@@ -56,14 +70,31 @@ const NotificationBell = () => {
             )}
           </div>
 
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
+          {/* FILTERS */}
+          <div className="flex gap-1 px-3 py-2 border-b border-border overflow-x-auto">
+            {FILTERS.map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  filter === f
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+
+          <div className="max-h-72 overflow-y-auto">
+            {filtered.length === 0 ? (
               <div className="p-6 text-center">
                 <Bell className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">Aucune notification</p>
               </div>
             ) : (
-              notifications.map(n => (
+              filtered.map(n => (
                 <button
                   key={n.id}
                   onClick={() => handleClick(n)}

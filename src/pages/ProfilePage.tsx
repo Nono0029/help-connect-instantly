@@ -125,8 +125,38 @@ const ProfilePage = () => {
   );
 
   if (!profile) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <p className="text-muted-foreground">Profil introuvable</p>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+      <p className="text-muted-foreground text-lg mb-2">Profil introuvable</p>
+      <p className="text-sm text-muted-foreground/60 text-center mb-6">Cet utilisateur n'a pas encore créé son profil public.</p>
+      {user && user.id !== id && (
+        <button
+          onClick={async () => {
+            if (!user || !id) return;
+            setContacting(true);
+            const { data: existing } = await supabase
+              .from("conversations")
+              .select("id")
+              .or(`and(helper_id.eq.${user.id},demandeur_id.eq.${id}),and(helper_id.eq.${id},demandeur_id.eq.${user.id})`)
+              .maybeSingle();
+            if (existing) {
+              navigate(`/chat/${existing.id}`);
+            } else {
+              const { data: newConv } = await supabase
+                .from("conversations")
+                .insert({ helper_id: user.id, demandeur_id: id, statut: "en_attente" })
+                .select()
+                .single();
+              if (newConv) navigate(`/chat/${newConv.id}`);
+            }
+            setContacting(false);
+          }}
+          disabled={contacting}
+          className="px-6 h-11 rounded-xl btn-magic font-semibold"
+        >
+          <MessageCircle className="w-4 h-4 mr-2" />
+          Contacter quand même
+        </button>
+      )}
     </div>
   );
 

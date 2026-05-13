@@ -11,6 +11,20 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
+const ensureProfile = async (user: User) => {
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!existing) {
+    await supabase.from("profiles").upsert({
+      id: user.id,
+      pseudo: user.email?.split("@")[0] || user.id.slice(0, 8),
+    });
+  }
+};
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -22,12 +36,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) ensureProfile(session.user);
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) ensureProfile(session.user);
     });
 
     return () => subscription.unsubscribe();
