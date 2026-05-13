@@ -79,6 +79,16 @@ const DemandeDetail = () => {
       .select()
       .single();
 
+    // Notifier le créateur de la demande
+    if (newConv && demande.user_id && demande.user_id !== user.id) {
+      await supabase.from("notifications").insert({
+        user_id: demande.user_id,
+        message: `${user.email?.split("@")[0] || "Quelqu'un"} veut t'aider pour « ${demande.titre} » !`,
+        conversation_id: newConv.id,
+        lu: false,
+      });
+    }
+
     setCreating(false);
     if (newConv) navigate(`/chat/${newConv.id}`);
     else if (error) alert("Erreur : " + error.message);

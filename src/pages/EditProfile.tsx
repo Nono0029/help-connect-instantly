@@ -185,7 +185,7 @@ const EditProfile = () => {
       </header>
 
       {/* CONTENT */}
-      <div className="px-4 py-6 space-y-6 relative z-10">
+      <div className="px-4 py-6 pb-28 space-y-6 relative z-10">
 
         {/* AVATAR */}
         <div className="flex justify-center">

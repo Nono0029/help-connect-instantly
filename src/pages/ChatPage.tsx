@@ -257,6 +257,27 @@ const ChatPage = () => {
         sender_id: user.id,
         content: "🎉 Mission terminée ! Merci à tous les deux !",
       });
+
+      if (otherUserId) {
+        await supabase.from("notifications").insert([{
+          user_id: otherUserId,
+          message: "🎉 Mission terminée ! Les deux parties ont confirmé.",
+          conversation_id: parseInt(id!),
+          lu: false,
+        }, {
+          user_id: user.id,
+          message: "🎉 Mission terminée ! Merci pour ton aide.",
+          conversation_id: parseInt(id!),
+          lu: false,
+        }]);
+      }
+    } else if (otherUserId) {
+      await supabase.from("notifications").insert({
+        user_id: otherUserId,
+        message: `${user.email?.split("@")[0] || "Quelqu'un"} a confirmé la mission ✅`,
+        conversation_id: parseInt(id!),
+        lu: false,
+      });
     }
 
     fetchMission(conversation);
@@ -335,6 +356,14 @@ const ChatPage = () => {
       sender_id: user.id,
       content: trimmed,
     });
+    if (otherUserId) {
+      await supabase.from("notifications").insert({
+        user_id: otherUserId,
+        message: `${user.email?.split("@")[0] || "Quelqu'un"}: ${trimmed.slice(0, 80)}${trimmed.length > 80 ? "..." : ""}`,
+        conversation_id: parseInt(id),
+        lu: false,
+      });
+    }
     setText("");
   };
 
