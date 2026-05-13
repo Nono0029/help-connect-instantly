@@ -60,6 +60,12 @@ CREATE POLICY "conversations_update" ON conversations
     OR auth.uid()::text = demandeur_id::text
   );
 
+CREATE POLICY "conversations_delete" ON conversations
+  FOR DELETE USING (
+    auth.uid()::text = helper_id::text
+    OR auth.uid()::text = demandeur_id::text
+  );
+
 -- 4. MESSAGES
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
@@ -80,6 +86,18 @@ CREATE POLICY "messages_select" ON messages
 
 CREATE POLICY "messages_insert" ON messages
   FOR INSERT WITH CHECK (sender_id::text = auth.uid()::text);
+
+CREATE POLICY "messages_delete" ON messages
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM conversations
+      WHERE conversations.id = messages.conversation_id
+      AND (
+        conversations.helper_id::text = auth.uid()::text
+        OR conversations.demandeur_id::text = auth.uid()::text
+      )
+    )
+  );
 
 -- 5. MISSIONS
 ALTER TABLE missions ENABLE ROW LEVEL SECURITY;
@@ -104,6 +122,19 @@ CREATE POLICY "missions_update" ON missions
   FOR UPDATE USING (
     helper_id::text = auth.uid()::text
     OR demandeur_id::text = auth.uid()::text
+  );
+
+CREATE POLICY "missions_delete" ON missions
+  FOR DELETE USING (
+    helper_id::text = auth.uid()::text
+    OR demandeur_id::text = auth.uid()::text
+  );
+
+-- 5b. PAYMENTS (suppression aussi)
+DROP POLICY IF EXISTS "payments_delete" ON payments;
+CREATE POLICY "payments_delete" ON payments
+  FOR DELETE USING (
+    payeur_id::text = auth.uid()::text OR helper_id::text = auth.uid()::text
   );
 
 -- 6. NOTIFICATIONS
