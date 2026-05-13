@@ -93,7 +93,7 @@ export const GardenScene = ({ className = "w-72 h-72" }: { className?: string })
       {/* Arrosoir */}
       <rect x="262" y="148" width="20" height="18" rx="4" className="fill-sky-400/40" />
       <path d="M282 155 L290 148" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2.5" strokeLinecap="round" />
-      <!-- Gouttes -->
+      {/* Gouttes */}
       <motion.circle cx="292" cy="145" r="2.5" className="fill-sky-400/30"
         animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0 }} />
       <motion.circle cx="298" cy="148" r="2" className="fill-sky-400/25"
