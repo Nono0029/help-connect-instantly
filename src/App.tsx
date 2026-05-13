@@ -24,6 +24,8 @@ import ProfilePage from "./pages/ProfilePage";
 import PaymentSetup from "./pages/PaymentSetup";
 import CreateRequestPage from "./pages/CreateRequestPage";
 import AidePage from "./pages/AidePage";
+import BecomeProPage from "./pages/BecomeProPage";
+import PrivacyPage from "./pages/PrivacyPage";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +59,8 @@ export default function App() {
                   <Route path="/payment-setup" element={<PaymentSetup />} />
                   <Route path="/create-request" element={<CreateRequestPage />} />
                   <Route path="/aide" element={<AidePage />} />
+                  <Route path="/become-pro" element={<BecomeProPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
                 </Route>
 
                 {/* 404 */}

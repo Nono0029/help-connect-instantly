@@ -196,8 +196,8 @@ const Index = () => {
 
   const sorted = userCoords
     ? [...filtered].sort((a, b) => {
-        const dA = a.lat && a.lng ? getDistance(userCoords[0], userCoords[1], a.lat, a.lng) : 999;
-        const dB = b.lat && b.lng ? getDistance(userCoords[0], userCoords[1], b.lat, b.lng) : 999;
+        const dA = a.lat != null && a.lng != null ? getDistance(userCoords[0], userCoords[1], a.lat, a.lng) : 999;
+        const dB = b.lat != null && b.lng != null ? getDistance(userCoords[0], userCoords[1], b.lat, b.lng) : 999;
         return dA - dB;
       })
     : filtered;

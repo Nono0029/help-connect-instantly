@@ -35,7 +35,7 @@ const DemandeDetail = () => {
         .from("demandes")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
       if (data) setDemande(data);
       setLoading(false);
     };
@@ -60,7 +60,7 @@ const DemandeDetail = () => {
       .select("id")
       .eq("demande_id", demande.id)
       .eq("helper_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       navigate(`/chat/${existing.id}`);

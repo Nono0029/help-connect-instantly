@@ -59,6 +59,7 @@ interface Profile {
 const ChatPage = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
+  const paymentParam = searchParams.get("payment");
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -311,11 +312,11 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    if (searchParams.get("payment") === "success" && mission) {
+    if (paymentParam === "success" && mission && conversation) {
       fetchMission(conversation);
       navigate(`/chat/${id}`, { replace: true });
     }
-  }, [searchParams, mission]);
+  }, [paymentParam, mission?.id, conversation?.id]);
 
   const envoyerAvis = async () => {
     if (!mission || !user) return;

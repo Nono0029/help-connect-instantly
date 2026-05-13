@@ -9,6 +9,7 @@ import { toast } from "sonner";
 const PaymentSetup = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const successParam = searchParams.get("success");
   const { user } = useAuth();
   const [stripeAccountId, setStripeAccountId] = useState("");
   const [onboarding, setOnboarding] = useState(false);
@@ -18,7 +19,7 @@ const PaymentSetup = () => {
     if (!user) return;
 
     // Handle return from Stripe onboarding
-    if (searchParams.get("success") === "true") {
+    if (successParam === "true") {
       supabase
         .from("profiles")
         .update({ stripe_onboarding: true })
@@ -44,7 +45,7 @@ const PaymentSetup = () => {
       setLoading(false);
     };
     fetch();
-  }, [user, searchParams]);
+  }, [user, successParam]);
 
   const handleConnect = async () => {
     if (!user) return;

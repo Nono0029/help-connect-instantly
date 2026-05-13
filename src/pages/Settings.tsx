@@ -7,18 +7,10 @@ import {
   Shield,
   Bell,
   BellOff,
-  MessageCircle,
-  ShoppingBag,
   HelpCircle,
   LogOut,
   Star,
-  MapPin,
-  Home,
-  Save,
-  User,
-  CheckCircle2,
   CreditCard,
-  Medal,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";

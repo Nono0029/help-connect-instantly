@@ -3,13 +3,11 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   MessageCircle,
-  User,
   Archive,
   ArchiveX,
   Clock,
   CheckCircle2,
   XCircle,
-  Lock,
   ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
