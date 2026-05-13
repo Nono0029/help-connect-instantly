@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 const illustrations = {
-  hero: "Avatars and Characters _ alert, man, wave, greeting, welcome, city, buildings.png",
+  hero: "2 SCENE.png",
   auth: "Avatars and Characters _ alert, man, wave, greeting, welcome, city, buildings.png",
   chat: "Lifestyle and Leisure _ woman, laptop, headphone, bench, outdoors, fire hydrant, city.png",
   messages: "Tech and Innovation _ virtual, reality, laptop, computer, device, plant, table.png",

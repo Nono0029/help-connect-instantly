@@ -22,6 +22,7 @@ import MessagesPage from "./pages/MessagesPage";
 import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import PaymentSetup from "./pages/PaymentSetup";
+import CreateRequestPage from "./pages/CreateRequestPage";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ export default function App() {
                   <Route path="/chat/:id" element={<ChatPage />} />
                   <Route path="/profile/:id" element={<ProfilePage />} />
                   <Route path="/payment-setup" element={<PaymentSetup />} />
+                  <Route path="/create-request" element={<CreateRequestPage />} />
                 </Route>
 
                 {/* 404 */}

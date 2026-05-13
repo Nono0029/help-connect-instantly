@@ -581,6 +581,11 @@ const ChatPage = () => {
         </div>
       )}
 
+      {/* ILLU BANNER */}
+      <div className="flex justify-center py-3 bg-gradient-to-b from-transparent via-primary/5 to-transparent">
+        <Illu name={["jardin","bricolage","cours","tech","animaux","ecoute","demenagement","nature","sports","travel","food","musique"][Number(id ?? 0) % 12]} className="w-32 h-32 opacity-40" />
+      </div>
+
       {/* MESSAGES */}
       <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-3 pb-56">
         {messages.length === 0 && (
