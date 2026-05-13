@@ -33,7 +33,7 @@ const ChangePassword = () => {
         </div>
       </header>
 
-      <div className="px-4 py-6 space-y-5">
+      <div className="px-4 py-6 pb-28 space-y-5">
         <div>
           <label className="text-sm font-semibold text-foreground mb-1.5 block">Nouveau mot de passe</label>
           <div className="relative">

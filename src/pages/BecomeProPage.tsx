@@ -1,0 +1,148 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Check, Sparkles, Briefcase, Star, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { Illu } from "@/components/Illustrations";
+
+const benefits = [
+  { icon: Briefcase, text: "Propose tes services à des milliers de personnes" },
+  { icon: Star, text: "Construis ta réputation avec les avis clients" },
+  { icon: Shield, text: "Paiements sécurisés et protégés" },
+];
+
+const BecomeProPage = () => {
+  const navigate = useNavigate();
+  const [step, setStep] = useState<"intro" | "form">("intro");
+  const [competences, setCompetences] = useState("");
+  const [experience, setExperience] = useState("");
+  const [tarif, setTarif] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!competences || !experience || !tarif) {
+      toast.error("Remplis tous les champs");
+      return;
+    }
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 1000));
+    setLoading(false);
+    toast.success("Demande envoyée ! Notre équipe te répondra sous 48h.");
+    navigate("/");
+  };
+
+  if (step === "intro") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate("/settings")} className="p-1">
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-lg font-bold text-foreground">Devenir prestataire</h1>
+          </div>
+        </header>
+
+        <div className="flex-1 px-4 pt-6 pb-28 space-y-6">
+          <Illu name="aide" className="w-48 mx-auto" />
+
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-bold text-foreground">Deviens prestataire</h2>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              Rejoins notre communauté de prestataires et gagne de l'argent en aidant les autres
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {benefits.map((b, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-center gap-3 bg-card rounded-2xl border border-border p-4"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <b.icon className="w-5 h-5" />
+                </div>
+                <p className="text-sm text-foreground">{b.text}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <Button
+            onClick={() => setStep("form")}
+            className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25"
+          >
+            <Sparkles className="w-4 h-4 mr-2" /> Commencer
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setStep("intro")} className="p-1">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <h1 className="text-lg font-bold text-foreground">Devenir prestataire</h1>
+        </div>
+      </header>
+
+      <div className="px-4 pt-6 pb-28 space-y-5">
+        <div className="flex items-center gap-2">
+          {[1, 2].map(s => (
+            <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= 1 ? "bg-primary" : "bg-secondary"}`} />
+          ))}
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-foreground mb-1.5 block">Tes compétences</label>
+          <Textarea
+            placeholder="Ex: Plomberie, électricité, jardinage, cours de maths..."
+            value={competences}
+            onChange={e => setCompetences(e.target.value)}
+            className="min-h-[100px] rounded-xl bg-secondary border-none resize-none"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-foreground mb-1.5 block">Ton expérience</label>
+          <Textarea
+            placeholder="Parle-nous de ton parcours, tes formations, tes réalisations..."
+            value={experience}
+            onChange={e => setExperience(e.target.value)}
+            className="min-h-[100px] rounded-xl bg-secondary border-none resize-none"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-foreground mb-1.5 block">Tarif horaire indicatif (€)</label>
+          <Input
+            type="number"
+            placeholder="Ex: 25"
+            value={tarif}
+            onChange={e => setTarif(e.target.value)}
+            className="h-11 rounded-xl bg-secondary border-none"
+          />
+        </div>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25"
+        >
+          {loading ? "Envoi en cours..." : "Envoyer ma demande"}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default BecomeProPage;
