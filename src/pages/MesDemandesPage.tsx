@@ -61,64 +61,14 @@ const MesDemandesPage = () => {
     fetchDemandes();
   }, [user]);
 
-  // 🔥 DELETE COMPLET (respecte les contraintes étrangères)
+  // 🔥 DELETE COMPLET (via fonction SQL SECURITY DEFINER)
   const handleDelete = async (id: number) => {
     setDeleting(true);
 
     try {
-      // 1. Récupérer les conversations liées
-      const { data: conversations, error: convFetchError } = await supabase
-        .from("conversations")
-        .select("*")
-        .eq("demande_id", id);
+      const { error } = await supabase.rpc("delete_demande", { demande_id: id });
 
-      if (convFetchError) throw convFetchError;
-
-      if (conversations && conversations.length > 0) {
-        const convIds = conversations.map(c => c.id);
-
-        // 2. Supprimer les messages
-        for (const convId of convIds) {
-          await supabase.from("messages").delete().eq("conversation_id", convId);
-        }
-
-        // 3. Supprimer les missions (et payments en cascade)
-        const { data: missions } = await supabase
-          .from("missions")
-          .select("id")
-          .eq("demande_id", id);
-
-        if (missions && missions.length > 0) {
-          const missionIds = missions.map(m => m.id);
-          await supabase.from("payments").delete().in("mission_id", missionIds);
-          await supabase.from("missions").delete().eq("demande_id", id);
-        }
-
-        // 4. Notifications
-        for (const conv of conversations) {
-          const users = [conv.helper_id, conv.demandeur_id];
-          for (const userId of users) {
-            if (!userId || userId === "EMPTY") continue;
-            await supabase.from("notifications").insert([{
-              user_id: userId,
-              message: "❌ Une demande a été supprimée, la conversation est fermée.",
-              conversation_id: conv.id,
-              lu: false,
-            }]);
-          }
-        }
-
-        // 5. Supprimer les conversations
-        await supabase.from("conversations").delete().eq("demande_id", id);
-      }
-
-      // 6. Supprimer la demande
-      const { error: deleteError } = await supabase
-        .from("demandes")
-        .delete()
-        .eq("id", id);
-
-      if (deleteError) throw deleteError;
+      if (error) throw error;
 
       setDemandes((prev) => prev.filter((d) => d.id !== id));
       setConfirmDeleteId(null);
