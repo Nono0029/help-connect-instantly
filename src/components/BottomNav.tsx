@@ -14,7 +14,7 @@ const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const hiddenRoutes = ["/auth", "/chat/"];
+  const hiddenRoutes = ["/auth", "/chat/", "/demande/"];
   if (hiddenRoutes.some(r => location.pathname.startsWith(r))) return null;
 
   return (
