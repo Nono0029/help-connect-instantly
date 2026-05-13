@@ -66,7 +66,7 @@ const MesDemandesPage = () => {
     setDeleting(true);
 
     try {
-      const { error } = await supabase.rpc("delete_demande", { demande_id: id });
+      const { error } = await supabase.rpc("delete_demande", { target_id: id });
 
       if (error) throw error;
 
