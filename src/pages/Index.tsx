@@ -23,6 +23,7 @@ import SearchFilters from "@/components/SearchFilters";
 import CityPicker from "@/components/CityPicker";
 import MapView from "@/components/MapView";
 import NotificationBell from "@/components/NotificationBell";
+import { HelpingScene } from "@/components/Illustrations";
 
 import { supabase } from "@/lib/supabase";
 
@@ -289,34 +290,29 @@ const Index = () => {
           </div>
 
           {/* HERO */}
-          <div className="mb-4 rounded-3xl p-5 bg-magic-gradient shadow-magic border border-primary/20">
+          <div className="mb-4 rounded-3xl p-5 bg-magic-gradient shadow-magic border border-primary/20 flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xl font-black text-foreground leading-tight">
+                Trouve de l'aide
+                <br />
+                près de chez toi 🌍
+              </p>
 
-            <p className="text-xl font-black text-foreground leading-tight">
-              Trouve de l'aide
-              <br />
-              près de chez toi 🌍
-            </p>
+              <p className="text-sm text-foreground/60 mt-1.5">
+                Une communauté bienveillante pour s'entraider.
+              </p>
 
-            <p className="text-sm text-foreground/60 mt-1.5">
-              Une communauté bienveillante
-              pour s'entraider.
-            </p>
+              <div className="flex gap-2 mt-3 flex-wrap">
+                {["🌱 Bienveillance", "⚡ Rapide", "💬 Humain"].map((t) => (
+                  <div key={t} className="px-3 py-1 rounded-full bg-white/40 dark:bg-black/10 text-xs font-medium text-foreground border border-white/40 dark:border-white/10">
+                    {t}
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            <div className="flex gap-2 mt-3 flex-wrap">
-
-              {[
-                "🌱 Bienveillance",
-                "⚡ Rapide",
-                "💬 Humain",
-              ].map((t) => (
-                <div
-                  key={t}
-                  className="px-3 py-1 rounded-full bg-white/40 dark:bg-black/10 text-xs font-medium text-foreground border border-white/40 dark:border-white/10"
-                >
-                  {t}
-                </div>
-              ))}
-
+            <div className="hidden sm:block shrink-0">
+              <HelpingScene className="w-36 h-36" />
             </div>
           </div>
 

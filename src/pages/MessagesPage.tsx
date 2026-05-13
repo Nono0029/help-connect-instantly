@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChatIllustration, EmptyChatIllustration } from "@/components/Illustrations";
+import { ChatScene, MailScene } from "@/components/Illustrations";
 
 interface Conversation {
   id: number;
@@ -196,9 +196,9 @@ const MessagesPage = () => {
             {filtered.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
                 {showArchived ? (
-                  <ChatIllustration className="w-48 h-48" />
+                  <MailScene className="w-48 h-48" />
                 ) : (
-                  <EmptyChatIllustration className="w-48 h-48" />
+                  <ChatScene className="w-48 h-48" />
                 )}
                 <div>
                   <p className="font-semibold text-foreground text-lg">
