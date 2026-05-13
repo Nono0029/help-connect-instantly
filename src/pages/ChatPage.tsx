@@ -591,7 +591,15 @@ const ChatPage = () => {
           </div>
         )}
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${isMe(msg.sender_id) ? "justify-end" : "justify-start"}`}>
+          <div key={msg.id} className={`flex items-end gap-2 ${isMe(msg.sender_id) ? "justify-end" : "justify-start"}`}>
+            {!isMe(msg.sender_id) && (
+              <button
+                onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}
+                className="w-7 h-7 rounded-full bg-accent/10 text-accent dark:text-cyan-400 flex items-center justify-center text-[10px] font-bold shrink-0 hover:ring-2 hover:ring-accent/50 transition-all"
+              >
+                {otherProfile?.pseudo?.[0]?.toUpperCase() || "?"}
+              </button>
+            )}
             <div className={`max-w-[78%] px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
               isMe(msg.sender_id)
                 ? "bg-magic-gradient dark:bg-[linear-gradient(135deg,#00b4d8_0%,#00c875_100%)] text-foreground dark:text-white shadow-soft"

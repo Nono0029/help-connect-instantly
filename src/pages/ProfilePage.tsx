@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
@@ -37,6 +37,8 @@ const ProfilePage = () => {
   const [moyenne, setMoyenne] = useState(0);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [helperCount, setHelperCount] = useState(0);
+  const [demandeurCount, setDemandeurCount] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -79,6 +81,8 @@ const ProfilePage = () => {
         const titreMap: Record<number, string> = {};
         (demandes || []).forEach(d => { titreMap[d.id] = d.titre; });
 
+        setHelperCount(missionsData.filter(m => m.helper_id === id).length);
+        setDemandeurCount(missionsData.filter(m => m.demandeur_id === id).length);
         setMissions(missionsData.map(m => ({
           ...m,
           titre: titreMap[m.demande_id] || "Mission",
@@ -147,6 +151,38 @@ const ProfilePage = () => {
           <div className="flex items-center justify-center gap-1 mt-1">
             <Medal className="w-4 h-4 text-accent" />
             <span className="text-sm text-muted-foreground">{missions.length} mission{missions.length > 1 ? "s" : ""} accomplie{missions.length > 1 ? "s" : ""}</span>
+          </div>
+        </div>
+
+        {/* STATS */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-card border border-border rounded-2xl p-4 text-center">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto mb-2">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <p className="text-xl font-bold text-foreground">{demandeurCount}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Demandes</p>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-4 text-center">
+            <div className="w-10 h-10 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center mx-auto mb-2">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <p className="text-xl font-bold text-foreground">{helperCount}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Propositions</p>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-4 text-center">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center mx-auto mb-2">
+              <Medal className="w-5 h-5" />
+            </div>
+            <p className="text-xl font-bold text-foreground">{missions.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Missions</p>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-4 text-center">
+            <div className="w-10 h-10 rounded-xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center mx-auto mb-2">
+              <Star className="w-5 h-5" />
+            </div>
+            <p className="text-xl font-bold text-foreground">{moyenne.toFixed(1)}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Moyenne</p>
           </div>
         </div>
 

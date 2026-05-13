@@ -33,12 +33,12 @@ interface IlluProps {
 }
 
 export const Illu = ({ name, className, alt }: IlluProps) => {
-  const src = `/${illustrations[name]}`;
+  const src = `/${encodeURI(illustrations[name])}`;
   return (
     <img
       src={src}
       alt={alt ?? name}
-      className={cn("w-full h-auto", className)}
+      className={cn("object-contain pointer-events-none select-none", className)}
       loading="lazy"
     />
   );
