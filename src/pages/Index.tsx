@@ -23,7 +23,7 @@ import SearchFilters from "@/components/SearchFilters";
 import CityPicker from "@/components/CityPicker";
 import MapView from "@/components/MapView";
 import NotificationBell from "@/components/NotificationBell";
-import { HelpingScene } from "@/components/Illustrations";
+import { Illu } from "@/components/Illustrations";
 
 import { supabase } from "@/lib/supabase";
 
@@ -312,7 +312,7 @@ const Index = () => {
             </div>
 
             <div className="hidden sm:block shrink-0">
-              <HelpingScene className="w-36 h-36" />
+              <Illu name="hero" className="w-36 h-36" />
             </div>
           </div>
 

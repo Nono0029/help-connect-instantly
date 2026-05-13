@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { signupSchema, authSchema } from "@/lib/validations";
-import { WelcomeScene, HelpingScene } from "@/components/Illustrations";
+import { Illu } from "@/components/Illustrations";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -75,10 +75,9 @@ const AuthPage = () => {
       <div className="absolute top-[-80px] left-[-80px] w-64 h-64 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-80px] right-[-80px] w-64 h-64 bg-accent/10 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* Illustrations */}
-      <div className="mb-2 flex justify-center gap-4">
-        <WelcomeScene className="w-40 h-36 sm:w-48 sm:h-36 hidden xs:block" />
-        <HelpingScene className="w-40 h-36 sm:w-48 sm:h-36 hidden sm:block" />
+      {/* Illustration */}
+      <div className="mb-2 flex justify-center">
+        <Illu name="auth" className="w-56 h-44 sm:w-72 sm:h-56" />
       </div>
 
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">

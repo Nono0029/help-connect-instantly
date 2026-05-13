@@ -17,6 +17,7 @@ import {
 
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { Illu } from "@/components/Illustrations";
 
 interface Message {
   id: number;
@@ -582,6 +583,13 @@ const ChatPage = () => {
 
       {/* MESSAGES */}
       <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-3 pb-56">
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full text-center py-16">
+            <Illu name="chat" className="w-40 h-40 opacity-60" />
+            <p className="text-muted-foreground text-sm mt-4">Aucun message pour l'instant</p>
+            <p className="text-muted-foreground/60 text-xs">Envoie un message pour commencer la discussion 🌱</p>
+          </div>
+        )}
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${isMe(msg.sender_id) ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[78%] px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
