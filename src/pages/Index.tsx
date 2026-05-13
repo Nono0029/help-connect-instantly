@@ -395,7 +395,7 @@ const Index = () => {
       </header>
 
       {/* MAP */}
-      {!showForm && (
+      {!showForm && !showFilters && (
         <MapView
           demandes={filtered}
           ville={ville}
