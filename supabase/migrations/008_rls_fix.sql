@@ -1,8 +1,8 @@
 -- =====================================
--- FIX RLS POLICIES pour toutes les tables
+-- FIX RLS POLICIES (cast universel ::text)
 -- =====================================
 
--- 1. PROFILES (id est UUID)
+-- 1. PROFILES
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "profiles_select" ON profiles;
@@ -13,12 +13,12 @@ CREATE POLICY "profiles_select" ON profiles
   FOR SELECT USING (true);
 
 CREATE POLICY "profiles_insert" ON profiles
-  FOR INSERT WITH CHECK (id = auth.uid());
+  FOR INSERT WITH CHECK (id::text = auth.uid()::text);
 
 CREATE POLICY "profiles_update" ON profiles
-  FOR UPDATE USING (id = auth.uid());
+  FOR UPDATE USING (id::text = auth.uid()::text);
 
--- 2. DEMANDES (user_id est TEXT)
+-- 2. DEMANDES
 ALTER TABLE demandes ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "demandes_select" ON demandes;
@@ -38,7 +38,7 @@ CREATE POLICY "demandes_update" ON demandes
 CREATE POLICY "demandes_delete" ON demandes
   FOR DELETE USING (auth.uid()::text = user_id);
 
--- 3. CONVERSATIONS (helper_id, demandeur_id, demande_user_id sont TEXT)
+-- 3. CONVERSATIONS
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "conversations_select" ON conversations;
@@ -61,7 +61,7 @@ CREATE POLICY "conversations_update" ON conversations
     OR auth.uid()::text = demandeur_id
   );
 
--- 4. MESSAGES (sender_id TEXT, conversation_id BIGINT)
+-- 4. MESSAGES
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "messages_select" ON messages;
@@ -83,7 +83,7 @@ CREATE POLICY "messages_select" ON messages
 CREATE POLICY "messages_insert" ON messages
   FOR INSERT WITH CHECK (sender_id = auth.uid()::text);
 
--- 5. MISSIONS (helper_id, demandeur_id TEXT)
+-- 5. MISSIONS
 ALTER TABLE missions ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "missions_select" ON missions;
@@ -108,7 +108,7 @@ CREATE POLICY "missions_update" ON missions
     OR demandeur_id = auth.uid()::text
   );
 
--- 6. NOTIFICATIONS (user_id TEXT)
+-- 6. NOTIFICATIONS
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "notifications_select" ON notifications;
@@ -124,7 +124,7 @@ CREATE POLICY "notifications_insert" ON notifications
 CREATE POLICY "notifications_update" ON notifications
   FOR UPDATE USING (user_id = auth.uid()::text);
 
--- 7. AVIS (auteur_id, cible_id TEXT)
+-- 7. AVIS
 ALTER TABLE avis ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "avis_select" ON avis;
