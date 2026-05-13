@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Illu } from "@/components/Illustrations";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 const benefits = [
   { icon: Briefcase, text: "Propose tes services à des milliers de personnes" },
@@ -17,6 +19,7 @@ const benefits = [
 const BecomeProPage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<"intro" | "form">("intro");
+  const { user } = useAuth();
   const [competences, setCompetences] = useState("");
   const [experience, setExperience] = useState("");
   const [tarif, setTarif] = useState("");
@@ -28,10 +31,19 @@ const BecomeProPage = () => {
       return;
     }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
+    const { error } = await supabase.from("profiles").update({
+      competences,
+      experience,
+      tarif_horaire: parseFloat(tarif),
+      pro_status: "pending",
+    }).eq("id", user?.id);
     setLoading(false);
-    toast.success("Demande envoyée ! Notre équipe te répondra sous 48h.");
-    navigate("/");
+    if (error) {
+      toast.error("Erreur : " + error.message);
+    } else {
+      toast.success("Demande envoyée ! Notre équipe te répondra sous 48h.");
+      navigate("/");
+    }
   };
 
   if (step === "intro") {

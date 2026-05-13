@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import CityPicker from "@/components/CityPicker";
 
 const typesAide = [
   { id: "physique", label: "💪 Aide physique", desc: "Déménagement, ménage, portage..." },
@@ -31,17 +32,17 @@ interface Demande {
   gratuit: boolean;
   prix?: string;
   created_at: string;
-  user_id: string;
 }
 
 interface Props {
+  ville?: string;
   open: boolean;
   onClose: () => void;
   onDemandeAdded: () => void;
   demandeToEdit?: Demande | null;
 }
 
-const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props) => {
+const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }: Props) => {
   const { user } = useAuth();
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
@@ -52,6 +53,9 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
   const [duree, setDuree] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [villeForm, setVilleForm] = useState("");
+  const [villeLat, setVilleLat] = useState(0);
+  const [villeLng, setVilleLng] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const isEdit = !!demandeToEdit;
@@ -68,7 +72,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
     } else {
       setTitre(""); setDescription(""); setSelectedType("");
       setPhotos([]); setPrix(""); setGratuit(false);
-      setDuree(""); setUrgent(false);
+      setDuree(""); setUrgent(false); setVilleForm("");
     }
   }, [demandeToEdit, open]);
 
@@ -83,31 +87,86 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
   };
 
   const handleSubmit = async () => {
-    if (!titre || !selectedType || !user) return;
-    setLoading(true);
+  if (!titre || !selectedType || !villeForm) return;
 
-    const typeLabel = typesAide.find(t => t.id === selectedType)?.label || selectedType;
-    const payload = { titre, description, categorie: typeLabel, prix: gratuit ? null : prix, gratuit, urgent };
+  setLoading(true);
 
-    let error = null;
-    if (isEdit && demandeToEdit) {
-      const res = await supabase.from("demandes").update(payload).eq("id", demandeToEdit.id);
-      error = res.error;
-    } else {
-      const auteur = user.email?.split("@")[0] || "Anonyme";
-      const res = await supabase.from("demandes").insert([{ ...payload, auteur, user_id: user.id }]);
-      error = res.error;
-    }
+  const typeLabel =
+    typesAide.find((t) => t.id === selectedType)?.label ||
+    selectedType;
 
-    setLoading(false);
-    if (error) {
-      alert("Erreur : " + error.message);
-    } else {
-      onDemandeAdded();
-      onClose();
-    }
+  const isGratuit = prix.trim() === "";
+
+  const payload = {
+    titre,
+    description,
+    categorie: typeLabel,
+    gratuit: isGratuit,
+    prix: isGratuit ? null : prix,
+    urgent,
+    ville: villeForm || ville || "",
+    lat: villeLat || null,
+    lng: villeLng || null,
   };
 
+  let error = null;
+
+  // ✏️ UPDATE
+  if (isEdit && demandeToEdit) {
+
+    const res = await supabase
+      .from("demandes")
+      .update(payload)
+      .eq("id", demandeToEdit.id);
+
+    error = res.error;
+
+  } else {
+
+    // ➕ INSERT
+    const auteur =
+      user?.email?.split("@")[0] || "Anonyme";
+
+    const res = await supabase
+      .from("demandes")
+      .insert([
+        {
+          ...payload,
+
+          auteur,
+
+          user_id: user?.id,
+        },
+      ]);
+
+    error = res.error;
+  }
+
+  setLoading(false);
+
+  if (error) {
+
+    alert("Erreur : " + error.message);
+
+  } else {
+
+    // ✅ RESET FORM
+    setTitre("");
+    setDescription("");
+    setSelectedType("");
+    setPhotos([]);
+    setPrix("");
+    setGratuit(false);
+    setDuree("");
+    setUrgent(false);
+    setVilleLat(0);
+    setVilleLng(0);
+
+    onDemandeAdded();
+
+    onClose();
+  }
+};
   return (
     <AnimatePresence>
       {open && (
@@ -173,11 +232,25 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
               </div>
 
               <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Ville de la demande</label>
+                <div className="h-11 rounded-xl bg-secondary px-4 flex items-center">
+                  <CityPicker
+                    ville={villeForm || "Choisir une ville..."}
+                    onChange={(v, lat, lng) => { setVilleForm(v); setVilleLat(lat); setVilleLng(lng); }}
+                  />
+                </div>
+              </div>
+
+              <div>
                 <label className="text-sm font-semibold text-foreground mb-2 block">Type d'aide</label>
                 <div className="flex flex-wrap gap-2">
                   {typesAide.map(type => (
                     <button key={type.id} onClick={() => setSelectedType(type.id)}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium transition-all border ${selectedType === type.id ? "bg-primary text-primary-foreground border-primary" : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"}`}>
+                      className={`px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
+                        selectedType === type.id
+                          ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                          : "bg-secondary text-muted-foreground border-transparent hover:border-primary/30"
+                      }`}>
                       {type.label}
                     </button>
                   ))}
@@ -192,7 +265,11 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
                 <div className="flex flex-wrap gap-2">
                   {durees.map(d => (
                     <button key={d} onClick={() => setDuree(d)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${duree === d ? "bg-primary text-primary-foreground border-primary" : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"}`}>
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                        duree === d
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-secondary text-muted-foreground border-transparent"
+                      }`}>
                       {d}
                     </button>
                   ))}
@@ -205,7 +282,11 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
                 </label>
                 <div className="flex items-center gap-3">
                   <button onClick={() => { setGratuit(true); setPrix(""); }}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border ${gratuit ? "bg-primary text-primary-foreground border-primary" : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"}`}>
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
+                      gratuit
+                        ? "bg-accent text-accent-foreground border-accent shadow-md"
+                        : "bg-secondary text-muted-foreground border-transparent"
+                    }`}>
                     ❤️ Gratuit
                   </button>
                   <div className="flex-1 relative">
@@ -216,14 +297,20 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit }: Props
               </div>
 
               <button onClick={() => setUrgent(!urgent)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${urgent ? "bg-destructive/10 border-destructive" : "bg-secondary border-border"}`}>
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                  urgent
+                    ? "bg-destructive/10 border-destructive/30 text-destructive"
+                    : "bg-secondary border-transparent text-muted-foreground"
+                }`}>
                 <span className="text-sm font-medium">⚡ C'est urgent</span>
-                <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${urgent ? "bg-destructive justify-end" : "bg-muted-foreground/30"}`}>
+                <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${
+                  urgent ? "bg-destructive justify-end" : "bg-muted-foreground/20 justify-start"
+                }`}>
                   <div className="w-5 h-5 rounded-full bg-card shadow-sm" />
                 </div>
               </button>
 
-              <Button onClick={handleSubmit} disabled={!titre || !selectedType || loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25">
+              <Button onClick={handleSubmit} disabled={!titre || !selectedType || !villeForm || loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25">
                 <Sparkles className="w-4 h-4 mr-2" />
                 {loading ? (isEdit ? "Modification..." : "Publication...") : (isEdit ? "Enregistrer les modifications" : "Publier ma demande")}
               </Button>

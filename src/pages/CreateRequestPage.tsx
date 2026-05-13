@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 const typesAide = [
   { id: "physique", label: "Aide physique", emoji: "💪" },
@@ -22,6 +24,7 @@ const durees = ["< 30 min", "1h", "2h", "Demi-journée", "Journée", "Plusieurs 
 
 const CreateRequestPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -44,15 +47,29 @@ const CreateRequestPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!titre || !selectedType) {
+    if (!titre || !selectedType || !user) {
       toast.error("Remplis le titre et le type d'aide");
       return;
     }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
+    const typeLabel = typesAide.find(t => t.id === selectedType)?.label || selectedType;
+    const { error } = await supabase.from("demandes").insert([{
+      titre,
+      description,
+      categorie: typeLabel,
+      prix: gratuit ? null : prix,
+      gratuit,
+      urgent,
+      auteur: user.email?.split("@")[0] || "Anonyme",
+      user_id: user.id,
+    }]);
     setLoading(false);
-    toast.success("Demande publiée !");
-    navigate("/");
+    if (error) {
+      toast.error("Erreur : " + error.message);
+    } else {
+      toast.success("Demande publiée !");
+      navigate("/");
+    }
   };
 
   return (

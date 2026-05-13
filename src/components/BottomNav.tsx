@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, ShoppingBag, MessageCircle, User, Plus } from "lucide-react";
+import { Home, ShoppingBag, MessageCircle, Settings, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -7,7 +7,7 @@ const navItems = [
   { icon: ShoppingBag, label: "Mes demandes", path: "/mes-demandes" },
   { icon: Plus, label: "Poster", path: "/create-request", highlight: true },
   { icon: MessageCircle, label: "Messages", path: "/messages" },
-  { icon: User, label: "Profil", path: "/profile" },
+  { icon: Settings, label: "Profil", path: "/settings" },
 ];
 
 const BottomNav = () => {

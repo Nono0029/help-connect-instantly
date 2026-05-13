@@ -1,110 +1,711 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, Phone, Shield, MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  Send,
+  Star,
+  MapPin,
+  ShieldCheck,
+  Check,
+  X,
+  Loader2,
+  Image as ImageIcon,
+  Lock,
+  CreditCard,
+  Home,
+} from "lucide-react";
+
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Illu } from "@/components/Illustrations";
 
 interface Message {
   id: number;
-  text: string;
-  from: "me" | "them";
-  time: string;
+  conversation_id: number;
+  sender_id: string;
+  content: string;
+  created_at: string;
 }
 
-const mockMessages: Message[] = [
-  { id: 1, text: "Salut ! Ta demande m'intéresse, tu peux m'en dire plus ?", from: "them", time: "14:32" },
-  { id: 2, text: "Oui bien sûr ! J'ai besoin d'aide pour descendre un canapé du 4ème étage.", from: "me", time: "14:33" },
-  { id: 3, text: "Pas de souci, je suis disponible ce weekend. Il y a un ascenseur ?", from: "them", time: "14:34" },
-  { id: 4, text: "Non malheureusement, c'est par l'escalier. Mais je donne un coup de main aussi.", from: "me", time: "14:35" },
-  { id: 5, text: "Ça marche ! On se retrouve samedi à 10h ?", from: "them", time: "14:36" },
-  { id: 6, text: "Parfait pour moi !", from: "me", time: "14:37" },
-];
+interface Conversation {
+  id: number;
+  demande_id: number;
+  helper_id: string;
+  demandeur_id: string;
+  statut: string;
+  demande?: {
+    titre: string;
+    user_id?: string;
+  };
+}
+
+interface Mission {
+  id: number;
+  demande_id: number;
+  helper_id: string;
+  demandeur_id: string;
+  statut: string;
+  helper_confirme: boolean;
+  demandeur_confirme: boolean;
+}
+
+interface Profile {
+  id: string;
+  pseudo: string;
+  avatar_url: string;
+  last_seen?: string;
+}
 
 const ChatPage = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [message, setMessage] = useState("");
-  const [messages] = useState<Message[]>(mockMessages);
+  const { user } = useAuth();
 
-  const sendMessage = () => {
-    if (!message.trim()) return;
-    setMessage("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [mission, setMission] = useState<Mission | null>(null);
+  const [otherUserId, setOtherUserId] = useState<string | null>(null);
+  const [otherProfile, setOtherProfile] = useState<Profile | null>(null);
+  const [isOnline, setIsOnline] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isDemandeOwner, setIsDemandeOwner] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [payment, setPayment] = useState<any>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
+  const [text, setText] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const [showAvis, setShowAvis] = useState(false);
+  const [note, setNote] = useState(5);
+  const [commentaire, setCommentaire] = useState("");
+
+  const [showAdresseBox, setShowAdresseBox] = useState(false);
+  const [adresse, setAdresse] = useState("");
+  const [ville, setVille] = useState("");
+  const [adresseEnvoyee, setAdresseEnvoyee] = useState(false);
+
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSentRef = useRef(0);
+
+  const isImgMsg = (content: string) => content.startsWith("📷:");
+
+  const fetchMessages = async () => {
+    if (!id) return;
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", parseInt(id))
+      .order("created_at", { ascending: true });
+    setMessages(data || []);
   };
 
+  const fetchConversation = async () => {
+    if (!id) return;
+    const { data: conv } = await supabase
+      .from("conversations")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (!conv) return;
+
+    const { data: demande } = await supabase
+      .from("demandes")
+      .select("titre, user_id")
+      .eq("id", conv.demande_id)
+      .single();
+
+    setConversation({ ...conv, demande });
+
+    if (user) {
+      const otherId = user.id === conv.helper_id ? conv.demandeur_id : conv.helper_id;
+      setOtherUserId(otherId);
+      setIsDemandeOwner(user.id === demande?.user_id);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, pseudo, avatar_url, last_seen")
+        .eq("id", otherId)
+        .single();
+      if (profile) {
+        setOtherProfile(profile);
+        if (profile.last_seen) {
+          const diff = Date.now() - new Date(profile.last_seen).getTime();
+          setIsOnline(diff < 120000);
+        }
+      }
+    }
+  };
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("adresse, ville")
+      .eq("id", user.id)
+      .single();
+    if (data) {
+      setAdresse(data.adresse || "");
+      setVille(data.ville || "");
+    }
+  };
+
+  const fetchMission = async (conv: any) => {
+    if (!conv) return;
+    const { data } = await supabase
+      .from("missions")
+      .select("*")
+      .eq("demande_id", conv.demande_id)
+      .maybeSingle();
+    if (data) setMission(data as Mission);
+
+    const { data: p } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("mission_id", data?.id)
+      .maybeSingle();
+    if (p) setPayment(p);
+  };
+
+  const updateLastSeen = async () => {
+    if (!user) return;
+    await supabase.from("profiles").update({ last_seen: new Date().toISOString() }).eq("id", user.id);
+  };
+
+  const accepterMission = async () => {
+    if (!conversation || !user) return;
+    setActionLoading(true);
+
+    await supabase.from("missions").insert({
+      demande_id: conversation.demande_id,
+      helper_id: conversation.helper_id,
+      demandeur_id: conversation.demandeur_id,
+      statut: "en_cours",
+      helper_confirme: false,
+      demandeur_confirme: false,
+    });
+
+    await supabase.from("conversations").update({ statut: "en_cours" }).eq("id", conversation.id);
+
+    await supabase.from("messages").insert({
+      conversation_id: parseInt(id!),
+      sender_id: user.id,
+      content: "✅ Mission acceptée ! Prépare-toi à aider 🌱",
+    });
+
+    if (otherUserId) {
+      await supabase.from("notifications").insert({
+        user_id: otherUserId,
+        message: "✅ Ta demande d'aide a été acceptée !",
+        conversation_id: conversation.id,
+        lu: false,
+      });
+    }
+
+    fetchConversation();
+    fetchMission(conversation);
+    setActionLoading(false);
+  };
+
+  const refuserMission = async () => {
+    if (!conversation || !user) return;
+    setActionLoading(true);
+
+    await supabase.from("conversations").update({ statut: "fermée" }).eq("id", conversation.id);
+
+    await supabase.from("messages").insert({
+      conversation_id: parseInt(id!),
+      sender_id: user.id,
+      content: "❌ Demande refusée. Désolé !",
+    });
+
+    if (otherUserId) {
+      await supabase.from("notifications").insert({
+        user_id: otherUserId,
+        message: "❌ Ta demande d'aide a été refusée.",
+        conversation_id: conversation.id,
+        lu: false,
+      });
+    }
+
+    fetchConversation();
+    setActionLoading(false);
+  };
+
+  const confirmerMission = async () => {
+    if (!mission || !user) return;
+
+    const updates: any = {};
+    if (user.id === mission.helper_id) updates.helper_confirme = true;
+    if (user.id === mission.demandeur_id) updates.demandeur_confirme = true;
+
+    await supabase.from("missions").update(updates).eq("id", mission.id);
+
+    const helper = updates.helper_confirme ?? mission.helper_confirme;
+    const demandeur = updates.demandeur_confirme ?? mission.demandeur_confirme;
+
+    if (helper && demandeur) {
+      await supabase.from("missions").update({ statut: "terminee" }).eq("id", mission.id);
+      await supabase.from("conversations").update({ statut: "terminee" }).eq("id", conversation?.id);
+
+      await supabase.from("messages").insert({
+        conversation_id: parseInt(id!),
+        sender_id: user.id,
+        content: "🎉 Mission terminée ! Merci à tous les deux !",
+      });
+    }
+
+    fetchMission(conversation);
+  };
+
+  const handlePayment = async () => {
+    if (!mission || !user) return;
+    setPaymentLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { mission_id: mission.id, user_id: user.id, conversation_id: id },
+      });
+
+      if (error || !data?.url) throw new Error(error?.message || "Erreur paiement");
+
+      const { data: p } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("mission_id", mission.id)
+        .single();
+      if (p) setPayment(p);
+
+      window.location.href = data.url;
+    } catch (err: any) {
+      console.error(err);
+    }
+
+    setPaymentLoading(false);
+  };
+
+  useEffect(() => {
+    if (searchParams.get("payment") === "success" && mission) {
+      fetchMission(conversation);
+      navigate(`/chat/${id}`, { replace: true });
+    }
+  }, [searchParams, mission]);
+
+  const envoyerAvis = async () => {
+    if (!mission || !user) return;
+    const cibleId = user.id === mission.helper_id ? mission.demandeur_id : mission.helper_id;
+
+    await supabase.from("avis").insert({
+      mission_id: mission.id,
+      auteur_id: user.id,
+      cible_id: cibleId,
+      note,
+      commentaire,
+    });
+
+    setShowAvis(false);
+    setCommentaire("");
+    setNote(5);
+  };
+
+  const envoyerAdresse = async () => {
+    if (!adresse.trim()) return;
+    await supabase.from("messages").insert({
+      conversation_id: parseInt(id!),
+      sender_id: user?.id,
+      content: `📍 Mon adresse :\n${adresse}\n${ville}`,
+    });
+    setAdresseEnvoyee(true);
+    setShowAdresseBox(false);
+  };
+
+  const sendMessage = async () => {
+    const trimmed = text.trim();
+    if (!trimmed || !user || !id) return;
+    if (trimmed.length > 2000) return;
+    const now = Date.now();
+    if (now - lastSentRef.current < 1000) return;
+    lastSentRef.current = now;
+    await supabase.from("messages").insert({
+      conversation_id: parseInt(id),
+      sender_id: user.id,
+      content: trimmed,
+    });
+    setText("");
+  };
+
+  const sendPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !id) return;
+    setUploading(true);
+
+    try {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `chat/${id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("chat-photos")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("chat-photos").getPublicUrl(filePath);
+
+      await supabase.from("messages").insert({
+        conversation_id: parseInt(id),
+        sender_id: user.id,
+        content: `📷:${urlData.publicUrl}`,
+      });
+    } catch (err: any) {
+      console.error(err);
+    }
+
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const handleTyping = () => {
+    if (!typingTimeoutRef.current) {
+      supabase.channel(`typing-${id}`).send({
+        type: "broadcast",
+        event: "typing",
+        payload: { userId: user?.id },
+      });
+    }
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null;
+    }, 2000);
+  };
+
+  useEffect(() => {
+    if (!id || !user) return;
+
+    fetchConversation();
+    fetchMessages();
+    fetchProfile();
+    updateLastSeen();
+
+    const visibilityInterval = setInterval(updateLastSeen, 60000);
+
+    const msgChannel = supabase
+      .channel(`chat-${id}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `conversation_id=eq.${id}`,
+      }, () => { fetchMessages(); })
+      .subscribe();
+
+    const convChannel = supabase
+      .channel(`conv-${id}`)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "conversations",
+        filter: `id=eq.${id}`,
+      }, () => { fetchConversation(); })
+      .subscribe();
+
+    const presenceChannel = supabase.channel(`presence-${id}`);
+    presenceChannel
+      .on("presence", { event: "sync" }, () => {
+        const state = presenceChannel.presenceState();
+        const otherPresent = Object.values(state).some((presences: any) =>
+          presences.some((p: any) => p.user_id === otherUserId)
+        );
+        setIsOnline(otherPresent);
+      })
+      .on("presence", { event: "join" }, ({ key, newPresences }) => {
+        if (newPresences.some((p: any) => p.user_id === otherUserId)) setIsOnline(true);
+      })
+      .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+        if (leftPresences.some((p: any) => p.user_id === otherUserId)) setIsOnline(false);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await presenceChannel.track({ user_id: user.id });
+        }
+      });
+
+    const typingChannel = supabase.channel(`typing-${id}`);
+    typingChannel
+      .on("broadcast", { event: "typing" }, (payload) => {
+        if (payload.payload.userId === otherUserId) {
+          setIsTyping(true);
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(msgChannel);
+      supabase.removeChannel(convChannel);
+      supabase.removeChannel(presenceChannel);
+      supabase.removeChannel(typingChannel);
+      clearInterval(visibilityInterval);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, [id, user]);
+
+  useEffect(() => {
+    if (conversation) fetchMission(conversation);
+  }, [conversation]);
+
+  useEffect(() => {
+    if (messages.find(m => m.content.includes("📍 Mon adresse"))) {
+      setAdresseEnvoyee(true);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (messages.length >= 5 && !adresseEnvoyee && mission?.statut === "en_cours") {
+      setShowAdresseBox(true);
+    }
+  }, [messages, mission]);
+
+  const isMe = (senderId: string) => senderId === user?.id;
+  const isActive = conversation?.statut !== "fermée" && conversation?.statut !== "terminee";
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/messages")} className="p-1">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <div className="flex items-center gap-3 flex-1">
-            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-              SM
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-foreground">Sophie M.</h2>
-              <p className="text-[11px] text-green-500">En ligne</p>
-            </div>
+    <div className="h-screen flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
+
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-pastel-soft via-background to-background dark:from-[#06131a] dark:via-[#071c24] dark:to-[#06131a]" />
+      <div className="absolute top-[-120px] left-[-120px] w-[260px] h-[260px] bg-pastel-yellow/30 dark:bg-cyan-500/10 blur-[120px] rounded-full -z-10" />
+      <div className="absolute bottom-[-120px] right-[-120px] w-[260px] h-[260px] bg-pastel-green/30 dark:bg-emerald-500/10 blur-[120px] rounded-full -z-10" />
+
+      {/* HEADER */}
+      <div className="min-h-[88px] border-b border-border backdrop-blur-2xl bg-white/60 dark:bg-[#071c24]/70 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-card">
+
+        <button onClick={() => navigate("/messages")} className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shrink-0 shadow-card">
+          <ArrowLeft className="w-5 h-5 text-accent dark:text-cyan-400" />
+        </button>
+
+        <div className="flex-1 overflow-hidden">
+          <div className="flex items-center gap-2">
+            <p
+              className="font-bold truncate text-foreground text-[15px] cursor-pointer hover:text-primary transition-colors"
+              onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}
+            >
+              {otherProfile?.pseudo || conversation?.demande?.titre || "Conversation"}
+            </p>
+            {isOnline && <div className="w-2 h-2 rounded-full bg-accent shrink-0 animate-pulse" title="En ligne" />}
           </div>
-          <div className="flex items-center gap-1">
-            <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-              <Phone className="w-4 h-4" />
+
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {isTyping ? "🤔 En train d'écrire..."
+            : conversation?.statut === "fermée" ? "❌ Conversation fermée"
+            : conversation?.statut === "terminee" ? "⭐ Mission terminée"
+            : mission?.statut === "terminee" ? "⭐ Mission terminée"
+            : mission?.statut === "en_cours" ? "🌱 Mission en cours"
+            : conversation?.statut === "en_attente" ? "⏳ En attente d'acceptation"
+            : "💬 Discussion"}
+          </p>
+
+          {messages.length >= 5 && mission?.statut === "en_cours" && (
+            <div className="mt-3 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+              <p className="text-[11px] text-accent font-semibold">Paiement sécurisé débloqué ✨</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ACCEPT / REFUSE */}
+      {isDemandeOwner && conversation?.statut === "en_attente" && (
+        <div className="px-4 py-3 bg-card/80 border-b border-border">
+          <p className="text-sm font-semibold text-foreground mb-2">Tu souhaites accepter cette aide ?</p>
+          <div className="flex gap-2">
+            <button onClick={refuserMission} disabled={actionLoading}
+              className="flex-1 h-11 rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 font-semibold text-sm flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Refuser
             </button>
-            <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-              <Shield className="w-4 h-4" />
-            </button>
-            <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-              <MoreVertical className="w-4 h-4" />
+            <button onClick={accepterMission} disabled={actionLoading}
+              className="flex-1 h-11 rounded-2xl bg-accent/10 text-accent border border-accent/20 font-semibold text-sm flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Accepter
             </button>
           </div>
         </div>
-      </header>
+      )}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      {/* PAIEMENT */}
+      {mission?.statut === "en_cours" && !payment && isDemandeOwner && (
+        <div className="px-4 py-3 bg-card/80 border-b border-border">
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="w-4 h-4 text-accent" />
+            <p className="text-sm font-semibold text-foreground">
+              {messages.length >= 5 ? "Paiement sécurisé débloqué" : "Paiement sécurisé"}
+            </p>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            {messages.length >= 5
+              ? "Le paiement est bloqué jusqu'à confirmation de la mission. Frais de service : 2€."
+              : "💬 Envoie au moins 5 messages pour débloquer le paiement sécurisé."}
+          </p>
+          <button
+            onClick={handlePayment}
+            disabled={paymentLoading || messages.length < 5}
+            className={`w-full h-11 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
+              messages.length >= 5
+                ? "btn-magic"
+                : "bg-muted border border-border text-muted-foreground cursor-not-allowed"
+            }`}
+          >
+            {paymentLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <CreditCard className="w-4 h-4" />
+            )}
+            {messages.length >= 5 ? "Payer avec Stripe 💳" : `🔒 ${5 - messages.length} messages restants`}
+          </button>
+        </div>
+      )}
+
+      {payment?.statut === "payé" && (
+        <div className="px-4 py-2 bg-accent/5 border-b border-border flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-accent" />
+          <p className="text-xs text-accent font-semibold">✅ Paiement sécurisé reçu — fonds bloqués jusqu'à confirmation</p>
+        </div>
+      )}
+
+      {/* MESSAGES */}
+      <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-3 pb-56">
         {messages.length === 0 && (
-          <div className="text-center text-muted-foreground py-20">
-            <Illu name="chat" className="w-48 mx-auto mb-4 opacity-60" />
-            <p className="font-medium">Aucun message</p>
-            <p className="text-sm mt-1">Envoie le premier message pour démarrer</p>
+          <div className="flex flex-col items-center justify-center h-full text-center py-16">
+            <Illu name="chat" className="w-40 h-40 opacity-60" />
+            <p className="text-muted-foreground text-sm mt-4">Aucun message pour l'instant</p>
+            <p className="text-muted-foreground/60 text-xs">Envoie un message pour commencer la discussion 🌱</p>
           </div>
         )}
-        {messages.map((msg, i) => (
-          <motion.div
-            key={msg.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03 }}
-            className={`flex ${msg.from === "me" ? "justify-end" : "justify-start"}`}
-          >
-            <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
-              msg.from === "me"
-                ? "bg-primary text-primary-foreground rounded-br-md"
-                : "bg-secondary text-foreground rounded-bl-md"
+        {messages.map((msg) => (
+          <div key={msg.id} className={`flex ${isMe(msg.sender_id) ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[78%] px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
+              isMe(msg.sender_id)
+                ? "bg-magic-gradient dark:bg-[linear-gradient(135deg,#00b4d8_0%,#00c875_100%)] text-foreground dark:text-white shadow-soft"
+                : "bg-white/75 dark:bg-[#0d2530]/80 border border-border text-foreground dark:text-cyan-50 shadow-card"
             }`}>
-              <p>{msg.text}</p>
-              <p className={`text-[10px] mt-1 ${msg.from === "me" ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
-                {msg.time}
-              </p>
+              {isImgMsg(msg.content) ? (
+                <img src={msg.content.slice(2)} alt="photo" className="rounded-xl max-w-full max-h-64 object-cover" loading="lazy" />
+              ) : (
+                msg.content
+              )}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
-      <div className="border-t border-border bg-background px-4 py-3 flex items-center gap-2">
-        <Input
-          value={message}
-          onChange={e => setMessage(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && sendMessage()}
-          placeholder="Écris ton message..."
-          className="flex-1 h-11 rounded-full bg-secondary border-none text-sm"
-        />
-        <Button size="icon" className="rounded-full h-11 w-11 shrink-0" onClick={sendMessage}>
-          <Send className="w-4 h-4" />
-        </Button>
-      </div>
+      {/* ADRESSE */}
+      {showAdresseBox && !adresseEnvoyee && (
+        <div className="fixed bottom-28 left-4 right-4 z-40">
+          <div className="rounded-[30px] bg-card/80 border border-border p-5 shadow-magic backdrop-blur-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldCheck className="w-5 h-5 text-accent dark:text-cyan-400" />
+              <p className="font-bold text-foreground">Envoyer ton adresse ?</p>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">Tu peux la modifier avant l'envoi 🌼</p>
+            <input value={adresse} onChange={(e) => setAdresse(e.target.value)} placeholder="Adresse"
+              className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground mb-3 outline-none" />
+            <input value={ville} onChange={(e) => setVille(e.target.value)} placeholder="Ville"
+              className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground mb-4 outline-none" />
+            <div className="flex gap-2">
+              <button onClick={() => setShowAdresseBox(false)} className="flex-1 h-11 rounded-2xl bg-muted border border-border text-muted-foreground">Plus tard</button>
+              <button onClick={envoyerAdresse} className="flex-1 h-11 rounded-2xl btn-magic font-bold flex items-center justify-center gap-2">
+                <MapPin className="w-4 h-4" /> Envoyer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM */}
+      {mission?.statut === "en_cours" && (
+        <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
+          <button onClick={confirmerMission} className="w-full py-3 rounded-[24px] btn-magic font-bold">
+            {user?.id === mission.helper_id
+              ? (mission.helper_confirme ? "✅ En attente de confirmation du demandeur" : "🌱 Confirmer la mission")
+              : (mission.demandeur_confirme ? "✅ En attente de confirmation de l'helper" : "🌱 Confirmer la mission")
+            }
+          </button>
+        </div>
+      )}
+
+      {/* AVIS */}
+      {mission?.statut === "terminee" && !showAvis && (
+        <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
+          <button onClick={() => setShowAvis(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">⭐ Laisser un avis</button>
+        </div>
+      )}
+
+      {showAvis && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-md z-50 flex items-end">
+          <div className="w-full rounded-t-[34px] bg-card border-t border-border p-5 shadow-magic">
+            <div className="w-16 h-1.5 bg-muted rounded-full mx-auto mb-5" />
+            <h2 className="text-xl font-bold text-center text-foreground mb-1">Laisser un avis ✨</h2>
+            <p className="text-sm text-center text-muted-foreground mb-6">Ton avis aide la communauté 🌼</p>
+            <div className="flex justify-center gap-2 mb-6">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} onClick={() => setNote(n)}>
+                  <Star className={`w-9 h-9 transition ${n <= note ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                </button>
+              ))}
+            </div>
+            <textarea value={commentaire} onChange={(e) => setCommentaire(e.target.value)}
+              placeholder="Écris ton commentaire 🌸"
+              className="w-full h-28 rounded-3xl bg-background border border-border p-4 text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none" />
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setShowAvis(false)} className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground">Annuler</button>
+              <button onClick={envoyerAvis} className="flex-1 h-12 rounded-2xl btn-magic font-bold">Envoyer ✨</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INPUT */}
+      {isActive && (
+        <div className="border-t border-border bg-card/70 backdrop-blur-2xl px-3 py-3">
+          <div className="flex items-center gap-2 bg-background border border-border rounded-[24px] px-2 py-2 shadow-card">
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={sendPhoto} />
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center shrink-0 disabled:opacity-50"
+            >
+              {uploading ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : <ImageIcon className="w-4 h-4 text-muted-foreground" />}
+            </button>
+            {adresse && (
+              <button
+                onClick={() => setShowAdresseBox(true)}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                  adresseEnvoyee ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground hover:text-accent"
+                }`}
+                title={adresseEnvoyee ? "Adresse déjà envoyée" : "Envoyer mon adresse"}
+              >
+                <Home className="w-4 h-4" />
+              </button>
+            )}
+            <input value={text} onChange={(e) => { setText(e.target.value); handleTyping(); }}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Écris un message 🌼"
+              className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none px-2 text-sm" />
+            <button onClick={sendMessage} className="w-11 h-11 rounded-2xl btn-magic flex items-center justify-center shrink-0">
+              <Send className="w-4 h-4 text-foreground dark:text-white" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
