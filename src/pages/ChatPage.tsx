@@ -495,11 +495,26 @@ const ChatPage = () => {
       })
       .subscribe();
 
+    const paymentChannel = supabase
+      .channel(`payment-${id}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "payments",
+      }, (payload) => {
+        const p = payload.new as any;
+        if (conversation && p?.mission_id === mission?.id) {
+          setPayment(p);
+        }
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(msgChannel);
       supabase.removeChannel(convChannel);
       supabase.removeChannel(presenceChannel);
       supabase.removeChannel(typingChannel);
+      supabase.removeChannel(paymentChannel);
       clearInterval(visibilityInterval);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
