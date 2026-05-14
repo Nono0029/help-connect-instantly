@@ -21,7 +21,7 @@ const PaymentSetup = () => {
             <CreditCard className="w-8 h-8 text-primary" />
             <div>
               <h2 className="font-bold text-foreground">Paiement sécurisé</h2>
-              <p className="text-sm text-muted-foreground">Comment fonctionne le paiement sur Demandé</p>
+              <p className="text-sm text-muted-foreground">Comment fonctionne le paiement sur Helpify</p>
             </div>
           </div>
 

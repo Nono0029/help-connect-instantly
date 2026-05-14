@@ -11,17 +11,17 @@ const sections = [
   {
     icon: Scale,
     title: "Conditions Générales d'Utilisation",
-    content: "En utilisant Demandé, tu acceptes de respecter les présentes conditions. La plateforme sert d'intermédiaire de mise en relation entre les demandeurs et les prestataires de services. Chaque utilisateur est responsable de ses annonces et de ses prestations. Les litiges entre membres doivent être résolus à l'amiable dans un premier temps. L'équipe de Demandé se réserve le droit de suspendre tout compte en cas de non-respect des règles.",
+    content: "En utilisant Helpify, tu acceptes de respecter les présentes conditions. La plateforme sert d'intermédiaire de mise en relation entre les demandeurs et les prestataires de services. Chaque utilisateur est responsable de ses annonces et de ses prestations. Les litiges entre membres doivent être résolus à l'amiable dans un premier temps. L'équipe de Helpify se réserve le droit de suspendre tout compte en cas de non-respect des règles.",
   },
   {
     icon: Cookie,
     title: "Gestion des cookies",
-    content: "Nous utilisons des cookies essentiels au fonctionnement de la plateforme (authentification, session utilisateur). Des cookies analytiques (anonymisés) nous aident à améliorer l'expérience. Tu peux configurer tes préférences de cookies à tout moment via les paramètres de ton navigateur. Aucun cookie publicitaire n'est utilisé sur Demandé.",
+    content: "Nous utilisons des cookies essentiels au fonctionnement de la plateforme (authentification, session utilisateur). Des cookies analytiques (anonymisés) nous aident à améliorer l'expérience. Tu peux configurer tes préférences de cookies à tout moment via les paramètres de ton navigateur. Aucun cookie publicitaire n'est utilisé sur Helpify.",
   },
   {
     icon: FileText,
     title: "Mentions légales",
-    content: "Demandé est une plateforme de mise en relation entre particuliers pour des services de proximité. Éditée par la société Demandé SAS, 123 Rue de l'Entraide, 75011 Paris. SIRET : 123 456 789 00012. Directeur de la publication : L'équipe Demandé. Hébergement : Supabase Inc., 111 Sutter Street, San Francisco, CA 94104.",
+    content: "Helpify est une plateforme de mise en relation entre particuliers pour des services de proximité. Éditée par la société Helpify SAS, 123 Rue de l'Entraide, 75011 Paris. SIRET : 123 456 789 00012. Directeur de la publication : L'équipe Helpify. Hébergement : Supabase Inc., 111 Sutter Street, San Francisco, CA 94104.",
   },
 ];
 
