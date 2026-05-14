@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, MessageCircle, CreditCard, UserCheck, Shield, AlertTriangle, HelpCircle } from "lucide-react";
+import { ArrowLeft, Search, MessageCircle, CreditCard, UserCheck, Shield, AlertTriangle, HelpCircle, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Illu } from "@/components/Illustrations";
@@ -33,7 +33,7 @@ const faqs = [
   {
     icon: AlertTriangle,
     question: "Que faire en cas de litige ?",
-    answer: "En cas de désaccord, contacte d'abord l'autre membre via la messagerie pour trouver une solution. Si aucun accord n'est trouvé, notre équipe de support peut être sollicitée depuis la page d'aide. Nous analysons chaque situation et prenons une décision dans les 48h.",
+    answer: "En cas de désaccord, contacte d'abord l'autre membre via la messagerie pour trouver une solution. Si aucun accord n'est trouvé, écris-nous à askoo.contact@gmail.com. Nous analysons chaque situation et prenons une décision dans les 48h.",
   },
 ];
 
@@ -83,10 +83,11 @@ const AidePage = () => {
 
         <div className="bg-card rounded-2xl border border-border p-4 text-center space-y-2">
           <p className="text-sm font-semibold text-foreground">Tu n'as pas trouvé ta réponse ?</p>
-          <p className="text-xs text-muted-foreground">Contacte notre équipe de support</p>
-          <button className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium mt-2">
-            Nous contacter
-          </button>
+          <p className="text-xs text-muted-foreground">Écris-nous à tout moment</p>
+          <a href="mailto:askoo.contact@gmail.com" className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium mt-2 hover:opacity-90 transition-opacity">
+            <Mail className="w-4 h-4" />
+            askoo.contact@gmail.com
+          </a>
         </div>
       </div>
     </div>
