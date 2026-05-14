@@ -244,7 +244,7 @@ const Index = () => {
 
             <div>
               <h1 className="text-2xl font-black tracking-tight text-foreground">
-                Hel<span className="text-primary">pify</span> ✨
+                Ask<span className="text-primary">oo</span> ✨
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Aidons-nous autour de nous 🌱

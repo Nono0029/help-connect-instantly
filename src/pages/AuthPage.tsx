@@ -83,9 +83,9 @@ const AuthPage = () => {
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-foreground tracking-tight mb-1">
-            Hel<span className="text-primary">pify</span>
+            Ask<span className="text-primary">oo</span>
           </h1>
-          <p className="text-sm text-muted-foreground">L'aide autour de toi, en quelques secondes</p>
+          <p className="text-sm text-muted-foreground">Demande, aide, connexion</p>
         </div>
 
         <div className="bg-secondary rounded-2xl p-1 flex mb-6">
