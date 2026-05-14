@@ -314,6 +314,8 @@ const ChatPage = () => {
         .from("payments")
         .select("*")
         .eq("mission_id", mission.id)
+        .order("id", { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (p) setPayment(p);
 
@@ -590,18 +592,20 @@ const ChatPage = () => {
       )}
 
       {/* PAIEMENT */}
-      {mission?.statut === "en_cours" && !payment && isDemandeOwner && (
+      {mission?.statut === "en_cours" && isDemandeOwner && (!payment || payment?.statut === "en_attente") && (
         <div className="px-4 py-3 bg-card/80 border-b border-border">
           <div className="flex items-center gap-2 mb-2">
             <Lock className="w-4 h-4 text-accent" />
             <p className="text-sm font-semibold text-foreground">
-              {messages.length >= 5 ? "Paiement sécurisé débloqué" : "Paiement sécurisé"}
+              {payment?.statut === "en_attente" ? "Paiement en attente" : messages.length >= 5 ? "Paiement sécurisé débloqué" : "Paiement sécurisé"}
             </p>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
-            {messages.length >= 5
-              ? "Le paiement est bloqué jusqu'à confirmation de la mission. Total : prix + 2€ de frais."
-              : "💬 Envoie au moins 5 messages pour débloquer le paiement sécurisé."}
+            {payment?.statut === "en_attente"
+              ? "Un paiement précédent n'a pas été complété. Tu peux réessayer."
+              : messages.length >= 5
+                ? "Le paiement est bloqué jusqu'à confirmation de la mission. Total : prix + 2€ de frais."
+                : "💬 Envoie au moins 5 messages pour débloquer le paiement sécurisé."}
           </p>
           <button
             onClick={handlePayment}
