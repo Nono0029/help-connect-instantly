@@ -412,6 +412,7 @@ const ChatPage = () => {
       });
     } catch (err: any) {
       console.error(err);
+      toast.error("Erreur lors de l'envoi de la photo");
     }
 
     setUploading(false);
@@ -678,7 +679,7 @@ const ChatPage = () => {
                 : "bg-white/75 dark:bg-[#0d2530]/80 border border-border text-foreground dark:text-cyan-50 shadow-card"
             }`}>
               {isImgMsg(msg.content) ? (
-                <img src={msg.content.slice(2)} alt="photo" className="rounded-xl max-w-full max-h-64 object-cover" loading="lazy" />
+                <img src={msg.content.slice(3)} alt="photo" className="rounded-xl max-w-full max-h-64 object-cover" loading="lazy" />
               ) : (
                 msg.content
               )}
