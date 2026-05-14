@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import ImageLightbox from "@/components/ImageLightbox";
 
 interface Demande {
   id: number;
@@ -19,6 +20,7 @@ interface Demande {
   ville?: string;
   created_at: string;
   user_id?: string;
+  photos?: string[];
 }
 
 const DemandeDetail = () => {
@@ -28,6 +30,7 @@ const DemandeDetail = () => {
   const [demande, setDemande] = useState<Demande | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   useEffect(() => {
     const fetch = async () => {
@@ -151,6 +154,20 @@ const DemandeDetail = () => {
           <h2 className="text-lg font-bold text-foreground">{demande.titre}</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">{demande.description}</p>
 
+          {demande.photos && demande.photos.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {demande.photos.map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  alt=""
+                  onClick={() => setLightbox({ images: demande.photos!, index: i })}
+                  className="shrink-0 w-24 h-24 rounded-xl object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                />
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center gap-1 pt-1">
             <Euro className="w-4 h-4 text-primary" />
             <span className={`font-bold text-base ${demande.gratuit ? "text-accent" : "text-foreground"}`}>
@@ -178,6 +195,16 @@ const DemandeDetail = () => {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/90 backdrop-blur-xl border-t border-border">
           <p className="text-center text-sm text-muted-foreground">C'est ta demande</p>
         </div>
+      )}
+
+      {lightbox && (
+        <ImageLightbox
+          images={lightbox.images}
+          index={lightbox.index}
+          onClose={() => setLightbox(null)}
+          onPrev={lightbox.index > 0 ? () => setLightbox(prev => prev ? { ...prev, index: prev.index - 1 } : null) : undefined}
+          onNext={lightbox.index < lightbox.images.length - 1 ? () => setLightbox(prev => prev ? { ...prev, index: prev.index + 1 } : null) : undefined}
+        />
       )}
     </div>
   );
