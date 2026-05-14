@@ -15,6 +15,7 @@ import {
   Home,
 } from "lucide-react";
 
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Illu } from "@/components/Illustrations";
@@ -73,6 +74,7 @@ const ChatPage = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isDemandeOwner, setIsDemandeOwner] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showConfirmMission, setShowConfirmMission] = useState(false);
   const [payment, setPayment] = useState<any>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
 
@@ -691,7 +693,7 @@ const ChatPage = () => {
       {/* CONFIRM */}
       {mission?.statut === "en_cours" && (
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
-          <button onClick={confirmerMission} className="w-full py-3 rounded-[24px] btn-magic font-bold">
+          <button onClick={() => setShowConfirmMission(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">
             {user?.id === mission.helper_id
               ? (mission.helper_confirme ? "✅ En attente de confirmation du demandeur" : "🌱 Confirmer la mission")
               : (mission.demandeur_confirme ? "✅ En attente de confirmation de l'helper" : "🌱 Confirmer la mission")
@@ -699,6 +701,56 @@ const ChatPage = () => {
           </button>
         </div>
       )}
+
+      {/* CONFIRM MISSION POPUP */}
+      <AnimatePresence>
+        {showConfirmMission && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end z-50"
+            onClick={() => setShowConfirmMission(false)}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card w-full p-6 rounded-t-3xl space-y-4 max-w-lg mx-auto"
+            >
+              <div className="w-12 h-1.5 bg-muted rounded-full mx-auto" />
+
+              <div className="flex items-center gap-3 pt-2">
+                <ShieldCheck className="w-8 h-8 text-accent shrink-0" />
+                <h3 className="font-bold text-lg text-foreground">Confirmer la mission ?</h3>
+              </div>
+
+              <div className="bg-muted/50 rounded-2xl p-4 space-y-2 text-sm text-muted-foreground">
+                <p>✅ <strong>La mission est terminée</strong> — tout s'est bien passé ?</p>
+                <p>🔒 <strong>Paiement sécurisé</strong> — les fonds sont bloqués sur Stripe et seront reversés au prestataire une fois confirmé.</p>
+                <p>💰 <strong>Frais de service</strong> — 2€ prélevés par la plateforme.</p>
+                <p className="text-xs text-muted-foreground/60 pt-1">En confirmant, tu libères le paiement et la mission passe en "terminée".</p>
+              </div>
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => setShowConfirmMission(false)}
+                  className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground font-medium"
+                >
+                  Non
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowConfirmMission(false);
+                    await confirmerMission();
+                  }}
+                  className="flex-1 h-12 rounded-2xl bg-accent text-accent-foreground font-bold"
+                >
+                  Oui, tout est bon !
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* AVIS */}
       {mission?.statut === "terminee" && !showAvis && !avisDonne && (

@@ -202,10 +202,10 @@ const MesDemandesPage = () => {
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end z-50"
             onClick={() => setConfirmDeleteId(null)}
           >
-            <motion.div
-              onClick={(e) => e.stopPropagation()}
-              className="bg-card w-full p-6 rounded-t-3xl space-y-4"
-            >
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-card w-full p-6 rounded-t-3xl space-y-4 pb-20"
+              >
               <h3 className="font-bold text-center">
                 Supprimer la demande ?
               </h3>
