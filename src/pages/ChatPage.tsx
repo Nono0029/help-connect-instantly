@@ -599,7 +599,7 @@ const ChatPage = () => {
           </div>
           <p className="text-xs text-muted-foreground mb-3">
             {messages.length >= 5
-              ? "Le paiement est bloqué jusqu'à confirmation de la mission. Frais de service : 2€."
+              ? "Le paiement est bloqué jusqu'à confirmation de la mission. Total : prix + 2€ de frais."
               : "💬 Envoie au moins 5 messages pour débloquer le paiement sécurisé."}
           </p>
           <button

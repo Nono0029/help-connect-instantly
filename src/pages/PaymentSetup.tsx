@@ -1,71 +1,8 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, CreditCard, CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, CreditCard, ShieldCheck, Lock, Gift } from "lucide-react";
 
 const PaymentSetup = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const successParam = searchParams.get("success");
-  const { user } = useAuth();
-  const [stripeAccountId, setStripeAccountId] = useState("");
-  const [onboarding, setOnboarding] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-
-    // Handle return from Stripe onboarding
-    if (successParam === "true") {
-      supabase
-        .from("profiles")
-        .update({ stripe_onboarding: true })
-        .eq("id", user.id)
-        .then(() => {
-          setOnboarding(true);
-          toast.success("Compte Stripe connecté ✅");
-          navigate("/payment-setup", { replace: true });
-        });
-      return;
-    }
-
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("stripe_account_id, stripe_onboarding")
-        .eq("id", user.id)
-        .single();
-      if (data) {
-        setStripeAccountId(data.stripe_account_id || "");
-        setOnboarding(data.stripe_onboarding || false);
-      }
-      setLoading(false);
-    };
-    fetch();
-  }, [user, successParam]);
-
-  const handleConnect = async () => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase.functions.invoke("create-stripe-account", {
-        body: { user_id: user.id },
-      });
-      if (error) throw error;
-      if (data?.url) window.location.href = data.url;
-    } catch (err: any) {
-      toast.error("Erreur de connexion Stripe. Vérifie les clés API dans Supabase.");
-      console.error(err);
-    }
-  };
-
-  if (loading) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -78,50 +15,64 @@ const PaymentSetup = () => {
         </div>
       </header>
 
-      <div className="px-4 pt-6 space-y-5">
+      <div className="px-4 pt-6 space-y-5 pb-24">
         <div className="card-magic">
           <div className="flex items-center gap-3 mb-4">
             <CreditCard className="w-8 h-8 text-primary" />
             <div>
-              <h2 className="font-bold text-foreground">Recevoir des paiements</h2>
-              <p className="text-sm text-muted-foreground">Pour être payé quand tu aides quelqu'un</p>
+              <h2 className="font-bold text-foreground">Paiement sécurisé</h2>
+              <p className="text-sm text-muted-foreground">Comment fonctionne le paiement sur Demandé</p>
             </div>
           </div>
 
-          {onboarding ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-accent">
-                <CheckCircle2 className="w-5 h-5" />
-                <p className="font-semibold text-sm">Compte Stripe connecté ✅</p>
+          <div className="bg-muted rounded-xl p-4 space-y-3 text-sm">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-foreground">Paiement 100% sécurisé</p>
+                <p className="text-muted-foreground text-xs">Tous les paiements sont traités via Stripe, leader mondial des paiements en ligne.</p>
               </div>
-              <p className="text-xs text-muted-foreground">Tu peux recevoir des paiements directement sur ton compte bancaire.</p>
-              <Button onClick={handleConnect} variant="outline" className="w-full h-11 rounded-xl text-sm">
-                <ExternalLink className="w-4 h-4 mr-2" /> Gérer mon compte Stripe
-              </Button>
             </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">Connecte ton compte Stripe pour recevoir les paiements de tes missions.</p>
-              <div className="bg-muted rounded-xl p-3 text-xs text-muted-foreground space-y-1">
-                <p>💰 Les paiements sont sécurisés via Stripe</p>
-                <p>🔒 L'argent est bloqué jusqu'à confirmation de la mission</p>
-                <p>📋 Frais de service : 2€ par mission</p>
+            <div className="flex items-start gap-3">
+              <Lock className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-foreground">Fonds bloqués jusqu'à confirmation</p>
+                <p className="text-muted-foreground text-xs">L'argent est sécurisé sur Stripe et n'est reversé qu'après confirmation des deux parties.</p>
               </div>
-              <Button onClick={handleConnect} className="w-full h-12 rounded-xl btn-magic font-semibold">
-                <CreditCard className="w-4 h-4 mr-2" /> Connecter Stripe
-              </Button>
             </div>
-          )}
+            <div className="flex items-start gap-3">
+              <Gift className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-foreground">Frais de service : 2€</p>
+                <p className="text-muted-foreground text-xs">Une commission de 2€ est ajoutée au prix de la mission pour soutenir la plateforme.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="card-magic">
-          <h3 className="font-bold text-foreground mb-2">Comment ça marche ?</h3>
-          <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-            <li>Le demandeur paie le montant de la mission + 2€ de frais</li>
-            <li>L'argent est sécurisé sur Stripe (escrow)</li>
-            <li>Tu réalises la mission</li>
-            <li>Les deux parties confirment → les fonds sont libérés</li>
-            <li>Tu reçois le paiement sur ton compte bancaire</li>
+          <h3 className="font-bold text-foreground mb-3">Comment ça marche ?</h3>
+          <ol className="text-sm text-muted-foreground space-y-3 list-none">
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</span>
+              <span>Le demandeur paie le montant de la mission <strong>+ 2€ de frais</strong> via Stripe</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</span>
+              <span>L'argent est sécurisé sur Stripe — ni le prestataire ni la plateforme n'y ont accès</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</span>
+              <span>Le prestataire réalise la mission</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">4</span>
+              <span>Les deux parties confirment que la mission est terminée → les fonds sont libérés</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">5</span>
+              <span>Le prestataire reçoit le paiement (prix de la mission - 2€ de frais) sur son compte</span>
+            </li>
           </ol>
         </div>
       </div>

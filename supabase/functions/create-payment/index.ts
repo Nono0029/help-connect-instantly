@@ -28,7 +28,7 @@ serve(async (req) => {
 
   const convId = conversation_id || mission.conversation_id;
   const frais = 200; // Platform fee: 2€ in cents
-  const montantCents = Math.round(prix * 100);
+  const montantCents = Math.round(prix * 100) + frais; // Customer pays price + 2€ fee
 
   // Get helper's connected Stripe account for destination charge
   const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", mission.helper_id).maybeSingle();
