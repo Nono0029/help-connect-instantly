@@ -150,7 +150,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
   }, [demandes, ville, lat, lng, userLat, userLng]);
 
   return (
-    <div className="mx-4 mt-3 rounded-2xl overflow-hidden border border-border relative h-52">
+    <div className="mx-4 mt-3 rounded-2xl overflow-hidden border border-border relative z-0 h-52">
       <div ref={mapRef} className="w-full h-full" />
     </div>
   );

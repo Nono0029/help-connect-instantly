@@ -405,7 +405,7 @@ const Index = () => {
       )}
 
       {/* LIST */}
-      <div className="flex-1 px-4 pt-5 pb-28 space-y-4 relative z-10">
+      <div className="flex-1 px-4 pt-5 pb-28 space-y-4 relative z-10 isolate">
 
         {sorted.length === 0 && (
           <div className="text-center py-20">
