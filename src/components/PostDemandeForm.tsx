@@ -76,14 +76,26 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
     }
   }, [demandeToEdit, open]);
 
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => setPhotos(prev => [...prev, reader.result as string].slice(0, 5));
-      reader.readAsDataURL(file);
-    });
+    if (!files || !user) return;
+    setUploadingPhoto(true);
+    for (const file of Array.from(files)) {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `demandes/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("demande-photos")
+        .upload(filePath, file);
+      if (uploadError) {
+        console.error(uploadError);
+        continue;
+      }
+      const { data: urlData } = supabase.storage.from("demande-photos").getPublicUrl(filePath);
+      setPhotos(prev => [...prev, urlData.publicUrl].slice(0, 5));
+    }
+    setUploadingPhoto(false);
   };
 
   const handleSubmit = async () => {
@@ -107,6 +119,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
     ville: villeForm || ville || "",
     lat: villeLat || null,
     lng: villeLng || null,
+    photos: photos.length > 0 ? photos : null,
   };
 
   let error = null;
@@ -197,9 +210,13 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                     Photos <span className="text-muted-foreground font-normal">(optionnel, max 5)</span>
                   </label>
                   <div className="flex gap-2 overflow-x-auto pb-1">
-                    <button onClick={() => fileRef.current?.click()} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors">
-                      <Camera className="w-5 h-5" />
-                      <span className="text-[10px] font-medium">Ajouter</span>
+                    <button onClick={() => fileRef.current?.click()} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
+                      {uploadingPhoto ? (
+                        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Camera className="w-5 h-5" />
+                      )}
+                      <span className="text-[10px] font-medium">{uploadingPhoto ? "Upload..." : "Ajouter"}</span>
                     </button>
                     <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhoto} />
                     {photos.map((src, i) => (

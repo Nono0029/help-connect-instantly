@@ -22,6 +22,7 @@ import SearchFilters from "@/components/SearchFilters";
 import CityPicker from "@/components/CityPicker";
 import MapView from "@/components/MapView";
 import NotificationBell from "@/components/NotificationBell";
+import ImageLightbox from "@/components/ImageLightbox";
 import { Illu } from "@/components/Illustrations";
 
 import { supabase } from "@/lib/supabase";
@@ -39,6 +40,7 @@ interface Demande {
   ville?: string;
   lat?: number;
   lng?: number;
+  photos?: string[];
 }
 
 const categories = [
@@ -89,6 +91,8 @@ const Index = () => {
   const [demandes, setDemandes] = useState<
     Demande[]
   >([]);
+
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   // FETCH
   const fetchDemandes = async () => {
@@ -502,9 +506,24 @@ const Index = () => {
                 {d.titre}
               </h3>
 
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                 {d.description}
               </p>
+
+              {d.photos && d.photos.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" onClick={e => e.stopPropagation()}>
+                  {d.photos.map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt=""
+                      loading="lazy"
+                      onClick={() => setLightbox({ images: d.photos!, index: i })}
+                      className="shrink-0 w-20 h-20 rounded-xl object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                    />
+                  ))}
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
 
@@ -559,6 +578,16 @@ const Index = () => {
         filters={filters}
         onApply={setFilters}
       />
+
+      {lightbox && (
+        <ImageLightbox
+          images={lightbox.images}
+          index={lightbox.index}
+          onClose={() => setLightbox(null)}
+          onPrev={lightbox.index > 0 ? () => setLightbox(prev => prev ? { ...prev, index: prev.index - 1 } : null) : undefined}
+          onNext={lightbox.index < lightbox.images.length - 1 ? () => setLightbox(prev => prev ? { ...prev, index: prev.index + 1 } : null) : undefined}
+        />
+      )}
     </div>
   );
 };

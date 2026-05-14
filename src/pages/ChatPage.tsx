@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Illu } from "@/components/Illustrations";
+import ImageLightbox from "@/components/ImageLightbox";
 import { toast } from "sonner";
 
 interface Message {
@@ -91,6 +92,8 @@ const ChatPage = () => {
   const [adresse, setAdresse] = useState("");
   const [ville, setVille] = useState("");
   const [adresseEnvoyee, setAdresseEnvoyee] = useState(false);
+
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   const messagesRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -679,7 +682,7 @@ const ChatPage = () => {
                 : "bg-white/75 dark:bg-[#0d2530]/80 border border-border text-foreground dark:text-cyan-50 shadow-card"
             }`}>
               {isImgMsg(msg.content) ? (
-                <img src={msg.content.slice(3)} alt="photo" className="rounded-xl max-w-full max-h-64 object-cover" loading="lazy" />
+                <img src={msg.content.slice(3)} alt="photo" onClick={() => setLightbox({ images: [msg.content.slice(3)], index: 0 })} className="rounded-xl max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" />
               ) : (
                 msg.content
               )}
@@ -839,6 +842,14 @@ const ChatPage = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {lightbox && (
+        <ImageLightbox
+          images={lightbox.images}
+          index={lightbox.index}
+          onClose={() => setLightbox(null)}
+        />
       )}
     </div>
   );
