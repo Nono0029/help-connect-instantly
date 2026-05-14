@@ -92,6 +92,12 @@ const Index = () => {
 
   // FETCH
   const fetchDemandes = async () => {
+    const { data: completedMissions } = await supabase
+      .from("missions")
+      .select("demande_id")
+      .eq("statut", "terminee");
+    const completedIds = completedMissions?.map(m => m.demande_id) || [];
+
     const { data } = await supabase
       .from("demandes")
       .select("*")
@@ -99,7 +105,7 @@ const Index = () => {
         ascending: false,
       });
 
-    setDemandes(data || []);
+    setDemandes((data || []).filter(d => !completedIds.includes(d.id)));
   };
 
   useEffect(() => {

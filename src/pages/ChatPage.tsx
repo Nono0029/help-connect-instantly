@@ -80,6 +80,7 @@ const ChatPage = () => {
   const [uploading, setUploading] = useState(false);
 
   const [showAvis, setShowAvis] = useState(false);
+  const [avisDonne, setAvisDonne] = useState(false);
   const [note, setNote] = useState(5);
   const [commentaire, setCommentaire] = useState("");
 
@@ -172,6 +173,16 @@ const ChatPage = () => {
       .eq("mission_id", data?.id)
       .maybeSingle();
     if (p) setPayment(p);
+
+    if (user && data) {
+      const { data: avis } = await supabase
+        .from("avis")
+        .select("id")
+        .eq("mission_id", data.id)
+        .eq("auteur_id", user.id)
+        .maybeSingle();
+      if (avis) setAvisDonne(true);
+    }
   };
 
   const updateLastSeen = async () => {
@@ -333,6 +344,7 @@ const ChatPage = () => {
     });
 
     setShowAvis(false);
+    setAvisDonne(true);
     setCommentaire("");
     setNote(5);
   };
@@ -511,7 +523,7 @@ const ChatPage = () => {
   }, [messages, mission]);
 
   const isMe = (senderId: string) => senderId === user?.id;
-  const isActive = conversation?.statut !== "fermée" && conversation?.statut !== "terminee";
+  const isActive = conversation?.statut !== "fermée";
 
   return (
     <div className="h-screen flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
@@ -689,9 +701,14 @@ const ChatPage = () => {
       )}
 
       {/* AVIS */}
-      {mission?.statut === "terminee" && !showAvis && (
+      {mission?.statut === "terminee" && !showAvis && !avisDonne && (
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
           <button onClick={() => setShowAvis(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">⭐ Laisser un avis</button>
+        </div>
+      )}
+      {mission?.statut === "terminee" && avisDonne && (
+        <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
+          <div className="w-full py-3 rounded-[24px] bg-muted border border-border text-center text-sm text-muted-foreground font-medium">⭐ Avis laissé — merci !</div>
         </div>
       )}
 
