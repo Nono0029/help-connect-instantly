@@ -353,10 +353,11 @@ const ChatPage = () => {
 
   const envoyerAdresse = async () => {
     if (!adresse.trim()) return;
+    const label = isDemandeOwner ? "📍 Où venir m'aider" : "📍 Mon adresse";
     await supabase.from("messages").insert({
       conversation_id: parseInt(id!),
       sender_id: user?.id,
-      content: `📍 Mon adresse :\n${adresse}\n${ville}`,
+      content: `${label} :\n${adresse}\n${ville}`,
     });
     setAdresseEnvoyee(true);
     setShowAdresseBox(false);
@@ -507,7 +508,7 @@ const ChatPage = () => {
   }, [conversation]);
 
   useEffect(() => {
-    if (messages.find(m => m.content.includes("📍 Mon adresse"))) {
+    if (messages.find(m => m.content.includes("📍"))) {
       setAdresseEnvoyee(true);
     }
   }, [messages]);
@@ -519,10 +520,10 @@ const ChatPage = () => {
   }, [messages]);
 
   useEffect(() => {
-    if (messages.length >= 5 && !adresseEnvoyee && !adresseDismissed && mission?.statut === "en_cours") {
+    if (messages.length >= 5 && !adresseEnvoyee && !adresseDismissed && mission?.statut === "en_cours" && isDemandeOwner) {
       setShowAdresseBox(true);
     }
-  }, [messages, mission]);
+  }, [messages, mission, isDemandeOwner]);
 
   const isMe = (senderId: string) => senderId === user?.id;
   const isActive = conversation?.statut !== "fermée";
@@ -673,9 +674,9 @@ const ChatPage = () => {
           <div className="rounded-[30px] bg-card/80 border border-border p-5 shadow-magic backdrop-blur-2xl">
             <div className="flex items-center gap-2 mb-3">
               <ShieldCheck className="w-5 h-5 text-accent dark:text-cyan-400" />
-              <p className="font-bold text-foreground">Envoyer ton adresse ?</p>
+              <p className="font-bold text-foreground">{isDemandeOwner ? "Où venir t'aider ?" : "Ton adresse ?"}</p>
             </div>
-            <p className="text-sm text-muted-foreground mb-4">Tu peux la modifier avant l'envoi 🌼</p>
+            <p className="text-sm text-muted-foreground mb-4">{isDemandeOwner ? "Partage l'adresse où tu as besoin d'aide 🌼" : "Tu peux partager ton adresse si besoin 🌼"}</p>
             <input value={adresse} onChange={(e) => setAdresse(e.target.value)} placeholder="Adresse"
               className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground mb-3 outline-none" />
             <input value={ville} onChange={(e) => setVille(e.target.value)} placeholder="Ville"
@@ -805,7 +806,7 @@ const ChatPage = () => {
               className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                 adresseEnvoyee ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground hover:text-accent"
               }`}
-              title={adresseEnvoyee ? "Adresse déjà envoyée" : "Envoyer mon adresse"}
+              title={adresseEnvoyee ? "Adresse déjà envoyée" : isDemandeOwner ? "Partager mon adresse" : "Envoyer mon adresse"}
             >
               <Home className="w-4 h-4" />
             </button>
