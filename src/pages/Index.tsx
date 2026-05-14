@@ -238,15 +238,16 @@ const Index = () => {
           {/* TOP */}
           <div className="flex items-center justify-between mb-4">
 
-            <p className="text-xs text-muted-foreground">
-              Aidons-nous autour de nous 🌱
-            </p>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-foreground">
+                Hel<span className="text-primary">pify</span> ✨
+              </h1>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Aidons-nous autour de nous 🌱
+              </p>
+            </div>
 
-            <div className="flex items-center gap-3">
-
-              <span className="text-sm font-bold text-foreground tracking-tight">
-                Hel<span className="text-primary">pify</span>
-              </span>
+            <div className="flex items-center gap-1.5">
 
               <NotificationBell />
 
