@@ -11,6 +11,7 @@ import {
   LogOut,
   Star,
   CreditCard,
+  Wallet,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -149,6 +150,13 @@ const Settings = () => {
     {
       title: "Compte",
       items: [
+        {
+          icon: Wallet,
+          label: "Mon portefeuille",
+          desc: "Solde, retrait et historique",
+          action: () => navigate("/portefeuille"),
+          toggle: false,
+        },
         {
           icon: Shield,
           label: "Sécurité",
