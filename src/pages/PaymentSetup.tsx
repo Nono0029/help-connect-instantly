@@ -36,8 +36,8 @@ const PaymentSetup = () => {
             <div className="flex items-start gap-3">
               <Lock className="w-5 h-5 text-accent shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground">Fonds bloqués jusqu'à confirmation</p>
-                <p className="text-muted-foreground text-xs">L'argent est sécurisé sur Stripe et n'est reversé qu'après confirmation des deux parties.</p>
+                <p className="font-semibold text-foreground">Argent bloqué jusqu'à la fin</p>
+                <p className="text-muted-foreground text-xs">Les fonds sont sécurisés sur Stripe et ne sont reversés au prestataire qu'après confirmation des deux parties.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -59,7 +59,7 @@ const PaymentSetup = () => {
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</span>
-              <span>L'argent est sécurisé sur Stripe — ni le prestataire ni la plateforme n'y ont accès</span>
+              <span>L'argent est sécurisé sur Stripe — personne n'y touche avant la fin</span>
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</span>
@@ -71,7 +71,7 @@ const PaymentSetup = () => {
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">5</span>
-              <span>Le prestataire reçoit le paiement (prix de la mission - 2€ de frais) sur son compte</span>
+              <span>Le prestataire reçoit le paiement sur son compte Stripe</span>
             </li>
           </ol>
         </div>

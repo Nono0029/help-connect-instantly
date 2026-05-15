@@ -12,10 +12,10 @@ do $body$ begin
 exception when duplicate_object then null;
 end $body$;
 do $body$ begin
-  create policy "chat_photos_update_own" on storage.objects for update to authenticated using ( bucket_id = 'chat-photos' and owner = auth.uid()::text );
+  create policy "chat_photos_update_own" on storage.objects for update to authenticated using ( bucket_id = 'chat-photos' and owner = auth.uid() );
 exception when duplicate_object then null;
 end $body$;
 do $body$ begin
-  create policy "chat_photos_delete_own" on storage.objects for delete to authenticated using ( bucket_id = 'chat-photos' and owner = auth.uid()::text );
+  create policy "chat_photos_delete_own" on storage.objects for delete to authenticated using ( bucket_id = 'chat-photos' and owner = auth.uid() );
 exception when duplicate_object then null;
 end $body$;

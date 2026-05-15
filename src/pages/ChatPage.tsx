@@ -13,6 +13,8 @@ import {
   Lock,
   CreditCard,
   Home,
+  AlertTriangle,
+  Flag,
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -94,6 +96,13 @@ const ChatPage = () => {
   const [adresseEnvoyee, setAdresseEnvoyee] = useState(false);
 
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+
+  const [showSignal, setShowSignal] = useState(false);
+  const [signalRaison, setSignalRaison] = useState("");
+  const [signalDescription, setSignalDescription] = useState("");
+  const [signalPhotos, setSignalPhotos] = useState<string[]>([]);
+  const [signalLoading, setSignalLoading] = useState(false);
+  const signalFileRef = useRef<HTMLInputElement>(null);
 
   const messagesRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -271,6 +280,20 @@ const ChatPage = () => {
       await supabase.from("missions").update({ statut: "terminee" }).eq("id", mission.id);
       await supabase.from("conversations").update({ statut: "terminee" }).eq("id", conversation?.id);
 
+      // Libérer le paiement vers le helper
+      const { error: releaseErr } = await supabase.functions.invoke("release-payment", {
+        body: { mission_id: mission.id },
+      });
+      if (releaseErr) {
+        console.error("release-payment error:", releaseErr);
+        await supabase.from("notifications").insert({
+          user_id: mission.helper_id,
+          message: "⚠️ La mission est terminée mais le paiement n'a pas pu être libéré. Configure ton compte Stripe dans Paramètres > Paiements.",
+          conversation_id: parseInt(id!),
+          lu: false,
+        });
+      }
+
       await supabase.from("messages").insert({
         conversation_id: parseInt(id!),
         sender_id: user.id,
@@ -354,6 +377,47 @@ const ChatPage = () => {
     setAvisDonne(true);
     setCommentaire("");
     setNote(5);
+  };
+
+  const uploadSignalPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !id) return;
+    const fileExt = file.name.split(".").pop();
+    const filePath = `signal/${id}/${Date.now()}.${fileExt}`;
+    const { error: uploadError } = await supabase.storage.from("chat-photos").upload(filePath, file);
+    if (uploadError) { toast.error("Erreur upload"); return; }
+    const { data: urlData } = supabase.storage.from("chat-photos").getPublicUrl(filePath);
+    setSignalPhotos(prev => [...prev, urlData.publicUrl]);
+  };
+
+  const handleSignal = async () => {
+    if (!signalRaison || !mission || !user || !id) return;
+    setSignalLoading(true);
+    try {
+      await supabase.from("signals").insert({
+        mission_id: mission.id,
+        conversation_id: parseInt(id),
+        reporter_id: user.id,
+        raison: signalRaison,
+        description: signalDescription,
+        photos: signalPhotos,
+        statut: "ouvert",
+      });
+      await supabase.from("messages").insert({
+        conversation_id: parseInt(id),
+        sender_id: user.id,
+        content: "🚩 Un problème a été signalé sur cette mission.",
+      });
+      toast.success("Signalement envoyé. Nous allons vérifier la situation.");
+      setShowSignal(false);
+      setSignalRaison("");
+      setSignalDescription("");
+      setSignalPhotos([]);
+    } catch (err: any) {
+      toast.error("Erreur lors du signalement");
+      console.error(err);
+    }
+    setSignalLoading(false);
   };
 
   const envoyerAdresse = async () => {
@@ -563,6 +627,16 @@ const ChatPage = () => {
           <ArrowLeft className="w-5 h-5 text-accent dark:text-cyan-400" />
         </button>
 
+        {payment?.statut === "pay\u00e9" && (
+          <button
+            onClick={() => setShowSignal(true)}
+            className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shrink-0 shadow-card hover:bg-destructive/10 hover:border-destructive/30 transition-all"
+            title="Signaler un problème"
+          >
+            <Flag className="w-4 h-4 text-destructive/70" />
+          </button>
+        )}
+
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-2">
             <p
@@ -611,20 +685,22 @@ const ChatPage = () => {
       )}
 
       {/* PAIEMENT */}
-      {mission?.statut === "en_cours" && isDemandeOwner && (!payment || payment?.statut === "en_attente") && (
+      {mission?.statut === "en_cours" && isDemandeOwner && (!payment || payment?.statut === "en_attente" || payment?.statut === "expir\u00e9") && (
         <div className="px-4 py-3 bg-card/80 border-b border-border">
           <div className="flex items-center gap-2 mb-2">
             <Lock className="w-4 h-4 text-accent" />
             <p className="text-sm font-semibold text-foreground">
-              {payment?.statut === "en_attente" ? "Paiement en attente" : messages.length >= 5 ? "Paiement sécurisé débloqué" : "Paiement sécurisé"}
+              {payment?.statut === "en_attente" ? "Paiement en attente" : messages.length >= 5 ? "Paiement sécurisé disponible" : "Paiement sécurisé"}
             </p>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
             {payment?.statut === "en_attente"
               ? "Un paiement précédent n'a pas été complété. Tu peux réessayer."
-              : messages.length >= 5
-                ? "Le paiement est bloqué jusqu'à confirmation de la mission. Total : prix + 2€ de frais."
-                : "💬 Envoie au moins 5 messages pour débloquer le paiement sécurisé."}
+              : payment?.statut === "expir\u00e9"
+                ? "La session de paiement a expiré. Tu peux réessayer."
+                : messages.length >= 5
+                  ? "💰 L'argent est bloqué sur Stripe jusqu'à confirmation des deux parties. Total : prix + 2€ de frais."
+                  : "💬 Envoie au moins 5 messages pour débloquer le paiement sécurisé."}
           </p>
           <button
             onClick={handlePayment}
@@ -645,10 +721,24 @@ const ChatPage = () => {
         </div>
       )}
 
-      {payment?.statut === "payé" && (
+      {payment?.statut === "pay\u00e9" && (
         <div className="px-4 py-2 bg-accent/5 border-b border-border flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-accent" />
-          <p className="text-xs text-accent font-semibold">✅ Paiement sécurisé reçu — fonds bloqués jusqu'à confirmation</p>
+          <p className="text-xs text-accent font-semibold">✅ Paiement sécurisé reçu — argent bloqué jusqu'à la fin de la mission</p>
+        </div>
+      )}
+
+      {payment?.statut === "termine" && (
+        <div className="px-4 py-2 bg-accent/5 border-b border-border flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-accent" />
+          <p className="text-xs text-accent font-semibold">💰 Paiement libéré — le prestataire a été payé</p>
+        </div>
+      )}
+
+      {payment?.statut === "rembours\u00e9" && (
+        <div className="px-4 py-2 bg-destructive/10 border-b border-border flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-destructive" />
+          <p className="text-xs text-destructive font-semibold">↩️ Paiement remboursé au demandeur</p>
         </div>
       )}
 
@@ -749,9 +839,10 @@ const ChatPage = () => {
 
               <div className="bg-muted/50 rounded-2xl p-4 space-y-2 text-sm text-muted-foreground">
                 <p>✅ <strong>La mission est terminée</strong> — tout s'est bien passé ?</p>
-                <p>🔒 <strong>Paiement sécurisé</strong> — les fonds sont bloqués sur Stripe et seront reversés au prestataire une fois confirmé.</p>
+                <p>🔒 <strong>Argent sécurisé</strong> — les fonds sont bloqués sur Stripe et seront reversés au prestataire quand les deux confirment.</p>
                 <p>💰 <strong>Frais de service</strong> — 2€ prélevés par la plateforme.</p>
-                <p className="text-xs text-muted-foreground/60 pt-1">En confirmant, tu libères le paiement et la mission passe en "terminée".</p>
+                <p>🛡️ <strong>Protection</strong> — un problème ? Tu peux signaler un incident depuis la conversation.</p>
+                <p className="text-xs text-muted-foreground/60 pt-1">En confirmant, tu libères le paiement vers le prestataire et la mission passe en "terminée".</p>
               </div>
 
               <div className="flex gap-3 pt-1">
@@ -811,6 +902,97 @@ const ChatPage = () => {
           </div>
         </div>
       )}
+
+      {/* SIGNAL */}
+      <AnimatePresence>
+        {showSignal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end z-50"
+            onClick={() => setShowSignal(false)}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card w-full p-6 rounded-t-3xl space-y-4 max-w-lg mx-auto max-h-[85vh] overflow-y-auto"
+            >
+              <div className="w-12 h-1.5 bg-muted rounded-full mx-auto" />
+
+              <div className="flex items-center gap-3 pt-2">
+                <AlertTriangle className="w-8 h-8 text-destructive shrink-0" />
+                <h3 className="font-bold text-lg text-foreground">Signaler un problème</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">Tu vas signaler un souci sur cette mission. Nous ferons notre possible pour résoudre la situation.</p>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground">Raison du signalement</label>
+                <select
+                  value={signalRaison}
+                  onChange={(e) => setSignalRaison(e.target.value)}
+                  className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground outline-none"
+                >
+                  <option value="">Sélectionne une raison...</option>
+                  <option value="no_show">Le prestataire ne s'est pas présenté</option>
+                  <option value="incomplete">Le travail n'est pas terminé</option>
+                  <option value="bad_behavior">Comportement inapproprié</option>
+                  <option value="scam">Arnaque / Fraude</option>
+                  <option value="other">Autre</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground">Description (optionnelle)</label>
+                <textarea
+                  value={signalDescription}
+                  onChange={(e) => setSignalDescription(e.target.value)}
+                  placeholder="Explique ce qui s'est passé..."
+                  className="w-full h-24 rounded-3xl bg-background border border-border p-4 text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground">Preuves (photos, optionnel)</label>
+                <input ref={signalFileRef} type="file" accept="image/*" className="hidden" onChange={uploadSignalPhoto} />
+                <button
+                  onClick={() => signalFileRef.current?.click()}
+                  className="h-11 rounded-2xl bg-background border border-border px-4 text-sm text-muted-foreground flex items-center gap-2"
+                >
+                  <ImageIcon className="w-4 h-4" /> Ajouter une photo
+                </button>
+                {signalPhotos.length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {signalPhotos.map((url, i) => (
+                      <img key={i} src={url} alt="" className="w-16 h-16 rounded-xl object-cover" />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-destructive/5 rounded-2xl p-3 text-xs text-muted-foreground">
+                ⚠️ Un signalement est une procédure sérieuse. En cas de fausse déclaration, ton compte pourrait être suspendu.
+              </div>
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => { setShowSignal(false); setSignalRaison(""); setSignalDescription(""); setSignalPhotos([]); }}
+                  className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground font-medium"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSignal}
+                  disabled={!signalRaison || signalLoading}
+                  className="flex-1 h-12 rounded-2xl bg-destructive text-destructive-foreground font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {signalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Flag className="w-4 h-4" />}
+                  Signaler
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* INPUT */}
       {isActive && (

@@ -34,7 +34,7 @@ serve(async (req) => {
     const conversationId = session.metadata?.conversation_id;
 
     if (missionId) {
-      await supabase.from("payments").update({ statut: "payé", stripe_payment_intent: session.payment_intent as string }).eq("stripe_session_id", session.id);
+      await supabase.from("payments").update({ statut: "pay\u00e9", stripe_payment_intent: session.payment_intent as string }).eq("stripe_session_id", session.id);
       await supabase.from("missions").update({ statut: "en_cours" }).eq("id", parseInt(missionId));
 
       if (conversationId) {
@@ -43,7 +43,7 @@ serve(async (req) => {
         if (helperId) {
           await supabase.from("notifications").insert({
             user_id: helperId,
-            message: "💰 Paiement reçu ! La mission peut commencer.",
+            message: "\uD83D\uDCB0 Paiement re\u00e7u ! L'argent est s\u00e9curis\u00e9 sur Stripe jusqu'\u00e0 la fin de la mission.",
             conversation_id: parseInt(conversationId),
             lu: false,
           });
@@ -54,7 +54,19 @@ serve(async (req) => {
 
   if (event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session;
-    await supabase.from("payments").update({ statut: "expiré" }).eq("stripe_session_id", session.id);
+    await supabase.from("payments").update({ statut: "expir\u00e9" }).eq("stripe_session_id", session.id);
+  }
+
+  if (event.type === "charge.refunded") {
+    const charge = event.data.object as Stripe.Charge;
+    const paymentIntent = charge.payment_intent as string;
+
+    if (paymentIntent) {
+      await supabase
+        .from("payments")
+        .update({ statut: "rembours\u00e9", refunded_at: new Date().toISOString() })
+        .eq("stripe_payment_intent", paymentIntent);
+    }
   }
 
   return new Response("ok", { status: 200 });

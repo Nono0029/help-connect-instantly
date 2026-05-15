@@ -13,6 +13,12 @@ CREATE TABLE IF NOT EXISTS payments (
 
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "payments_select" ON payments;
+  DROP POLICY IF EXISTS "payments_insert" ON payments;
+  DROP POLICY IF EXISTS "payments_update" ON payments;
+END $$;
+
 CREATE POLICY "payments_select" ON payments FOR SELECT USING (
   payeur_id = auth.uid()::text OR helper_id = auth.uid()::text
 );

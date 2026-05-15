@@ -27,14 +27,10 @@ serve(async (req) => {
   if (prix <= 0) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
   const convId = conversation_id || mission.conversation_id;
-  const frais = 200; // Platform fee: 2€ in cents
-  const montantCents = Math.round(prix * 100) + frais; // Customer pays price + 2€ fee
+  const frais = 200;
+  const montantCents = Math.round(prix * 100) + frais;
 
-  // Get helper's connected Stripe account for destination charge
-  const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", mission.helper_id).maybeSingle();
-  const helperAccountId = profile?.stripe_account_id;
-
-  const sessionConfig: any = {
+  const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",
     line_items: [{
@@ -53,17 +49,7 @@ serve(async (req) => {
     },
     success_url: `${req.headers.get("origin")}/chat/${convId}?payment=success`,
     cancel_url: `${req.headers.get("origin")}/chat/${convId}?payment=cancel`,
-  };
-
-  // Stripe Connect Express: auto-split to helper's connected account
-  if (helperAccountId) {
-    sessionConfig.payment_intent_data = {
-      transfer_data: { destination: helperAccountId },
-      application_fee_amount: frais, // Platform keeps 2€
-    };
-  }
-
-  const session = await stripe.checkout.sessions.create(sessionConfig);
+  });
 
   if (!session.url) return new Response(JSON.stringify({ error: "stripe error" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
 

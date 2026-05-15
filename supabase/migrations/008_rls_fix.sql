@@ -44,6 +44,7 @@ ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "conversations_select" ON conversations;
 DROP POLICY IF EXISTS "conversations_insert" ON conversations;
 DROP POLICY IF EXISTS "conversations_update" ON conversations;
+DROP POLICY IF EXISTS "conversations_delete" ON conversations;
 
 CREATE POLICY "conversations_select" ON conversations
   FOR SELECT USING (
@@ -71,6 +72,7 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "messages_select" ON messages;
 DROP POLICY IF EXISTS "messages_insert" ON messages;
+DROP POLICY IF EXISTS "messages_delete" ON messages;
 
 CREATE POLICY "messages_select" ON messages
   FOR SELECT USING (
@@ -105,6 +107,7 @@ ALTER TABLE missions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "missions_select" ON missions;
 DROP POLICY IF EXISTS "missions_insert" ON missions;
 DROP POLICY IF EXISTS "missions_update" ON missions;
+DROP POLICY IF EXISTS "missions_delete" ON missions;
 
 CREATE POLICY "missions_select" ON missions
   FOR SELECT USING (
