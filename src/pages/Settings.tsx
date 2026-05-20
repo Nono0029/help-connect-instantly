@@ -263,7 +263,7 @@ const Settings = () => {
           onClick={() => navigate("/edit-profile")}
         >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-black bg-magic-gradient shrink-0">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white dark:text-foreground text-2xl font-black bg-magic-gradient dark:bg-cyan-gradient shrink-0">
               {pseudo?.[0]?.toUpperCase() || "?"}
             </div>
 

@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://askoo.vercel.app/sitemap.xml
+Sitemap: https://askoo.fr/sitemap.xml

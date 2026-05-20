@@ -292,7 +292,7 @@ const Index = () => {
           </div>
 
           {/* HERO */}
-          <div className="mb-4 rounded-3xl p-5 bg-magic-gradient shadow-magic border border-primary/20 flex items-center gap-4">
+          <div className="mb-4 rounded-3xl p-5 bg-magic-gradient dark:bg-cyan-gradient shadow-magic dark:shadow-dark-card border border-primary/20 flex items-center gap-4">
             <div className="flex-1 min-w-0">
               <p className="text-xl font-black text-foreground leading-tight">
                 Trouve de l'aide
@@ -381,7 +381,7 @@ const Index = () => {
               }
               className={`shrink-0 px-4 py-2 rounded-2xl text-xs font-semibold transition-all ${
                 selectedCat === cat
-                  ? "bg-magic-gradient text-foreground shadow-warm border border-primary/30"
+                  ? "bg-magic-gradient dark:bg-cyan-gradient text-foreground shadow-warm dark:shadow-dark-card border border-primary/30"
                   : "bg-background/60 border border-border text-muted-foreground hover:bg-primary/10"
               }`}
             >
@@ -454,7 +454,7 @@ const Index = () => {
 
                 <div className="flex items-center gap-3">
 
-                  <div className="w-11 h-11 rounded-full bg-magic-gradient flex items-center justify-center text-sm font-bold text-foreground shadow-warm">
+                  <div className="w-11 h-11 rounded-full bg-magic-gradient dark:bg-cyan-gradient flex items-center justify-center text-sm font-bold text-foreground shadow-warm">
                     {d.auteur
                       ?.slice(0, 2)
                       .toUpperCase() || "??"}

@@ -230,7 +230,7 @@ const MessagesPage = () => {
                       <div className="flex items-start gap-3">
                         <Avatar className="w-12 h-12 shrink-0 ring-2 ring-border group-hover:ring-primary/30 transition-all">
                           <AvatarImage src={otherProfile?.avatar_url || ""} />
-                          <AvatarFallback className="bg-magic-gradient text-foreground font-bold text-sm">
+                          <AvatarFallback className="bg-magic-gradient dark:bg-cyan-gradient text-foreground font-bold text-sm">
                             {otherProfile?.pseudo?.[0]?.toUpperCase() || getRole(conv)[0]}
                           </AvatarFallback>
                         </Avatar>
