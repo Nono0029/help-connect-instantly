@@ -39,6 +39,8 @@
     "noResults": "Aucune aide trouvée",
     "noResultsDesc": "Sois le premier à aider quelqu'un aujourd'hui 🐣",
     "urgent": "⚡ Urgent",
+    "urgentExtra": "+3€ de frais urgents",
+    "urgentTotal": "Total: {price} + 3€ frais = {total}€",
     "free": "Gratuit ❤️",
     "all": "Tout",
     "house": "🏠 Maison",
@@ -48,7 +50,14 @@
     "listening": "💬 Écoute",
     "tech": "💻 Tech",
     "garden": "🌱 Jardin",
-    "transport": "🚗 Transport"
+    "transport": "🚗 Transport",
+    "sortDistance": "📍 Distance",
+    "sortPriceAsc": "💰 Prix croissant",
+    "sortPriceDesc": "💰 Prix décroissant",
+    "sortRecent": "🕐 Plus récent",
+    "sortUrgent": "⚡ Urgent d'abord",
+    "recentlyViewed": "👁️ Vus récentement",
+    "noRecentlyViewed": "Aucune demande consultée"
   },
   "time": {
     "justNow": "À l'instant",
@@ -221,7 +230,9 @@
     "saveSuccess": "Profil mis à jour 💙",
     "language": "Langue",
     "langFr": "Français",
-    "langEn": "English"
+    "langEn": "English",
+    "boost": "Boost profil",
+    "boostDesc": "Apparaître en premier pendant 7 jours"
   },
   "profile": {
     "title": "Profil",
@@ -243,7 +254,15 @@
     "theirRequests": "Ses demandes",
     "finishedMissions": "Missions terminées",
     "receivedReviews": "Avis reçus",
-    "finished": "✅ Terminée"
+    "finished": "✅ Terminée",
+    "bio": "Bio",
+    "noBio": "Pas encore de bio",
+    "skills": "Compétences",
+    "noSkills": "Pas encore de compétences",
+    "verified": "Vérifié",
+    "lastSeen": "Actif {time}",
+    "online": "🟢 En ligne",
+    "addSkill": "Ajouter une compétence"
   },
   "editProfile": {
     "title": "Modifier le profil",
@@ -261,7 +280,12 @@
     "noReviews": "Aucun avis pour le moment",
     "noComment": "Pas de commentaire",
     "avatarUpdated": "Photo de profil mise à jour ✨",
-    "profileUpdated": "Profil mis à jour 💙"
+    "profileUpdated": "Profil mis à jour 💙",
+    "bio": "Bio",
+    "bioPlaceholder": "Parle-nous de toi...",
+    "skills": "Compétences",
+    "skillsPlaceholder": "Tape une compétence et appuie sur Entrée",
+    "predefinedSkills": "Suggestions"
   },
   "demandeDetail": {
     "notFound": "Demande introuvable",
@@ -483,5 +507,14 @@
     "title": "404",
     "message": "Page introuvable",
     "homeLink": "Retour à l'accueil"
+  },
+  "boost": {
+    "title": "🚀 Boost profil",
+    "description": "Ton profil et tes demandes apparaîtront en premier dans les résultats de recherche pendant 7 jours.",
+    "price1Month": "1 mois : 4,99€",
+    "activate": "Activer le boost",
+    "active": "Boost actif jusqu'au {date}",
+    "inactive": "Boost inactif",
+    "activated": "Boost activé ! 🚀"
   }
 }

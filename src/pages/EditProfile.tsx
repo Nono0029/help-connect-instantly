@@ -7,6 +7,7 @@ import {
   Star,
   MapPin,
   Home,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,13 @@ const EditProfile = () => {
   const [ville, setVille] = useState("");
   const [adresse, setAdresse] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [skillInput, setSkillInput] = useState("");
+
+  const predefinedSkills = [
+    "Bricolage", "Jardinage", "Informatique", "Cours", "Ménage",
+    "Transport", "Animaux", "Cuisine", "Menuiserie", "Électricité"
+  ];
 
   const [avis, setAvis] = useState<any[]>([]);
   const [moyenne, setMoyenne] = useState(0);
@@ -59,6 +67,7 @@ const EditProfile = () => {
         setVille(data.ville || "");
         setAdresse(data.adresse || "");
         setAvatarUrl(data.avatar_url || "");
+        setSkills(Array.isArray(data.skills) ? data.skills : []);
       }
     };
 
@@ -139,6 +148,7 @@ const EditProfile = () => {
     if (ville) updates.ville = ville;
     if (adresse) updates.adresse = adresse;
     if (avatarUrl) updates.avatar_url = avatarUrl;
+    updates.skills = skills;
 
     const { error } = await supabase.from("profiles").upsert(updates);
 
@@ -269,6 +279,47 @@ const EditProfile = () => {
           <p className="text-xs text-muted-foreground mt-2">
             {t('editProfile.addressHelper')}
           </p>
+        </div>
+
+        {/* SKILLS */}
+        <div>
+          <label className="text-sm font-semibold mb-2 block text-foreground">{t('editProfile.skills')}</label>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {skills.map((skill, i) => (
+              <span key={i} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                {skill}
+                <button onClick={() => setSkills(skills.filter((_, idx) => idx !== i))} className="ml-0.5 hover:text-destructive">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            ))}
+          </div>
+          <Input
+            value={skillInput}
+            onChange={(e) => setSkillInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && skillInput.trim()) {
+                e.preventDefault();
+                if (!skills.includes(skillInput.trim())) {
+                  setSkills([...skills, skillInput.trim()]);
+                }
+                setSkillInput("");
+              }
+            }}
+            className="h-12 rounded-2xl bg-secondary border-none text-foreground"
+            placeholder={t('editProfile.skillsPlaceholder')}
+          />
+          <div className="flex flex-wrap gap-2 mt-3">
+            {predefinedSkills.filter(s => !skills.includes(s)).map((skill) => (
+              <button
+                key={skill}
+                onClick={() => setSkills([...skills, skill])}
+                className="px-3 py-1.5 rounded-full border border-border text-sm text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+              >
+                + {skill}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* SAVE BUTTON */}

@@ -39,6 +39,8 @@
     "noResults": "No help found",
     "noResultsDesc": "Be the first to help someone today 🐣",
     "urgent": "⚡ Urgent",
+    "urgentExtra": "+3€ urgent fees",
+    "urgentTotal": "Total: {price} + 3€ fees = {total}€",
     "free": "Free ❤️",
     "all": "All",
     "house": "🏠 Home",
@@ -48,7 +50,14 @@
     "listening": "💬 Listening",
     "tech": "💻 Tech",
     "garden": "🌱 Garden",
-    "transport": "🚗 Transport"
+    "transport": "🚗 Transport",
+    "sortDistance": "📍 Distance",
+    "sortPriceAsc": "💰 Price low to high",
+    "sortPriceDesc": "💰 Price high to low",
+    "sortRecent": "🕐 Most recent",
+    "sortUrgent": "⚡ Urgent first",
+    "recentlyViewed": "👁️ Recently viewed",
+    "noRecentlyViewed": "No demands viewed yet"
   },
   "time": {
     "justNow": "Just now",
@@ -221,7 +230,9 @@
     "saveSuccess": "Profile updated 💙",
     "language": "Language",
     "langFr": "Français",
-    "langEn": "English"
+    "langEn": "English",
+    "boost": "Profile boost",
+    "boostDesc": "Appear first for 7 days"
   },
   "profile": {
     "title": "Profile",
@@ -243,7 +254,15 @@
     "theirRequests": "Their requests",
     "finishedMissions": "Completed missions",
     "receivedReviews": "Reviews received",
-    "finished": "✅ Completed"
+    "finished": "✅ Completed",
+    "bio": "Bio",
+    "noBio": "No bio yet",
+    "skills": "Skills",
+    "noSkills": "No skills yet",
+    "verified": "Verified",
+    "lastSeen": "Active {time}",
+    "online": "🟢 Online",
+    "addSkill": "Add a skill"
   },
   "editProfile": {
     "title": "Edit profile",
@@ -261,7 +280,12 @@
     "noReviews": "No reviews yet",
     "noComment": "No comment",
     "avatarUpdated": "Profile photo updated ✨",
-    "profileUpdated": "Profile updated 💙"
+    "profileUpdated": "Profile updated 💙",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
+    "skills": "Skills",
+    "skillsPlaceholder": "Type a skill and press Enter",
+    "predefinedSkills": "Suggestions"
   },
   "demandeDetail": {
     "notFound": "Request not found",
@@ -483,5 +507,14 @@
     "title": "404",
     "message": "Page not found",
     "homeLink": "Back to home"
+  },
+  "boost": {
+    "title": "🚀 Profile boost",
+    "description": "Your profile and requests will appear first in search results for 7 days.",
+    "price1Month": "1 month: €4.99",
+    "activate": "Activate boost",
+    "active": "Boost active until {date}",
+    "inactive": "Boost inactive",
+    "activated": "Boost activated! 🚀"
   }
 }

@@ -28,6 +28,7 @@ const AidePage = lazy(() => import("./pages/AidePage"));
 const BecomeProPage = lazy(() => import("./pages/BecomeProPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const MonPortefeuille = lazy(() => import("./pages/MonPortefeuille"));
+const BoostProfilePage = lazy(() => import("./pages/BoostProfilePage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -74,6 +75,7 @@ export default function App() {
                       <Route path="/aide" element={<AidePage />} />
                       <Route path="/become-pro" element={<BecomeProPage />} />
                       <Route path="/privacy" element={<PrivacyPage />} />
+                      <Route path="/boost-profile" element={<BoostProfilePage />} />
                     </Route>
 
                     {/* 404 */}

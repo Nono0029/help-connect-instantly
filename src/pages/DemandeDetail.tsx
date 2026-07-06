@@ -169,7 +169,12 @@ const DemandeDetail = () => {
           <div className="flex items-center gap-1 pt-1">
             <Euro className="w-4 h-4 text-primary" />
             <span className={`font-bold text-base ${demande.gratuit ? "text-accent" : "text-foreground"}`}>
-              {demande.gratuit ? t('demandeDetail.free') : demande.prix}
+              {demande.gratuit
+                ? t('demandeDetail.free')
+                : demande.urgent && demande.prix
+                  ? t('home.urgentTotal', { price: `${demande.prix}€`, total: `${parseFloat(demande.prix) + 3}` })
+                  : demande.prix
+              }
             </span>
           </div>
         </motion.div>

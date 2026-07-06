@@ -9,6 +9,7 @@ import {
   User,
   ShoppingBag,
   MessageCircle,
+  Rocket,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -77,8 +78,14 @@ const Index = () => {
   const [selectedCat, setSelectedCat] =
     useState("Tout");
 
+  const [sortBy, setSortBy] = useState("distance");
+
   const [likedIds, setLikedIds] = useState<number[]>(() => {
     try { return JSON.parse(localStorage.getItem('askoo-likes') || '[]'); } catch { return []; }
+  });
+
+  const [recentlyViewed, setRecentlyViewed] = useState<{ id: number; titre: string; viewed_at: number }[]>(() => {
+    try { return JSON.parse(localStorage.getItem('askoo-recent-views') || '[]').slice(0, 5); } catch { return []; }
   });
 
   const [showForm, setShowForm] =
@@ -108,6 +115,8 @@ const Index = () => {
     Demande[]
   >([]);
 
+  const [boostedUserIds, setBoostedUserIds] = useState<Set<string>>(new Set());
+
   const [loading, setLoading] = useState(true);
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -130,7 +139,27 @@ const Index = () => {
         ascending: false,
       });
 
-    setDemandes((data || []).filter(d => !completedIds.includes(d.id)));
+    const filtered = (data || []).filter(d => !completedIds.includes(d.id));
+    setDemandes(filtered);
+
+    // Fetch boosted profiles
+    const userIds = [...new Set(filtered.map(d => d.user_id).filter(Boolean))];
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, boost_until")
+        .in("id", userIds);
+
+      const boosted = new Set<string>();
+      const now = new Date();
+      profiles?.forEach(p => {
+        if (p.boost_until && new Date(p.boost_until) > now) {
+          boosted.add(p.id);
+        }
+      });
+      setBoostedUserIds(boosted);
+    }
+
     setLoading(false);
   };
 
@@ -205,13 +234,79 @@ const Index = () => {
     );
   }), [demandes, debouncedSearch, selectedCat, filters]);
 
-  const sorted = useMemo(() => userCoords
-    ? [...filtered].sort((a, b) => {
-        const dA = a.lat != null && a.lng != null ? getDistance(userCoords[0], userCoords[1], a.lat, a.lng) : 999;
-        const dB = b.lat != null && b.lng != null ? getDistance(userCoords[0], userCoords[1], b.lat, b.lng) : 999;
-        return dA - dB;
-      })
-    : filtered, [filtered, userCoords]);
+  const categoryCounts = useMemo(() => {
+    const baseFiltered = demandes.filter((d) => {
+      const matchSearch =
+        d.titre.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        d.description.toLowerCase().includes(debouncedSearch.toLowerCase());
+      const matchType = filters.type === "Tout" || d.categorie === filters.type;
+      const matchPrix =
+        filters.prix === "all" ||
+        (filters.prix === "gratuit" && d.gratuit) ||
+        (!d.gratuit && d.prix && parseFloat(d.prix.replace(/[^0-9.]/g, "")) <= parseFloat(filters.prix));
+      return matchSearch && matchType && matchPrix;
+    });
+
+    const counts: Record<string, number> = { "Tout": baseFiltered.length };
+    for (const cat of categoryKeys) {
+      if (cat === "Tout") continue;
+      counts[cat] = baseFiltered.filter((d) => d.categorie === cat).length;
+    }
+    return counts;
+  }, [demandes, debouncedSearch, filters]);
+
+  const sorted = useMemo(() => {
+    const copy = [...filtered];
+
+    const boostedCompare = (a: Demande, b: Demande) => {
+      const aBoosted = a.user_id ? boostedUserIds.has(a.user_id) : false;
+      const bBoosted = b.user_id ? boostedUserIds.has(b.user_id) : false;
+      if (aBoosted !== bBoosted) return aBoosted ? -1 : 1;
+      return 0;
+    };
+
+    switch (sortBy) {
+      case "priceAsc":
+        return copy.sort((a, b) => {
+          const boost = boostedCompare(a, b);
+          if (boost !== 0) return boost;
+          const pA = a.gratuit ? 0 : (a.prix ? parseFloat(a.prix.replace(/[^0-9.]/g, "")) : 999);
+          const pB = b.gratuit ? 0 : (b.prix ? parseFloat(b.prix.replace(/[^0-9.]/g, "")) : 999);
+          return pA - pB;
+        });
+      case "priceDesc":
+        return copy.sort((a, b) => {
+          const boost = boostedCompare(a, b);
+          if (boost !== 0) return boost;
+          const pA = a.gratuit ? 0 : (a.prix ? parseFloat(a.prix.replace(/[^0-9.]/g, "")) : 0);
+          const pB = b.gratuit ? 0 : (b.prix ? parseFloat(b.prix.replace(/[^0-9.]/g, "")) : 0);
+          return pB - pA;
+        });
+      case "recent":
+        return copy.sort((a, b) => {
+          const boost = boostedCompare(a, b);
+          if (boost !== 0) return boost;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+      case "urgent":
+        return copy.sort((a, b) => {
+          const boost = boostedCompare(a, b);
+          if (boost !== 0) return boost;
+          if (a.urgent !== b.urgent) return a.urgent ? -1 : 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+      case "distance":
+      default:
+        if (!userCoords) return filtered;
+        return copy.sort((a, b) => {
+          const boost = boostedCompare(a, b);
+          if (boost !== 0) return boost;
+          const dA = a.lat != null && a.lng != null ? getDistance(userCoords[0], userCoords[1], a.lat, a.lng) : 999;
+          const dB = b.lat != null && b.lng != null ? getDistance(userCoords[0], userCoords[1], b.lat, b.lng) : 999;
+          return dA - dB;
+        });
+    }
+  }, [filtered, userCoords, sortBy, boostedUserIds]);
 
   const activeFiltersCount = useMemo(() => [
     filters.type !== "Tout",
@@ -351,6 +446,29 @@ const Index = () => {
             </Button>
           </div>
 
+          {/* SORT */}
+          <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
+            {[
+              { key: "distance", label: t('home.sortDistance') },
+              { key: "priceAsc", label: t('home.sortPriceAsc') },
+              { key: "priceDesc", label: t('home.sortPriceDesc') },
+              { key: "recent", label: t('home.sortRecent') },
+              { key: "urgent", label: t('home.sortUrgent') },
+            ].map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setSortBy(opt.key)}
+                className={`shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all ${
+                  sortBy === opt.key
+                    ? "bg-primary/15 text-foreground border border-primary/30"
+                    : "bg-background/60 border border-border text-muted-foreground hover:bg-primary/10"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
           {/* CITY */}
           <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
 
@@ -373,7 +491,6 @@ const Index = () => {
         <div className="flex gap-2 overflow-x-auto px-4 pb-4 scrollbar-hide">
 
           {categoryKeys.map((cat) => (
-
             <button
               key={cat}
               onClick={() =>
@@ -385,9 +502,8 @@ const Index = () => {
                   : "bg-background/60 border border-border text-muted-foreground hover:bg-primary/10"
               }`}
             >
-              {categoryLabels[cat]}
+              {categoryLabels[cat]}<span className="ml-1 opacity-60">({categoryCounts[cat] ?? 0})</span>
             </button>
-
           ))}
         </div>
       </header>
@@ -459,9 +575,17 @@ const Index = () => {
               transition={{
                 delay: i * 0.03,
               }}
-              onClick={() =>
-                navigate(`/demande/${d.id}`)
-              }
+              onClick={() => {
+                try {
+                  const views = JSON.parse(localStorage.getItem('askoo-recent-views') || '[]');
+                  const newView = { id: d.id, titre: d.titre, viewed_at: Date.now() };
+                  const filtered = views.filter((v: any) => v.id !== d.id);
+                  const updated = [newView, ...filtered].slice(0, 10);
+                  localStorage.setItem('askoo-recent-views', JSON.stringify(updated));
+                  setRecentlyViewed(updated.slice(0, 5));
+                } catch {}
+                navigate(`/demande/${d.id}`);
+              }}
               className="card-magic cursor-pointer active:scale-[0.98]"
             >
 
@@ -554,6 +678,12 @@ const Index = () => {
                     </Badge>
                   )}
 
+                  {d.user_id && boostedUserIds.has(d.user_id) && (
+                    <Badge className="rounded-xl bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-300 border-none text-xs">
+                      <Rocket className="w-3 h-3 mr-0.5" /> Boost
+                    </Badge>
+                  )}
+
                 </div>
 
                 <span
@@ -573,6 +703,37 @@ const Index = () => {
 
           ))}
         </AnimatePresence>
+        )}
+
+        {/* RECENTLY VIEWED */}
+        {!loading && recentlyViewed.length > 0 && (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold text-foreground">{t('home.recentlyViewed')}</h2>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {recentlyViewed.map((view) => (
+                <button
+                  key={view.id}
+                  onClick={() => navigate(`/demande/${view.id}`)}
+                  className="shrink-0 w-40 p-3 rounded-2xl bg-background/70 border border-border text-left hover:bg-primary/10 transition-all"
+                >
+                  <p className="text-xs font-semibold text-foreground line-clamp-2 mb-1">{view.titre}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {(() => {
+                      const diff = Math.floor((Date.now() - view.viewed_at) / 60000);
+                      if (diff < 1) return t('time.justNow');
+                      if (diff < 60) return t('time.minutesAgo', { n: diff });
+                      const h = Math.floor(diff / 60);
+                      if (h < 24) return t('time.hoursAgo', { n: h });
+                      const d = Math.floor(h / 24);
+                      return t('time.daysAgo', { n: d });
+                    })()}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 

@@ -127,6 +127,10 @@ const ChatPage = () => {
 
   const isImgMsg = (content: string) => content.startsWith("📷:");
 
+  const allChatPhotos = messages
+    .filter(m => isImgMsg(m.content))
+    .map(m => m.content.slice(3));
+
   const playNotificationSound = () => {
     try {
       const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH+JkI+LhH+AgoSFhYaGhoaHh4eIiIiJiYmJiYmJiYqKioqLi4uLi4yMjI2NjY6Ojo+Pj5CQkJGRkZKSkpKTk5OUlJSVlZWWlpaXl5eYmJiZmZmampqbm5ucnJydnaCgoKGhoaKioqOjo6SkpKWlpaampqenp6ioqKmpqaqqqqurq6ysrK2tra6urrCwsLGxsbKysrOzs7S0tLW1tba2tre3t7i4uLm5ubq6uru7u7y8vL29vb6+vr/AwMDAwcHBwsLCw8PExMTFxcXGxsbHx8fIyMjJycnKysrLy8vMzMzNzc3Ozs7Pz8/Q0NDR0dHS0tLT09PU1NTV1dXW1tbX19fY2NjZ2dna2tra29vb3Nzc3d3d3t7e39/f4ODg4eHh4uLi4+Pj5OTk5eXl5ubm5+fn6Ojo6enp6urq6+vr7Ozs7e3t7u7u7+/v8PDw8fHx8vLy8/Pz9PT09fX19vb29/f3+Pj4+fn5+vr6+/v7/Pz8/f39/v7+////AAAAAAAAAAAA');
@@ -809,7 +813,7 @@ const ChatPage = () => {
                 : "bg-white/75 dark:bg-[#0d2530]/80 border border-border text-foreground dark:text-cyan-50 shadow-card"
             }`}>
               {isImgMsg(msg.content) ? (
-                <img src={msg.content.slice(3)} alt="photo" onClick={() => setLightbox({ images: [msg.content.slice(3)], index: 0 })} className="rounded-xl max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" />
+                <img src={msg.content.slice(3)} alt="photo" onClick={() => setLightbox({ images: allChatPhotos, index: allChatPhotos.indexOf(msg.content.slice(3)) })} className="rounded-xl max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" />
               ) : (
                 msg.content
               )}
@@ -1068,6 +1072,8 @@ const ChatPage = () => {
           images={lightbox.images}
           index={lightbox.index}
           onClose={() => setLightbox(null)}
+          onPrev={lightbox.index > 0 ? () => setLightbox(prev => prev ? { ...prev, index: prev.index - 1 } : null) : undefined}
+          onNext={lightbox.index < lightbox.images.length - 1 ? () => setLightbox(prev => prev ? { ...prev, index: prev.index + 1 } : null) : undefined}
         />
       )}
     </div>

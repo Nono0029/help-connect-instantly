@@ -13,6 +13,10 @@ interface Profile {
   bio: string;
   ville: string;
   avatar_url: string;
+  skills?: string[];
+  stripe_onboarding?: boolean;
+  last_seen?: string;
+  updated_at?: string;
   created_at?: string;
 }
 
@@ -57,6 +61,25 @@ const ProfilePage = () => {
   const [demandeurCount, setDemandeurCount] = useState(0);
   const [demandes, setDemandes] = useState<Demande[]>([]);
   const [contacting, setContacting] = useState(false);
+
+  const getRelativeTime = (dateStr: string) => {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffH = Math.floor(diffMin / 60);
+    const diffD = Math.floor(diffH / 24);
+    if (diffMin < 5) return t('profile.online');
+    if (diffMin < 60) return t('profile.lastSeen', { time: t('time.minutesAgoLower', { n: String(diffMin) }) });
+    if (diffH < 24) return t('profile.lastSeen', { time: t('time.hoursAgoLower', { n: String(diffH) }) });
+    return t('profile.lastSeen', { time: t('time.daysAgoLower', { n: String(diffD) }) });
+  };
+
+  const isOnline = (dateStr?: string) => {
+    if (!dateStr) return false;
+    const diffMs = new Date().getTime() - new Date(dateStr).getTime();
+    return diffMs < 5 * 60000;
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -190,7 +213,30 @@ const ProfilePage = () => {
             )}
           </div>
 
-          <h2 className="text-xl font-bold text-foreground mt-4">{profile.pseudo || t('profile.anonymous')}</h2>
+          <h2 className="text-xl font-bold text-foreground mt-4 flex items-center justify-center gap-2">
+            {profile.pseudo || t('profile.anonymous')}
+            {(profile.stripe_onboarding || user?.email) && (
+              <span title={t('profile.verified')}>✅</span>
+            )}
+          </h2>
+
+          {profile.bio && (
+            <p className="text-sm text-muted-foreground italic mt-1 px-4">{profile.bio}</p>
+          )}
+
+          {profile.skills && profile.skills.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 mt-3">
+              {profile.skills.map((skill, i) => (
+                <span key={i} className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">{skill}</span>
+              ))}
+            </div>
+          )}
+
+          {(profile.last_seen || profile.updated_at) && (
+            <p className={`text-xs mt-2 ${isOnline(profile.last_seen || profile.updated_at) ? 'text-green-500 font-medium' : 'text-muted-foreground'}`}>
+              {getRelativeTime(profile.last_seen || profile.updated_at!)}
+            </p>
+          )}
 
           {profile.ville && (
             <p className="text-sm text-muted-foreground flex items-center justify-center gap-1 mt-1">

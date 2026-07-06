@@ -12,6 +12,7 @@ import {
   Star,
   CreditCard,
   Wallet,
+  Rocket,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -33,6 +34,7 @@ const Settings = () => {
   const [pseudo, setPseudo] = useState("");
   const [ville, setVille] = useState("");
   const [adresse, setAdresse] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -65,6 +67,7 @@ const Settings = () => {
         setPseudo(data.pseudo || email.split("@")[0] || "");
         setVille(data.ville || "");
         setAdresse(data.adresse || "");
+        setAvatarUrl(data.avatar_url || "");
         setStripeLinked(data.stripe_onboarding || false);
         if (data.notif_prefs) setNotifPrefs(data.notif_prefs);
       } else {
@@ -173,6 +176,13 @@ const Settings = () => {
           action: () => navigate("/payment-setup"),
           toggle: false,
         },
+        {
+          icon: Rocket,
+          label: t('settings.boost'),
+          desc: t('settings.boostDesc'),
+          action: () => navigate("/boost-profile"),
+          toggle: false,
+        },
       ],
     },
     {
@@ -265,8 +275,12 @@ const Settings = () => {
           onClick={() => navigate("/edit-profile")}
         >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white dark:text-foreground text-2xl font-black bg-magic-gradient dark:bg-cyan-gradient shrink-0">
-              {pseudo?.[0]?.toUpperCase() || "?"}
+            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white dark:text-foreground text-2xl font-black bg-magic-gradient dark:bg-cyan-gradient shrink-0 overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                pseudo?.[0]?.toUpperCase() || "?"
+              )}
             </div>
 
             <div className="flex-1 min-w-0">

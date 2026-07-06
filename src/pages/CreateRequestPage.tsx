@@ -201,11 +201,22 @@ const CreateRequestPage = () => {
           className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
             urgent ? "bg-destructive/10 border-destructive" : "bg-secondary border-border"
           }`}>
-          <span className="text-sm font-medium">{t('createRequest.urgent')}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{t('createRequest.urgent')}</span>
+            {urgent && <span className="text-xs text-destructive/70 font-medium">⚡ {t('home.urgentExtra')}</span>}
+          </div>
           <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${urgent ? "bg-destructive justify-end" : "bg-muted-foreground/30"}`}>
             <div className="w-5 h-5 rounded-full bg-card shadow-sm" />
           </div>
         </button>
+
+        {urgent && !gratuit && prix && (
+          <div className="px-4 py-2.5 rounded-xl bg-destructive/5 border border-destructive/20 text-sm">
+            <span className="font-semibold text-destructive">
+              {t('home.urgentTotal', { price: `${prix}€`, total: `${parseFloat(prix) + 3}` })}
+            </span>
+          </div>
+        )}
 
         <Button onClick={handleSubmit} disabled={!titre || !selectedType || loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25">
           <Sparkles className="w-4 h-4 mr-2" />
