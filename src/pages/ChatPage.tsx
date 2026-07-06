@@ -732,8 +732,8 @@ const ChatPage = () => {
         </div>
       )}
 
-      {/* PAIEMENT */}
-      {mission?.statut === "en_cours" && isDemandeOwner && (!payment || payment?.statut === "en_attente" || payment?.statut === "expir\u00e9") && (
+      {/* PAIEMENT — only show if the demande has a price (not free) */}
+      {mission?.statut === "en_cours" && isDemandeOwner && !mission.demandes?.gratuit && mission.demandes?.prix && parseFloat(String(mission.demandes.prix).replace(/[^0-9.]/g, "")) > 0 && (!payment || payment?.statut === "en_attente" || payment?.statut === "expir\u00e9") && (
         <div className="px-4 py-3 bg-card/80 border-b border-border">
           <div className="flex items-center gap-2 mb-2">
             <Lock className="w-4 h-4 text-accent" />
