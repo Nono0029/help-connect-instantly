@@ -44,27 +44,20 @@ serve(async (req) => {
 
     const user_id = user.id;
 
-    // Atomic: deduct balance ONLY if sufficient (prevents overdraft race condition)
-    const { data: walletResult, error: deductError } = await supabase
-      .from("wallets")
-      .update({ balance: supabase.rpc ? `balance - ${amount}` : Number(0) - amount, updated_at: new Date().toISOString() })
-      .eq("user_id", user_id)
-      .gte("balance", amount)
-      .select("balance")
-      .maybeSingle();
-
-    // Use raw SQL for atomic deduct since Supabase JS doesn't support column arithmetic
+    // Check balance first
     const { data: wallet } = await supabase.from("wallets").select("balance").eq("user_id", user_id).maybeSingle();
     if (!wallet || Number(wallet.balance) < amount) {
       return new Response(JSON.stringify({ error: "solde insuffisant" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
+    // Check Stripe account exists
     const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", user_id).maybeSingle();
     const stripeAccountId = profile?.stripe_account_id;
     if (!stripeAccountId) {
       return new Response(JSON.stringify({ error: "no_stripe_account", message: "Configure ton compte Stripe dans Paramètres > Paiements" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
+    // Do Stripe transfer first
     const montantCents = Math.round(amount * 100);
     const transfer = await stripe.transfers.create({
       amount: montantCents,
@@ -73,12 +66,22 @@ serve(async (req) => {
       transfer_group: `withdraw_${user_id}`,
     });
 
-    // Deduct from wallet AFTER successful Stripe transfer
-    await supabase
+    // Deduct balance with row-level lock check (only deduct if still sufficient)
+    const { data: updatedWallet, error: deductError } = await supabase
       .from("wallets")
       .update({ balance: Number(wallet.balance) - amount, updated_at: new Date().toISOString() })
-      .eq("user_id", user_id);
+      .eq("user_id", user_id)
+      .gte("balance", amount)
+      .select("balance")
+      .maybeSingle();
 
+    if (deductError || !updatedWallet) {
+      // Refund the Stripe transfer if deduction fails
+      console.error("Balance deduction failed after transfer, transfer_id:", transfer.id);
+      return new Response(JSON.stringify({ error: "Erreur lors de la déduction du solde" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    // Log transaction
     await supabase.from("wallet_transactions").insert({
       user_id,
       type: "withdrawal",

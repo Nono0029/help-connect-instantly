@@ -62,10 +62,10 @@ serve(async (req) => {
     const prix = mission.demandes?.prix ? parseFloat(String(mission.demandes.prix).replace(/[^0-9.]/g, "")) : 0;
     if (prix <= 0) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
-    // Lookup conversation from conversations table (missions doesn't have conversation_id)
+    // Lookup conversation from conversations table (conversations has demande_id, not mission_id)
     let convId = conversation_id;
     if (!convId) {
-      const { data: conv } = await supabase.from("conversations").select("id").eq("mission_id", mission_id).maybeSingle();
+      const { data: conv } = await supabase.from("conversations").select("id").eq("demande_id", mission.demande_id).maybeSingle();
       convId = conv?.id;
     }
 

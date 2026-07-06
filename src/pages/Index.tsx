@@ -54,24 +54,28 @@ const Index = () => {
 
   const categoryKeys = [
     "Tout",
-    "🏠 Maison",
+    "💪 Aide physique",
     "🔧 Bricolage",
+    "💻 Développement / Tech",
+    "📚 Cours / Tutorat",
     "🐶 Animaux",
-    "📚 Cours",
-    "💬 Écoute",
-    "💻 Tech",
-    "🌱 Jardin",
+    "💬 Écoute / Social",
+    "🌱 Jardin / Plantes",
+    "🚗 Transport",
+    "✨ Autre",
   ];
 
   const categoryLabels: Record<string, string> = {
     "Tout": t('home.all'),
-    "🏠 Maison": t('home.house'),
+    "💪 Aide physique": t('home.physical'),
     "🔧 Bricolage": t('home.diy'),
+    "💻 Développement / Tech": t('home.tech'),
+    "📚 Cours / Tutorat": t('home.tutoring'),
     "🐶 Animaux": t('home.animals'),
-    "📚 Cours": t('home.tutoring'),
-    "💬 Écoute": t('home.listening'),
-    "💻 Tech": t('home.tech'),
-    "🌱 Jardin": t('home.garden'),
+    "💬 Écoute / Social": t('home.listening'),
+    "🌱 Jardin / Plantes": t('home.garden'),
+    "🚗 Transport": t('home.transport'),
+    "✨ Autre": t('home.other'),
   };
 
   const [search, setSearch] = useState("");

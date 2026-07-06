@@ -148,6 +148,7 @@ const EditProfile = () => {
     if (ville) updates.ville = ville;
     if (adresse) updates.adresse = adresse;
     if (avatarUrl) updates.avatar_url = avatarUrl;
+    updates.bio = bio;
     updates.skills = skills;
 
     const { error } = await supabase.from("profiles").upsert(updates);
