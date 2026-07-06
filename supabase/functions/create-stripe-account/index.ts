@@ -17,10 +17,18 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
 
-  const { user_id } = await req.json();
-  if (!user_id) return new Response(JSON.stringify({ error: "missing user_id" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: "missing authorization" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  }
 
-  const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", user_id).maybeSingle();
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", user.id).maybeSingle();
 
   let accountId = profile?.stripe_account_id;
 
@@ -28,11 +36,11 @@ serve(async (req) => {
     const account = await stripe.accounts.create({
       type: "express",
       country: "FR",
-      email: (await supabase.auth.admin.getUserById(user_id)).data.user?.email,
+      email: user.email,
       capabilities: { transfers: { requested: true } },
     });
     accountId = account.id;
-    await supabase.from("profiles").update({ stripe_account_id: accountId }).eq("id", user_id);
+    await supabase.from("profiles").update({ stripe_account_id: accountId }).eq("id", user.id);
   }
 
   const accountLink = await stripe.accountLinks.create({

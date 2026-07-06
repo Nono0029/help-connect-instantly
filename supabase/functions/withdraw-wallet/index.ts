@@ -17,19 +17,29 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
 
-  const { user_id, amount } = await req.json();
-  if (!user_id || !amount || amount <= 0) return new Response(JSON.stringify({ error: "invalid params" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: "missing authorization" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  }
 
-  // Vérifier le solde du wallet
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  }
+
+  const { amount } = await req.json();
+  if (!amount || amount <= 0) return new Response(JSON.stringify({ error: "invalid params" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+
+  const user_id = user.id;
+
   const { data: wallet } = await supabase.from("wallets").select("balance").eq("user_id", user_id).maybeSingle();
   if (!wallet || Number(wallet.balance) < amount) return new Response(JSON.stringify({ error: "solde insuffisant" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
-  // Vérifier que le helper a un compte Stripe
   const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", user_id).maybeSingle();
   const stripeAccountId = profile?.stripe_account_id;
   if (!stripeAccountId) return new Response(JSON.stringify({ error: "no_stripe_account", message: "Configure ton compte Stripe dans Paramètres > Paiements" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
-  // Transférer vers le compte Stripe du helper
   const montantCents = Math.round(amount * 100);
   const transfer = await stripe.transfers.create({
     amount: montantCents,
@@ -38,7 +48,6 @@ serve(async (req) => {
     transfer_group: `withdraw_${user_id}`,
   });
 
-  // Déduire du wallet
   await supabase
     .from("wallets")
     .update({ balance: Number(wallet.balance) - amount, updated_at: new Date().toISOString() })

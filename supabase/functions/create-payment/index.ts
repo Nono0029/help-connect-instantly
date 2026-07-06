@@ -17,11 +17,26 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
 
-  const { mission_id, user_id, conversation_id } = await req.json();
-  if (!mission_id || !user_id) return new Response(JSON.stringify({ error: "missing fields" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: "missing authorization" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  }
+
+  const { mission_id, conversation_id } = await req.json();
+  if (!mission_id) return new Response(JSON.stringify({ error: "missing fields" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
   const { data: mission } = await supabase.from("missions").select("*, demandes(*)").eq("id", mission_id).maybeSingle();
   if (!mission) return new Response(JSON.stringify({ error: "mission not found" }), { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } });
+
+  if (mission.demandeur_id !== user.id) {
+    return new Response(JSON.stringify({ error: "only the requester can initiate payment" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  }
 
   const prix = mission.demandes?.prix ? parseFloat(String(mission.demandes.prix).replace(/[^0-9.]/g, "")) : 0;
   if (prix <= 0) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
@@ -44,7 +59,7 @@ serve(async (req) => {
     metadata: {
       mission_id: mission_id.toString(),
       helper_id: mission.helper_id,
-      payeur_id: user_id,
+      payeur_id: user.id,
       conversation_id: convId?.toString() || "",
     },
     success_url: `${req.headers.get("origin")}/chat/${convId}?payment=success`,
@@ -55,7 +70,7 @@ serve(async (req) => {
 
   await supabase.from("payments").insert({
     mission_id,
-    payeur_id: user_id,
+    payeur_id: user.id,
     helper_id: mission.helper_id,
     stripe_session_id: session.id,
     montant: prix,
