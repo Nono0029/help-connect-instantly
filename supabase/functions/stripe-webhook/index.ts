@@ -42,7 +42,17 @@ serve(async (req) => {
       const missionId = session.metadata?.mission_id;
       const helperId = session.metadata?.helper_id;
       const conversationId = session.metadata?.conversation_id;
+      const userId = session.metadata?.user_id;
+      const paymentType = session.metadata?.type;
 
+      // Handle boost payment
+      if (paymentType === "boost" && userId) {
+        const now = new Date();
+        const until = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        await supabase.from("profiles").upsert({ id: userId, boost_until: until.toISOString() });
+      }
+
+      // Handle mission payment
       if (missionId) {
         await supabase.from("payments").update({ statut: "pay\u00e9", stripe_payment_intent: session.payment_intent as string }).eq("stripe_session_id", session.id);
         await supabase.from("missions").update({ statut: "en_cours" }).eq("id", parseInt(missionId));

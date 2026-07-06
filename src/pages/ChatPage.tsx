@@ -459,7 +459,7 @@ const ChatPage = () => {
     await supabase.from("messages").insert({
       conversation_id: parseInt(id!),
       sender_id: user?.id,
-      content: `${label} :\n${adresse}\n${ville}`,
+      content: `📍 ${label} :\n${adresse}\n${ville}`,
     });
     setAdresseEnvoyee(true);
     setShowAdresseBox(false);
