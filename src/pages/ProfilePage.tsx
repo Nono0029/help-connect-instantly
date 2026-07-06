@@ -13,6 +13,7 @@ interface Profile {
   bio: string;
   ville: string;
   avatar_url: string;
+  created_at?: string;
 }
 
 interface Review {
@@ -236,6 +237,22 @@ const ProfilePage = () => {
           <div className="flex items-center justify-center gap-1 mt-1">
             <Medal className="w-4 h-4 text-accent" />
             <span className="text-sm text-muted-foreground">{missions.length} {missions.length > 1 ? t('profile.missions') : t('profile.mission')} {missions.length > 1 ? t('profile.completedPlural') : t('profile.completed')}</span>
+          </div>
+
+          {/* TRUST SIGNALS */}
+          <div className="mt-4 pt-4 border-t border-border space-y-2">
+            {profile.created_at && (
+              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Membre depuis {new Date(profile.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</span>
+              </div>
+            )}
+            {(missions.length > 0 || avis.length > 0 || demandes.length > 0) && (
+              <div className="flex items-center justify-center gap-1.5 text-xs text-accent font-medium">
+                <Zap className="w-3.5 h-3.5" />
+                <span>Activité récente</span>
+              </div>
+            )}
           </div>
         </div>
 

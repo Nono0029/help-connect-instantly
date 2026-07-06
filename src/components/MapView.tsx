@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { getDistance } from "@/lib/utils";
 
 interface Demande {
   id: number;
@@ -25,10 +26,11 @@ interface Props {
 const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+  const markersLayerRef = useRef<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || mapInstanceRef.current) return;
 
     const loadLeaflet = async () => {
       const W = window as any;
@@ -66,11 +68,6 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
         W.LeafletCluster = true;
       }
 
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-
       const centerLat = userLat || lat;
       const centerLng = userLng || lng;
       const centerCoords: [number, number] = [centerLat, centerLng];
@@ -90,50 +87,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
       });
       L.marker(centerCoords, { icon: userIcon }).addTo(map);
 
-      const demandesAvecCoords = demandes.filter(d => d.lat && d.lng);
-      if (demandesAvecCoords.length > 0) {
-        const mcg = L.markerClusterGroup({
-          chunkedLoading: true,
-          maxClusterRadius: 50,
-          iconCreateFunction: (cluster: any) => {
-            const count = cluster.getChildCount();
-            const urgentCount = cluster.getAllChildMarkers().filter((m: any) => m.options.urgent).length;
-            const color = urgentCount > 0 ? "#ef4444" : "#22c55e";
-            return L.divIcon({
-              html: `<div style="background:${color};color:white;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)">${count}</div>`,
-              className: "",
-              iconSize: [40, 40],
-              iconAnchor: [20, 20],
-            });
-          },
-        });
-
-        demandesAvecCoords.forEach((d) => {
-          const dist = getDistance(centerLat, centerLng, d.lat!, d.lng!);
-          const color = d.urgent ? "#ef4444" : "#22c55e";
-
-          const icon = L.divIcon({
-            html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${d.gratuit ? "❤️" : "€"}</div>`,
-            className: "",
-            iconSize: [28, 28],
-            iconAnchor: [14, 14],
-          });
-
-          const marker = L.marker([d.lat!, d.lng!], { icon, urgent: d.urgent });
-          const sanitize = (s: string) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-          const distLabel = dist < 1 ? (dist * 1000).toFixed(0) + "m" : dist.toFixed(1) + "km";
-          marker.bindPopup(`
-            <div style="font-family:sans-serif;min-width:180px;cursor:pointer" onclick="window.__mapNavigate(${d.id})">
-              <b style="font-size:13px">${sanitize(d.titre)}</b><br/>
-              <span style="font-size:11px;color:#888">${sanitize(d.categorie)}${d.ville ? " · " + sanitize(d.ville) : ""}</span><br/>
-              <span style="font-size:11px;color:#666">📍 ${distLabel}</span>
-            </div>
-          `);
-          mcg.addLayer(marker);
-        });
-
-        map.addLayer(mcg);
-      }
+      markersLayerRef.current = L.layerGroup().addTo(map);
 
       (window as any).__mapNavigate = (id: number) => {
         navigate(`/demande/${id}`);
@@ -149,7 +103,63 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
       }
       delete (window as any).__mapNavigate;
     };
-  }, [demandes, ville, lat, lng, userLat, userLng]);
+  }, []);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const L = (window as any).L;
+    if (!map || !L || !markersLayerRef.current) return;
+
+    markersLayerRef.current.clearLayers();
+
+    const centerLat = userLat || lat;
+    const centerLng = userLng || lng;
+
+    const demandesAvecCoords = demandes.filter(d => d.lat && d.lng);
+    if (demandesAvecCoords.length === 0) return;
+
+    const mcg = L.markerClusterGroup({
+      chunkedLoading: true,
+      maxClusterRadius: 50,
+      iconCreateFunction: (cluster: any) => {
+        const count = cluster.getChildCount();
+        const urgentCount = cluster.getAllChildMarkers().filter((m: any) => m.options.urgent).length;
+        const color = urgentCount > 0 ? "#ef4444" : "#22c55e";
+        return L.divIcon({
+          html: `<div style="background:${color};color:white;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)">${count}</div>`,
+          className: "",
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+        });
+      },
+    });
+
+    demandesAvecCoords.forEach((d) => {
+      const dist = getDistance(centerLat, centerLng, d.lat!, d.lng!);
+      const color = d.urgent ? "#ef4444" : "#22c55e";
+
+      const icon = L.divIcon({
+        html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${d.gratuit ? "❤️" : "€"}</div>`,
+        className: "",
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+
+      const marker = L.marker([d.lat!, d.lng!], { icon, urgent: d.urgent });
+      const sanitize = (s: string) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+      const distLabel = dist < 1 ? (dist * 1000).toFixed(0) + "m" : dist.toFixed(1) + "km";
+      marker.bindPopup(`
+        <div style="font-family:sans-serif;min-width:180px;cursor:pointer" onclick="window.__mapNavigate(${d.id})">
+          <b style="font-size:13px">${sanitize(d.titre)}</b><br/>
+          <span style="font-size:11px;color:#888">${sanitize(d.categorie)}${d.ville ? " · " + sanitize(d.ville) : ""}</span><br/>
+          <span style="font-size:11px;color:#666">📍 ${distLabel}</span>
+        </div>
+      `);
+      mcg.addLayer(marker);
+    });
+
+    markersLayerRef.current.addLayer(mcg);
+  }, [demandes, lat, lng, userLat, userLng]);
 
   return (
     <div className="mx-4 mt-3 rounded-2xl overflow-hidden border border-border relative z-0 h-52">
@@ -157,19 +167,5 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
     </div>
   );
 };
-
-function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 
 export default MapView;

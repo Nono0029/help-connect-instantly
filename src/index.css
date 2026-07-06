@@ -188,4 +188,24 @@
 .dark .shimmer {
   background: linear-gradient(90deg, transparent 25%, rgba(0,180,200,0.2) 50%, transparent 75%);
   background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-spin, .animate-pulse, .animate-bounce, .animate-float {
+    animation: none !important;
+  }
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
 }

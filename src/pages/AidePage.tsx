@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, MessageCircle, CreditCard, UserCheck, Shield, AlertTriangle, HelpCircle, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,15 @@ const faqs = [
 const AidePage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredFaqs = faqs.filter((faq) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const question = t(`help.${faq.key}`).toLowerCase();
+    const answer = t(`help.${faq.answerKey}`).toLowerCase();
+    return question.includes(query) || answer.includes(query);
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,6 +65,8 @@ const AidePage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder={t('help.search')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 h-10 rounded-xl bg-secondary border-none text-sm"
           />
         </div>
@@ -66,21 +78,27 @@ const AidePage = () => {
         </div>
 
         <Accordion type="single" collapsible className="space-y-2">
-          {faqs.map((faq, i) => (
-            <AccordionItem key={i} value={`faq-${i}`} className="bg-card rounded-2xl border border-border px-4">
-              <AccordionTrigger className="py-3.5 hover:no-underline">
-                <div className="flex items-center gap-3 text-left">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <faq.icon className="w-4 h-4" />
+          {filteredFaqs.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground">{t('help.noResults') || "Aucun résultat trouvé"}</p>
+            </div>
+          ) : (
+            filteredFaqs.map((faq, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="bg-card rounded-2xl border border-border px-4">
+                <AccordionTrigger className="py-3.5 hover:no-underline">
+                  <div className="flex items-center gap-3 text-left">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <faq.icon className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-medium text-foreground">{t(`help.${faq.key}`)}</span>
                   </div>
-                  <span className="text-sm font-medium text-foreground">{t(`help.${faq.key}`)}</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground pb-4 leading-relaxed">
-                {t(`help.${faq.answerKey}`)}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground pb-4 leading-relaxed">
+                  {t(`help.${faq.answerKey}`)}
+                </AccordionContent>
+              </AccordionItem>
+            ))
+          )}
         </Accordion>
 
         <div className="bg-card rounded-2xl border border-border p-4 text-center space-y-2">

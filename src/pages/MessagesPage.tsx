@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Illu } from "@/components/Illustrations";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Conversation {
   id: number;
@@ -88,21 +89,23 @@ const MessagesPage = () => {
       const unique = mine.filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i);
       setConversations(unique);
 
-      // Fetch last message for each conversation
-      for (const conv of unique) {
-        const { data: msgs } = await supabase
+      // Fetch last message for ALL conversations in a single query
+      const convIds = unique.map(c => c.id);
+      if (convIds.length > 0) {
+        const { data: allMsgs } = await supabase
           .from("messages")
-          .select("content")
-          .eq("conversation_id", conv.id)
-          .order("created_at", { ascending: false })
-          .limit(1);
-        if (msgs && msgs.length > 0) {
-          const last = msgs[0].content;
-          setLastMessages(prev => ({
-            ...prev,
-            [conv.id]: last.startsWith("📷:") ? t('messages.photo') : last,
-          }));
-        }
+          .select("conversation_id, content, created_at")
+          .in("conversation_id", convIds)
+          .order("created_at", { ascending: false });
+
+        const lastMsgMap: Record<number, string> = {};
+        (allMsgs || []).forEach(msg => {
+          if (!lastMsgMap[msg.conversation_id]) {
+            const content = msg.content.startsWith("📷:") ? t('messages.photo') : msg.content;
+            lastMsgMap[msg.conversation_id] = content;
+          }
+        });
+        setLastMessages(lastMsgMap);
       }
 
       // Fetch profiles for all involved users
@@ -198,19 +201,11 @@ const MessagesPage = () => {
             </button>
 
             {filtered.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
-                <Illu name={showArchived ? "messages" : "chat"} className="w-48 h-48" />
-                <div>
-                  <p className="font-semibold text-foreground text-lg">
-                    {showArchived ? t('messages.noArchived') : t('messages.noConversations')}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-                    {showArchived
-                      ? t('messages.archivedEmpty')
-                      : t('messages.exploreEmpty')}
-                  </p>
-                </div>
-              </div>
+              <EmptyState
+                icon="💬"
+                title={showArchived ? t('messages.noArchived') : t('messages.noConversations')}
+                description={showArchived ? t('messages.archivedEmpty') : t('messages.exploreEmpty')}
+              />
             )}
 
             <AnimatePresence>

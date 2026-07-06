@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -24,9 +24,12 @@ import MapView from "@/components/MapView";
 import NotificationBell from "@/components/NotificationBell";
 import ImageLightbox from "@/components/ImageLightbox";
 import { Illu } from "@/components/Illustrations";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/EmptyState";
 
 import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/context/LanguageContext";
+import { getDistance, formatTimeAgo } from "@/lib/utils";
 
 interface Demande {
   id: number;
@@ -74,9 +77,9 @@ const Index = () => {
   const [selectedCat, setSelectedCat] =
     useState("Tout");
 
-  const [likedIds, setLikedIds] = useState<
-    number[]
-  >([]);
+  const [likedIds, setLikedIds] = useState<number[]>(() => {
+    try { return JSON.parse(localStorage.getItem('askoo-likes') || '[]'); } catch { return []; }
+  });
 
   const [showForm, setShowForm] =
     useState(false);
@@ -105,10 +108,15 @@ const Index = () => {
     Demande[]
   >([]);
 
+  const [loading, setLoading] = useState(true);
+
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   // FETCH
   const fetchDemandes = async () => {
+    setLoading(true);
     const { data: completedMissions } = await supabase
       .from("missions")
       .select("demande_id")
@@ -123,6 +131,7 @@ const Index = () => {
       });
 
     setDemandes((data || []).filter(d => !completedIds.includes(d.id)));
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -134,24 +143,15 @@ const Index = () => {
     );
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   // TIME
-  const getTemps = (created_at: string) => {
-    const diff = Math.floor(
-      (Date.now() -
-        new Date(created_at).getTime()) /
-        1000
-    );
-
-    if (diff < 60) return t('time.justNow');
-
-    if (diff < 3600)
-      return t('time.minutesAgo', { n: Math.floor(diff / 60) });
-
-    if (diff < 86400)
-      return t('time.hoursAgo', { n: Math.floor(diff / 3600) });
-
-    return t('time.daysAgo', { n: Math.floor(diff / 86400) });
-  };
+  const getTemps = (created_at: string) => formatTimeAgo(created_at, t);
 
   // LIKE
   const toggleLike = (
@@ -160,22 +160,24 @@ const Index = () => {
   ) => {
     e.stopPropagation();
 
-    setLikedIds((prev) =>
-      prev.includes(id)
+    setLikedIds((prev) => {
+      const newIds = prev.includes(id)
         ? prev.filter((i) => i !== id)
-        : [...prev, id]
-    );
+        : [...prev, id];
+      localStorage.setItem('askoo-likes', JSON.stringify(newIds));
+      return newIds;
+    });
   };
 
   // FILTERS
-  const filtered = demandes.filter((d) => {
+  const filtered = useMemo(() => demandes.filter((d) => {
     const matchSearch =
       d.titre
         .toLowerCase()
-        .includes(search.toLowerCase()) ||
+        .includes(debouncedSearch.toLowerCase()) ||
       d.description
         .toLowerCase()
-        .includes(search.toLowerCase());
+        .includes(debouncedSearch.toLowerCase());
 
     const matchCat =
       selectedCat === "Tout" ||
@@ -201,29 +203,21 @@ const Index = () => {
       matchType &&
       matchPrix
     );
-  });
+  }), [demandes, debouncedSearch, selectedCat, filters]);
 
-  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  };
-
-  const sorted = userCoords
+  const sorted = useMemo(() => userCoords
     ? [...filtered].sort((a, b) => {
         const dA = a.lat != null && a.lng != null ? getDistance(userCoords[0], userCoords[1], a.lat, a.lng) : 999;
         const dB = b.lat != null && b.lng != null ? getDistance(userCoords[0], userCoords[1], b.lat, b.lng) : 999;
         return dA - dB;
       })
-    : filtered;
+    : filtered, [filtered, userCoords]);
 
-  const activeFiltersCount = [
+  const activeFiltersCount = useMemo(() => [
     filters.type !== "Tout",
     filters.maxDistance !== 999,
     filters.prix !== "all",
-  ].filter(Boolean).length;
+  ].filter(Boolean).length, [filters]);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
@@ -413,24 +407,40 @@ const Index = () => {
       {/* LIST */}
       <div className="flex-1 px-4 pt-5 pb-28 space-y-4 relative z-10 isolate">
 
-        {sorted.length === 0 && (
-          <div className="text-center py-20">
-
-            <div className="text-6xl mb-4 animate-float">
-              🌸
+        {loading && [1, 2, 3, 4].map(i => (
+          <div key={i} className="card-magic">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-11 h-11 rounded-full" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </div>
+              <Skeleton className="w-5 h-5 rounded" />
             </div>
-
-            <p className="font-bold text-foreground text-lg">
-              {t('home.noResults')}
-            </p>
-
-            <p className="text-sm text-muted-foreground mt-2">
-              {t('home.noResultsDesc')}
-            </p>
-
+            <Skeleton className="h-5 w-3/4 mb-1.5" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-2/3 mb-3" />
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-20 rounded-xl" />
+                <Skeleton className="h-5 w-16 rounded-xl" />
+              </div>
+              <Skeleton className="h-5 w-12" />
+            </div>
           </div>
+        ))}
+
+        {!loading && sorted.length === 0 && (
+          <EmptyState
+            icon="🌸"
+            title={t('home.noResults')}
+            description={t('home.noResultsDesc')}
+          />
         )}
 
+        {!loading && (
         <AnimatePresence>
 
           {sorted.map((d, i) => (
@@ -563,6 +573,7 @@ const Index = () => {
 
           ))}
         </AnimatePresence>
+        )}
       </div>
 
       {/* MODALS */}

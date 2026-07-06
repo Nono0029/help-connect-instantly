@@ -127,6 +127,14 @@ const ChatPage = () => {
 
   const isImgMsg = (content: string) => content.startsWith("📷:");
 
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH+JkI+LhH+AgoSFhYaGhoaHh4eIiIiJiYmJiYmJiYqKioqLi4uLi4yMjI2NjY6Ojo+Pj5CQkJGRkZKSkpKTk5OUlJSVlZWWlpaXl5eYmJiZmZmampqbm5ucnJydnaCgoKGhoaKioqOjo6SkpKWlpaampqenp6ioqKmpqaqqqqurq6ysrK2tra6urrCwsLGxsbKysrOzs7S0tLW1tba2tre3t7i4uLm5ubq6uru7u7y8vL29vb6+vr/AwMDAwcHBwsLCw8PExMTFxcXGxsbHx8fIyMjJycnKysrLy8vMzMzNzc3Ozs7Pz8/Q0NDR0dHS0tLT09PU1NTV1dXW1tbX19fY2NjZ2dna2tra29vb3Nzc3d3d3t7e39/f4ODg4eHh4uLi4+Pj5OTk5eXl5ubm5+fn6Ojo6enp6urq6+vr7Ozs7e3t7u7u7+/v8PDw8fHx8vLy8/Pz9PT09fX19vb29/f3+Pj4+fn5+vr6+/v7/Pz8/f39/v7+////AAAAAAAAAAAA');
+      audio.volume = 0.3;
+      audio.play().catch(() => {});
+    } catch {}
+  };
+
   const fetchMessages = async () => {
     if (!id) return;
     const { data } = await supabase
@@ -539,7 +547,12 @@ const ChatPage = () => {
         schema: "public",
         table: "messages",
         filter: `conversation_id=eq.${id}`,
-      }, () => { fetchMessages(); })
+      }, (payload) => {
+        fetchMessages();
+        if (payload.new && (payload.new as Message).sender_id !== user?.id) {
+          playNotificationSound();
+        }
+      })
       .subscribe();
 
     const convChannel = supabase

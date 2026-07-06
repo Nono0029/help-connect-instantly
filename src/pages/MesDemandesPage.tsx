@@ -17,6 +17,7 @@ import PostDemandeForm from "@/components/PostDemandeForm";
 import NotificationBell from "@/components/NotificationBell";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Demande {
   id: number;
@@ -140,12 +141,11 @@ const MesDemandesPage = () => {
             </button>
 
             {demandes.filter(d => showArchived ? d.archived : !d.archived).length === 0 && (
-              <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-                <PackageOpen className="w-12 h-12 text-muted-foreground/40" />
-                <p className="font-semibold text-foreground">
-                  {showArchived ? t('requests.noArchived') : t('requests.noPublished')}
-                </p>
-              </div>
+              <EmptyState
+                icon="📦"
+                title={showArchived ? t('requests.noArchived') : t('requests.noPublished')}
+                description=""
+              />
             )}
 
             <AnimatePresence>

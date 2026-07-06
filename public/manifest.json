@@ -1,0 +1,17 @@
+{
+  "name": "Askoo - Entraide de proximité",
+  "short_name": "Askoo",
+  "description": "Trouve de l'aide près de chez toi ou propose ton aide",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f6e58d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTranslation } from "@/context/LanguageContext";
+import { formatTimeAgo } from "@/lib/utils";
 
 const FILTERS = ["Toutes", "Messages", "Demandes", "Missions"] as const;
 type Filter = typeof FILTERS[number];
@@ -32,13 +33,7 @@ const NotificationBell = () => {
     }
   };
 
-  const getTemps = (created_at: string) => {
-    const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
-    if (diff < 60) return t('time.justNow');
-    if (diff < 3600) return t('time.minutesAgo', { n: Math.floor(diff / 60) });
-    if (diff < 86400) return t('time.hoursAgo', { n: Math.floor(diff / 3600) });
-    return t('time.daysAgo', { n: Math.floor(diff / 86400) });
-  };
+  const getTemps = (created_at: string) => formatTimeAgo(created_at, t);
 
   const filterLabels: Record<Filter, string> = {
     "Toutes": t('notifications.all'),

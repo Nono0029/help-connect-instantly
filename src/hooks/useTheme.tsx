@@ -18,7 +18,13 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("demande-theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme(t => (t === "light" ? "dark" : "light"));
+  const toggleTheme = () => {
+    document.documentElement.style.transition = "background-color 0.3s ease, color 0.3s ease";
+    setTimeout(() => {
+      document.documentElement.style.transition = "";
+    }, 300);
+    setTheme(t => (t === "light" ? "dark" : "light"));
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import ImageLightbox from "@/components/ImageLightbox";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
+import { formatTimeAgo } from "@/lib/utils";
 
 interface Demande {
   id: number;
@@ -48,13 +49,7 @@ const DemandeDetail = () => {
     fetch();
   }, [id]);
 
-  const getTemps = (created_at: string) => {
-    const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
-    if (diff < 60) return "À l'instant";
-    if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-    if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
-    return `Il y a ${Math.floor(diff / 86400)} j`;
-  };
+  const getTemps = (created_at: string) => formatTimeAgo(created_at, t);
 
   const handleVouloir = async () => {
     if (!user || !demande) return;
