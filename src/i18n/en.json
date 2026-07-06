@@ -314,21 +314,21 @@
     "withdrawError": "Error during withdrawal"
   },
   "paymentSetup": {
-    "title": "Stripe Payments",
+    "title": "Secure payment",
     "securePayment": "Secure payment",
     "howItWorks": "How payment works on Askoo",
     "secure100": "100% secure payment",
     "secure100Desc": "All payments are processed via Stripe, the world leader in online payments.",
     "lockedUntilEnd": "Money locked until completion",
     "lockedDesc": "Funds are secured on Stripe and only released to the provider after both parties confirm.",
-    "feesTitle": "Service fee: €2",
-    "feesDesc": "A €2 commission is added to the mission price to support the platform.",
+    "payWithCard": "Pay with card or Apple Pay",
+    "payWithCardDesc": "No account needed — pay directly with your credit card, Apple Pay or Google Pay.",
     "howTitle": "How does it work?",
-    "step1": "The requester pays the mission amount + €2 fee via Stripe",
-    "step2": "Money is secured on Stripe — no one touches it until the end",
-    "step3": "The provider completes the mission",
-    "step4": "Both parties confirm the mission is complete → funds are released",
-    "step5": "The provider receives payment to their Stripe account"
+    "step1": "You click \"Pay\" in the conversation",
+    "step2": "Enter your card details or use Apple/Google Pay",
+    "step3": "Money is secured on Stripe — no one touches it until the end",
+    "step4": "The provider completes the mission",
+    "step5": "Both parties confirm → funds are released to the provider"
   },
   "help": {
     "title": "Help & Contact",

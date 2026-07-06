@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, ShieldCheck, Lock, Gift } from "lucide-react";
+import { ArrowLeft, CreditCard, ShieldCheck, Lock, Smartphone } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 
 const PaymentSetup = () => {
@@ -23,7 +23,7 @@ const PaymentSetup = () => {
             <CreditCard className="w-8 h-8 text-primary" />
             <div>
               <h2 className="font-bold text-foreground">{t('paymentSetup.securePayment')}</h2>
-              <p className="text-sm text-muted-foreground">{t('paymentSetup.secureDesc')}</p>
+              <p className="text-sm text-muted-foreground">{t('paymentSetup.howItWorks')}</p>
             </div>
           </div>
 
@@ -43,10 +43,10 @@ const PaymentSetup = () => {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Gift className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+              <Smartphone className="w-5 h-5 text-accent shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground">{t('paymentSetup.feesTitle')}</p>
-                <p className="text-muted-foreground text-xs">{t('paymentSetup.feesDesc')}</p>
+                <p className="font-semibold text-foreground">{t('paymentSetup.payWithCard')}</p>
+                <p className="text-muted-foreground text-xs">{t('paymentSetup.payWithCardDesc')}</p>
               </div>
             </div>
           </div>

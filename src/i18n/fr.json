@@ -314,21 +314,21 @@
     "withdrawError": "Erreur lors du retrait"
   },
   "paymentSetup": {
-    "title": "Paiements Stripe",
+    "title": "Paiement sécurisé",
     "securePayment": "Paiement sécurisé",
     "howItWorks": "Comment fonctionne le paiement sur Askoo",
     "secure100": "Paiement 100% sécurisé",
     "secure100Desc": "Tous les paiements sont traités via Stripe, leader mondial des paiements en ligne.",
     "lockedUntilEnd": "Argent bloqué jusqu'à la fin",
     "lockedDesc": "Les fonds sont sécurisés sur Stripe et ne sont reversés au prestataire qu'après confirmation des deux parties.",
-    "feesTitle": "Frais de service : 2€",
-    "feesDesc": "Une commission de 2€ est ajoutée au prix de la mission pour soutenir la plateforme.",
+    "payWithCard": "Paye avec ta carte ou Apple Pay",
+    "payWithCardDesc": "Pas besoin de compte — tu paies directement par carte bancaire, Apple Pay ou Google Pay.",
     "howTitle": "Comment ça marche ?",
-    "step1": "Le demandeur paie le montant de la mission + 2€ de frais via Stripe",
-    "step2": "L'argent est sécurisé sur Stripe — personne n'y touche avant la fin",
-    "step3": "Le prestataire réalise la mission",
-    "step4": "Les deux parties confirment que la mission est terminée → les fonds sont libérés",
-    "step5": "Le prestataire reçoit le paiement sur son compte Stripe"
+    "step1": "Tu cliques sur « Payer » dans la conversation",
+    "step2": "Tu entres ta carte bancaire ou utilises Apple/Google Pay",
+    "step3": "L'argent est sécurisé sur Stripe — personne n'y touche avant la fin",
+    "step4": "Le prestataire réalise la mission",
+    "step5": "Les deux parties confirment → l'argent est versé au prestataire"
   },
   "help": {
     "title": "Aide & Contact",

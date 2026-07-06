@@ -172,7 +172,7 @@ const Settings = () => {
         {
           icon: CreditCard,
           label: t('settings.stripePayments'),
-          desc: stripeLinked ? t('settings.stripeLinked') : t('settings.stripeDesc'),
+          desc: t('settings.stripeDesc'),
           action: () => navigate("/payment-setup"),
           toggle: false,
         },
