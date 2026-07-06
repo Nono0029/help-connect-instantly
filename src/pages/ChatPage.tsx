@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useTranslation } from "@/context/LanguageContext";
 import {
   ArrowLeft,
   Send,
@@ -67,6 +68,7 @@ const ChatPage = () => {
   const paymentParam = searchParams.get("payment");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -241,13 +243,13 @@ const ChatPage = () => {
     await supabase.from("messages").insert({
       conversation_id: parseInt(id!),
       sender_id: user.id,
-      content: "✅ Mission acceptée ! Prépare-toi à aider 🌱",
+      content: t('chat.missionAccepted'),
     });
 
     if (otherUserId) {
       await supabase.from("notifications").insert({
         user_id: otherUserId,
-        message: "✅ Ta demande d'aide a été acceptée !",
+        message: t('chat.missionAcceptedNotif'),
         conversation_id: conversation.id,
         lu: false,
       });
@@ -267,13 +269,13 @@ const ChatPage = () => {
     await supabase.from("messages").insert({
       conversation_id: parseInt(id!),
       sender_id: user.id,
-      content: "❌ Demande refusée. Désolé !",
+      content: t('chat.missionRefused'),
     });
 
     if (otherUserId) {
       await supabase.from("notifications").insert({
         user_id: otherUserId,
-        message: "❌ Ta demande d'aide a été refusée.",
+        message: t('chat.missionRefusedNotif'),
         conversation_id: conversation.id,
         lu: false,
       });
@@ -307,7 +309,7 @@ const ChatPage = () => {
         console.error("release-payment error:", releaseErr);
         await supabase.from("notifications").insert({
           user_id: mission.helper_id,
-          message: "⚠️ La mission est terminée mais le paiement n'a pas pu être libéré. Configure ton compte Stripe dans Paramètres > Paiements.",
+          message: t('chat.paymentReleaseError'),
           conversation_id: parseInt(id!),
           lu: false,
         });
@@ -316,18 +318,18 @@ const ChatPage = () => {
       await supabase.from("messages").insert({
         conversation_id: parseInt(id!),
         sender_id: user.id,
-        content: "🎉 Mission terminée ! Merci à tous les deux !",
+        content: t('chat.missionFinishedMsg'),
       });
 
       if (otherUserId) {
         await supabase.from("notifications").insert([{
           user_id: otherUserId,
-          message: "🎉 Mission terminée ! Les deux parties ont confirmé.",
+          message: t('chat.missionFinishedNotif'),
           conversation_id: parseInt(id!),
           lu: false,
         }, {
           user_id: user.id,
-          message: "🎉 Mission terminée ! Merci pour ton aide.",
+          message: t('chat.missionFinishedThanks'),
           conversation_id: parseInt(id!),
           lu: false,
         }]);
@@ -335,7 +337,7 @@ const ChatPage = () => {
     } else if (otherUserId) {
       await supabase.from("notifications").insert({
         user_id: otherUserId,
-        message: `${user.email?.split("@")[0] || "Quelqu'un"} a confirmé la mission ✅`,
+        message: t('chat.missionConfirmed', { name: user.email?.split("@")[0] || t('chat.someone') }),
         conversation_id: parseInt(id!),
         lu: false,
       });
@@ -353,7 +355,7 @@ const ChatPage = () => {
         body: { mission_id: mission.id, user_id: user.id, conversation_id: id },
       });
 
-      if (error || !data?.url) throw new Error(error?.message || "Erreur paiement");
+      if (error || !data?.url) throw new Error(error?.message || t('chat.paymentError'));
 
       const { data: p } = await supabase
         .from("payments")
@@ -366,7 +368,7 @@ const ChatPage = () => {
 
       window.location.href = data.url;
     } catch (err: any) {
-      toast.error(err?.message || "Erreur de paiement. Vérifie que le prestataire a configuré Stripe.");
+      toast.error(err?.message || t('chat.paymentErrorDesc'));
       console.error(err);
     }
 
@@ -404,7 +406,7 @@ const ChatPage = () => {
     const fileExt = file.name.split(".").pop();
     const filePath = `signal/${id}/${Date.now()}.${fileExt}`;
     const { error: uploadError } = await supabase.storage.from("chat-photos").upload(filePath, file);
-    if (uploadError) { toast.error("Erreur upload"); return; }
+    if (uploadError) { toast.error(t('chat.uploadError')); return; }
     const { data: urlData } = supabase.storage.from("chat-photos").getPublicUrl(filePath);
     setSignalPhotos(prev => [...prev, urlData.publicUrl]);
   };
@@ -425,15 +427,15 @@ const ChatPage = () => {
       await supabase.from("messages").insert({
         conversation_id: parseInt(id),
         sender_id: user.id,
-        content: "🚩 Un problème a été signalé sur cette mission.",
+        content: t('chat.problemReported'),
       });
-      toast.success("Signalement envoyé. Nous allons vérifier la situation.");
+      toast.success(t('chat.reportSent'));
       setShowSignal(false);
       setSignalRaison("");
       setSignalDescription("");
       setSignalPhotos([]);
     } catch (err: any) {
-      toast.error("Erreur lors du signalement");
+      toast.error(t('chat.reportError'));
       console.error(err);
     }
     setSignalLoading(false);
@@ -441,7 +443,7 @@ const ChatPage = () => {
 
   const envoyerAdresse = async () => {
     if (!adresse.trim()) return;
-    const label = isDemandeOwner ? "📍 Où venir m'aider" : "📍 Mon adresse";
+    const label = isDemandeOwner ? t('chat.sendAddressDemandeur') : t('chat.sendAddress');
     await supabase.from("messages").insert({
       conversation_id: parseInt(id!),
       sender_id: user?.id,
@@ -498,7 +500,7 @@ const ChatPage = () => {
       });
     } catch (err: any) {
       console.error(err);
-      toast.error("Erreur lors de l'envoi de la photo");
+      toast.error(t('chat.photoSendError'));
     }
 
     setUploading(false);
@@ -653,7 +655,7 @@ const ChatPage = () => {
           <button
             onClick={() => setShowSignal(true)}
             className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shrink-0 shadow-card hover:bg-destructive/10 hover:border-destructive/30 transition-all"
-            title="Signaler un problème"
+            title={t('chat.signalBtn')}
           >
             <Flag className="w-4 h-4 text-destructive/70" />
           </button>
@@ -667,23 +669,23 @@ const ChatPage = () => {
             >
               {otherProfile?.pseudo || conversation?.demande?.titre || "Conversation"}
             </p>
-            {isOnline && <div className="w-2 h-2 rounded-full bg-accent shrink-0 animate-pulse" title="En ligne" />}
+            {isOnline && <div className="w-2 h-2 rounded-full bg-accent shrink-0 animate-pulse" title={t('chat.online')} />}
           </div>
 
           <p className="text-xs text-muted-foreground mt-0.5">
-            {isTyping ? "🤔 En train d'écrire..."
-            : conversation?.statut === "fermée" ? "❌ Conversation fermée"
-            : conversation?.statut === "terminee" ? "⭐ Mission terminée"
-            : mission?.statut === "terminee" ? "⭐ Mission terminée"
-            : mission?.statut === "en_cours" ? "🌱 Mission en cours"
-            : conversation?.statut === "en_attente" ? "⏳ En attente d'acceptation"
-            : "💬 Discussion"}
+            {isTyping ? t('chat.typing')
+            : conversation?.statut === "fermée" ? t('chat.closed')
+            : conversation?.statut === "terminee" ? t('chat.missionFinished')
+            : mission?.statut === "terminee" ? t('chat.missionFinished')
+            : mission?.statut === "en_cours" ? t('chat.missionInProgress')
+            : conversation?.statut === "en_attente" ? t('chat.waitingAcceptance')
+            : t('chat.discussion')}
           </p>
 
           {messages.length >= 5 && mission?.statut === "en_cours" && (
             <div className="mt-3 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <p className="text-[11px] text-accent font-semibold">Paiement sécurisé débloqué ✨</p>
+              <p className="text-[11px] text-accent font-semibold">{t('chat.paymentUnlocked')}</p>
             </div>
           )}
         </div>
@@ -692,15 +694,15 @@ const ChatPage = () => {
       {/* ACCEPT / REFUSE */}
       {isDemandeOwner && conversation?.statut === "en_attente" && (
         <div className="px-4 py-3 bg-card/80 border-b border-border">
-          <p className="text-sm font-semibold text-foreground mb-2">Tu souhaites accepter cette aide ?</p>
+          <p className="text-sm font-semibold text-foreground mb-2">{t('chat.acceptPrompt')}</p>
           <div className="flex gap-2">
             <button onClick={refuserMission} disabled={actionLoading}
               className="flex-1 h-11 rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 font-semibold text-sm flex items-center justify-center gap-1.5 disabled:opacity-50">
-              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Refuser
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} {t('chat.refuse')}
             </button>
             <button onClick={accepterMission} disabled={actionLoading}
               className="flex-1 h-11 rounded-2xl bg-accent/10 text-accent border border-accent/20 font-semibold text-sm flex items-center justify-center gap-1.5 disabled:opacity-50">
-              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Accepter
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} {t('chat.accept')}
             </button>
           </div>
         </div>
@@ -712,17 +714,17 @@ const ChatPage = () => {
           <div className="flex items-center gap-2 mb-2">
             <Lock className="w-4 h-4 text-accent" />
             <p className="text-sm font-semibold text-foreground">
-              {payment?.statut === "en_attente" ? "Paiement en attente" : messages.length >= 5 ? "Paiement sécurisé disponible" : "Paiement sécurisé"}
+              {payment?.statut === "en_attente" ? t('chat.paymentPending') : messages.length >= 5 ? t('chat.paymentAvailable') : t('chat.paymentSecure')}
             </p>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
             {payment?.statut === "en_attente"
-              ? "Un paiement précédent n'a pas été complété. Tu peux réessayer."
+              ? t('chat.paymentPendingDesc')
               : payment?.statut === "expir\u00e9"
-                ? "La session de paiement a expiré. Tu peux réessayer."
+                ? t('chat.paymentExpiredDesc')
                 : messages.length >= 5
-                  ? "💰 L'argent est bloqué sur Stripe jusqu'à confirmation des deux parties. Total : prix + 2€ de frais."
-                  : "💬 Envoie au moins 5 messages pour débloquer le paiement sécurisé."}
+                  ? t('chat.paymentDesc')
+                  : t('chat.paymentLocked')}
           </p>
           <button
             onClick={handlePayment}
@@ -738,7 +740,7 @@ const ChatPage = () => {
             ) : (
               <CreditCard className="w-4 h-4" />
             )}
-            {messages.length >= 5 ? "Payer avec Stripe 💳" : `🔒 ${5 - messages.length} messages restants`}
+            {messages.length >= 5 ? t('chat.payBtn') : t('chat.messagesLeft', {n: 5 - messages.length})}
           </button>
         </div>
       )}
@@ -746,21 +748,21 @@ const ChatPage = () => {
       {payment?.statut === "pay\u00e9" && (
         <div className="px-4 py-2 bg-accent/5 border-b border-border flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-accent" />
-          <p className="text-xs text-accent font-semibold">✅ Paiement sécurisé reçu — argent bloqué jusqu'à la fin de la mission</p>
+          <p className="text-xs text-accent font-semibold">{t('chat.paymentReceived')}</p>
         </div>
       )}
 
       {payment?.statut === "termine" && (
         <div className="px-4 py-2 bg-accent/5 border-b border-border flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-accent" />
-          <p className="text-xs text-accent font-semibold">💰 Paiement libéré — le prestataire a été payé</p>
+          <p className="text-xs text-accent font-semibold">{t('chat.paymentReleased')}</p>
         </div>
       )}
 
       {payment?.statut === "rembours\u00e9" && (
         <div className="px-4 py-2 bg-destructive/10 border-b border-border flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-destructive" />
-          <p className="text-xs text-destructive font-semibold">↩️ Paiement remboursé au demandeur</p>
+          <p className="text-xs text-destructive font-semibold">{t('chat.paymentRefunded')}</p>
         </div>
       )}
 
@@ -774,8 +776,8 @@ const ChatPage = () => {
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center py-16">
             <Illu name="chat" className="w-40 h-40 opacity-60" />
-            <p className="text-muted-foreground text-sm mt-4">Aucun message pour l'instant</p>
-            <p className="text-muted-foreground/60 text-xs">Envoie un message pour commencer la discussion 🌱</p>
+            <p className="text-muted-foreground text-sm mt-4">{t('chat.noMessages')}</p>
+            <p className="text-muted-foreground/60 text-xs">{t('chat.noMessagesDesc')}</p>
           </div>
         )}
         {messages.map((msg) => (
@@ -809,17 +811,17 @@ const ChatPage = () => {
           <div className="rounded-[30px] bg-card/80 border border-border p-5 shadow-magic backdrop-blur-2xl">
             <div className="flex items-center gap-2 mb-3">
               <ShieldCheck className="w-5 h-5 text-accent dark:text-cyan-400" />
-              <p className="font-bold text-foreground">{isDemandeOwner ? "Où venir t'aider ?" : "Ton adresse ?"}</p>
+              <p className="font-bold text-foreground">{isDemandeOwner ? t('chat.whereHelp') : t('chat.yourAddress')}</p>
             </div>
-            <p className="text-sm text-muted-foreground mb-4">{isDemandeOwner ? "Partage l'adresse où tu as besoin d'aide 🌼" : "Tu peux partager ton adresse si besoin 🌼"}</p>
+            <p className="text-sm text-muted-foreground mb-4">{isDemandeOwner ? t('chat.shareAddressDemandeur') : t('chat.shareAddressHelper')}</p>
             <input value={adresse} onChange={(e) => setAdresse(e.target.value)} placeholder="Adresse"
               className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground mb-3 outline-none" />
             <input value={ville} onChange={(e) => setVille(e.target.value)} placeholder="Ville"
               className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground mb-4 outline-none" />
             <div className="flex gap-2">
-              <button onClick={() => { setShowAdresseBox(false); setAdresseDismissed(true); }} className="flex-1 h-11 rounded-2xl bg-muted border border-border text-muted-foreground">Plus tard</button>
+              <button onClick={() => { setShowAdresseBox(false); setAdresseDismissed(true); }} className="flex-1 h-11 rounded-2xl bg-muted border border-border text-muted-foreground">{t('chat.later')}</button>
               <button onClick={envoyerAdresse} className="flex-1 h-11 rounded-2xl btn-magic font-bold flex items-center justify-center gap-2">
-                <MapPin className="w-4 h-4" /> Envoyer
+                <MapPin className="w-4 h-4" /> {t('chat.send')}
               </button>
             </div>
           </div>
@@ -831,8 +833,8 @@ const ChatPage = () => {
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
           <button onClick={() => setShowConfirmMission(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">
             {user?.id === mission.helper_id
-              ? (mission.helper_confirme ? "✅ En attente de confirmation du demandeur" : "🌱 Confirmer la mission")
-              : (mission.demandeur_confirme ? "✅ En attente de confirmation de l'helper" : "🌱 Confirmer la mission")
+              ? (mission.helper_confirme ? t('chat.waitingDemandeurConfirm') : t('chat.confirmMission'))
+              : (mission.demandeur_confirme ? t('chat.waitingHelperConfirm') : t('chat.confirmMission'))
             }
           </button>
         </div>
@@ -856,15 +858,15 @@ const ChatPage = () => {
 
               <div className="flex items-center gap-3 pt-2">
                 <ShieldCheck className="w-8 h-8 text-accent shrink-0" />
-                <h3 className="font-bold text-lg text-foreground">Confirmer la mission ?</h3>
+                <h3 className="font-bold text-lg text-foreground">{t('chat.confirmTitle')}</h3>
               </div>
 
               <div className="bg-muted/50 rounded-2xl p-4 space-y-2 text-sm text-muted-foreground">
-                <p>✅ <strong>La mission est terminée</strong> — tout s'est bien passé ?</p>
-                <p>🔒 <strong>Argent sécurisé</strong> — les fonds sont bloqués sur Stripe et seront reversés au prestataire quand les deux confirment.</p>
-                <p>💰 <strong>Frais de service</strong> — 2€ prélevés par la plateforme.</p>
-                <p>🛡️ <strong>Protection</strong> — un problème ? Tu peux signaler un incident depuis la conversation.</p>
-                <p className="text-xs text-muted-foreground/60 pt-1">En confirmant, tu libères le paiement vers le prestataire et la mission passe en "terminée".</p>
+                <p>✅ <strong>{t('chat.confirmMissionDone')}</strong></p>
+                <p>🔒 <strong>{t('chat.confirmMoneySecured')}</strong></p>
+                <p>💰 <strong>{t('chat.confirmFees')}</strong></p>
+                <p>🛡️ <strong>{t('chat.confirmProtection')}</strong></p>
+                <p className="text-xs text-muted-foreground/60 pt-1">{t('chat.confirmNote')}</p>
               </div>
 
               <div className="flex gap-3 pt-1">
@@ -872,7 +874,7 @@ const ChatPage = () => {
                   onClick={() => setShowConfirmMission(false)}
                   className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground font-medium"
                 >
-                  Non
+                  {t('chat.confirmNo')}
                 </button>
                 <button
                   onClick={async () => {
@@ -881,7 +883,7 @@ const ChatPage = () => {
                   }}
                   className="flex-1 h-12 rounded-2xl bg-accent text-accent-foreground font-bold"
                 >
-                  Oui, tout est bon !
+                  {t('chat.confirmYes')}
                 </button>
               </div>
             </motion.div>
@@ -892,12 +894,12 @@ const ChatPage = () => {
       {/* AVIS */}
       {mission?.statut === "terminee" && !showAvis && !avisDonne && (
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
-          <button onClick={() => setShowAvis(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">⭐ Laisser un avis</button>
+          <button onClick={() => setShowAvis(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">{t('chat.leaveReview')}</button>
         </div>
       )}
       {mission?.statut === "terminee" && avisDonne && (
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
-          <div className="w-full py-3 rounded-[24px] bg-muted border border-border text-center text-sm text-muted-foreground font-medium">⭐ Avis laissé — merci !</div>
+          <div className="w-full py-3 rounded-[24px] bg-muted border border-border text-center text-sm text-muted-foreground font-medium">{t('chat.reviewDone')}</div>
         </div>
       )}
 
@@ -905,8 +907,8 @@ const ChatPage = () => {
         <div className="fixed inset-0 bg-black/20 backdrop-blur-md z-50 flex items-end">
           <div className="w-full rounded-t-[34px] bg-card border-t border-border p-5 shadow-magic">
             <div className="w-16 h-1.5 bg-muted rounded-full mx-auto mb-5" />
-            <h2 className="text-xl font-bold text-center text-foreground mb-1">Laisser un avis ✨</h2>
-            <p className="text-sm text-center text-muted-foreground mb-6">Ton avis aide la communauté 🌼</p>
+            <h2 className="text-xl font-bold text-center text-foreground mb-1">{t('chat.reviewTitle')}</h2>
+            <p className="text-sm text-center text-muted-foreground mb-6">{t('chat.reviewSubtitle')}</p>
             <div className="flex justify-center gap-2 mb-6">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} onClick={() => setNote(n)}>
@@ -915,11 +917,11 @@ const ChatPage = () => {
               ))}
             </div>
             <textarea value={commentaire} onChange={(e) => setCommentaire(e.target.value)}
-              placeholder="Écris ton commentaire 🌸"
+              placeholder={t('chat.reviewPlaceholder')}
               className="w-full h-28 rounded-3xl bg-background border border-border p-4 text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none" />
             <div className="flex gap-3 mt-5">
-              <button onClick={() => setShowAvis(false)} className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground">Annuler</button>
-              <button onClick={envoyerAvis} className="flex-1 h-12 rounded-2xl btn-magic font-bold">Envoyer ✨</button>
+              <button onClick={() => setShowAvis(false)} className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground">{t('chat.cancel')}</button>
+              <button onClick={envoyerAvis} className="flex-1 h-12 rounded-2xl btn-magic font-bold">{t('chat.sendReview')}</button>
             </div>
           </div>
         </div>
@@ -943,44 +945,44 @@ const ChatPage = () => {
 
               <div className="flex items-center gap-3 pt-2">
                 <AlertTriangle className="w-8 h-8 text-destructive shrink-0" />
-                <h3 className="font-bold text-lg text-foreground">Signaler un problème</h3>
+                <h3 className="font-bold text-lg text-foreground">{t('chat.reportTitle')}</h3>
               </div>
-              <p className="text-sm text-muted-foreground">Tu vas signaler un souci sur cette mission. Nous ferons notre possible pour résoudre la situation.</p>
+              <p className="text-sm text-muted-foreground">{t('chat.reportDesc')}</p>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Raison du signalement</label>
+                <label className="text-sm font-semibold text-foreground">{t('chat.reportReasonLabel')}</label>
                 <select
                   value={signalRaison}
                   onChange={(e) => setSignalRaison(e.target.value)}
                   className="w-full h-12 rounded-2xl bg-background border border-border px-4 text-sm text-foreground outline-none"
                 >
-                  <option value="">Sélectionne une raison...</option>
-                  <option value="no_show">Le prestataire ne s'est pas présenté</option>
-                  <option value="incomplete">Le travail n'est pas terminé</option>
-                  <option value="bad_behavior">Comportement inapproprié</option>
-                  <option value="scam">Arnaque / Fraude</option>
-                  <option value="other">Autre</option>
+                  <option value="">{t('chat.reportSelectReason')}</option>
+                  <option value="no_show">{t('chat.reportNoShow')}</option>
+                  <option value="incomplete">{t('chat.reportIncomplete')}</option>
+                  <option value="bad_behavior">{t('chat.reportBadBehavior')}</option>
+                  <option value="scam">{t('chat.reportScam')}</option>
+                  <option value="other">{t('chat.reportOther')}</option>
                 </select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Description (optionnelle)</label>
+                <label className="text-sm font-semibold text-foreground">{t('chat.reportDescLabel')}</label>
                 <textarea
                   value={signalDescription}
                   onChange={(e) => setSignalDescription(e.target.value)}
-                  placeholder="Explique ce qui s'est passé..."
+                  placeholder={t('chat.reportDescPlaceholder')}
                   className="w-full h-24 rounded-3xl bg-background border border-border p-4 text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Preuves (photos, optionnel)</label>
+                <label className="text-sm font-semibold text-foreground">{t('chat.reportPhotosLabel')}</label>
                 <input ref={signalFileRef} type="file" accept="image/*" className="hidden" onChange={uploadSignalPhoto} />
                 <button
                   onClick={() => signalFileRef.current?.click()}
                   className="h-11 rounded-2xl bg-background border border-border px-4 text-sm text-muted-foreground flex items-center gap-2"
                 >
-                  <ImageIcon className="w-4 h-4" /> Ajouter une photo
+                  <ImageIcon className="w-4 h-4" /> {t('chat.reportAddPhoto')}
                 </button>
                 {signalPhotos.length > 0 && (
                   <div className="flex gap-2 flex-wrap">
@@ -992,7 +994,7 @@ const ChatPage = () => {
               </div>
 
               <div className="bg-destructive/5 rounded-2xl p-3 text-xs text-muted-foreground">
-                ⚠️ Un signalement est une procédure sérieuse. En cas de fausse déclaration, ton compte pourrait être suspendu.
+                ⚠️ {t('chat.reportWarning')}
               </div>
 
               <div className="flex gap-3 pt-1">
@@ -1000,7 +1002,7 @@ const ChatPage = () => {
                   onClick={() => { setShowSignal(false); setSignalRaison(""); setSignalDescription(""); setSignalPhotos([]); }}
                   className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground font-medium"
                 >
-                  Annuler
+                  {t('chat.cancel')}
                 </button>
                 <button
                   onClick={handleSignal}
@@ -1008,7 +1010,7 @@ const ChatPage = () => {
                   className="flex-1 h-12 rounded-2xl bg-destructive text-destructive-foreground font-bold disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {signalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Flag className="w-4 h-4" />}
-                  Signaler
+                  {t('chat.reportBtn')}
                 </button>
               </div>
             </motion.div>
@@ -1033,13 +1035,13 @@ const ChatPage = () => {
               className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                 adresseEnvoyee ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground hover:text-accent"
               }`}
-              title={adresseEnvoyee ? "Adresse déjà envoyée" : isDemandeOwner ? "Partager mon adresse" : "Envoyer mon adresse"}
+              title={adresseEnvoyee ? t('chat.addressSent') : isDemandeOwner ? t('chat.shareAddress') : t('chat.sendMyAddress')}
             >
               <Home className="w-4 h-4" />
             </button>
             <input value={text} onChange={(e) => { setText(e.target.value); handleTyping(); }}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Écris un message 🌼"
+              placeholder={t('chat.messagePlaceholder')}
               className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none px-2 text-sm" />
             <button onClick={sendMessage} className="w-11 h-11 rounded-2xl btn-magic flex items-center justify-center shrink-0">
               <Send className="w-4 h-4 text-foreground dark:text-white" />

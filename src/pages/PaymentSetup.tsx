@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, ShieldCheck, Lock, Gift } from "lucide-react";
+import { useTranslation } from "@/context/LanguageContext";
 
 const PaymentSetup = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-background">
@@ -11,7 +13,7 @@ const PaymentSetup = () => {
           <button onClick={() => navigate("/settings")} className="p-1">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-lg font-bold text-foreground">Paiements Stripe</h1>
+          <h1 className="text-lg font-bold text-foreground">{t('paymentSetup.title')}</h1>
         </div>
       </header>
 
@@ -20,8 +22,8 @@ const PaymentSetup = () => {
           <div className="flex items-center gap-3 mb-4">
             <CreditCard className="w-8 h-8 text-primary" />
             <div>
-              <h2 className="font-bold text-foreground">Paiement sécurisé</h2>
-              <p className="text-sm text-muted-foreground">Comment fonctionne le paiement sur Askoo</p>
+              <h2 className="font-bold text-foreground">{t('paymentSetup.securePayment')}</h2>
+              <p className="text-sm text-muted-foreground">{t('paymentSetup.secureDesc')}</p>
             </div>
           </div>
 
@@ -29,49 +31,49 @@ const PaymentSetup = () => {
             <div className="flex items-start gap-3">
               <ShieldCheck className="w-5 h-5 text-accent shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground">Paiement 100% sécurisé</p>
-                <p className="text-muted-foreground text-xs">Tous les paiements sont traités via Stripe, leader mondial des paiements en ligne.</p>
+                <p className="font-semibold text-foreground">{t('paymentSetup.secure100')}</p>
+                <p className="text-muted-foreground text-xs">{t('paymentSetup.secure100Desc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Lock className="w-5 h-5 text-accent shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground">Argent bloqué jusqu'à la fin</p>
-                <p className="text-muted-foreground text-xs">Les fonds sont sécurisés sur Stripe et ne sont reversés au prestataire qu'après confirmation des deux parties.</p>
+                <p className="font-semibold text-foreground">{t('paymentSetup.lockedUntilEnd')}</p>
+                <p className="text-muted-foreground text-xs">{t('paymentSetup.lockedDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Gift className="w-5 h-5 text-accent shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-foreground">Frais de service : 2€</p>
-                <p className="text-muted-foreground text-xs">Une commission de 2€ est ajoutée au prix de la mission pour soutenir la plateforme.</p>
+                <p className="font-semibold text-foreground">{t('paymentSetup.feesTitle')}</p>
+                <p className="text-muted-foreground text-xs">{t('paymentSetup.feesDesc')}</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="card-magic">
-          <h3 className="font-bold text-foreground mb-3">Comment ça marche ?</h3>
+          <h3 className="font-bold text-foreground mb-3">{t('paymentSetup.howTitle')}</h3>
           <ol className="text-sm text-muted-foreground space-y-3 list-none">
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</span>
-              <span>Le demandeur paie le montant de la mission <strong>+ 2€ de frais</strong> via Stripe</span>
+              <span>{t('paymentSetup.step1')}</span>
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</span>
-              <span>L'argent est sécurisé sur Stripe — personne n'y touche avant la fin</span>
+              <span>{t('paymentSetup.step2')}</span>
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</span>
-              <span>Le prestataire réalise la mission</span>
+              <span>{t('paymentSetup.step3')}</span>
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">4</span>
-              <span>Les deux parties confirment que la mission est terminée → les fonds sont libérés</span>
+              <span>{t('paymentSetup.step4')}</span>
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">5</span>
-              <span>Le prestataire reçoit le paiement sur son compte Stripe</span>
+              <span>{t('paymentSetup.step5')}</span>
             </li>
           </ol>
         </div>

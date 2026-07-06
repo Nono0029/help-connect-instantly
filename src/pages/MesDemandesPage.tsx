@@ -16,6 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 import PostDemandeForm from "@/components/PostDemandeForm";
 import NotificationBell from "@/components/NotificationBell";
 import { toast } from "sonner";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface Demande {
   id: number;
@@ -33,6 +34,7 @@ interface Demande {
 const MesDemandesPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [demandes, setDemandes] = useState<Demande[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +104,7 @@ const MesDemandesPage = () => {
           </button>
 
           <h1 className="text-lg font-bold text-foreground">
-            Mes demandes
+            {t('requests.title')}
           </h1>
 
           {/* 🔔 NOTIFICATION BELL */}
@@ -110,7 +112,7 @@ const MesDemandesPage = () => {
             <NotificationBell />
 
             <span className="text-sm text-muted-foreground">
-              {demandes.length} publiée{demandes.length > 1 ? "s" : ""}
+              {demandes.length} {demandes.length > 1 ? t('requests.publishedPlural') : t('requests.published')}
             </span>
           </div>
         </div>
@@ -134,14 +136,14 @@ const MesDemandesPage = () => {
               className="flex items-center gap-2 text-xs text-muted-foreground mb-2"
             >
               {showArchived ? <ArchiveX className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
-              {showArchived ? "Voir les demandes actives" : `Voir les archives (${demandes.filter(d => d.archived).length})`}
+              {showArchived ? t('requests.viewActive') : t('requests.viewArchived', { n: demandes.filter(d => d.archived).length })}
             </button>
 
             {demandes.filter(d => showArchived ? d.archived : !d.archived).length === 0 && (
               <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
                 <PackageOpen className="w-12 h-12 text-muted-foreground/40" />
                 <p className="font-semibold text-foreground">
-                  {showArchived ? "Aucune demande archivée" : "Aucune demande publiée"}
+                  {showArchived ? t('requests.noArchived') : t('requests.noPublished')}
                 </p>
               </div>
             )}
@@ -160,7 +162,7 @@ const MesDemandesPage = () => {
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">{d.categorie}</span>
                     {d.urgent && (
                       <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded flex items-center gap-1">
-                        <Zap className="w-3 h-3" /> Urgent
+                        <Zap className="w-3 h-3" /> {t('requests.urgent')}
                       </span>
                     )}
                   </div>
@@ -171,7 +173,7 @@ const MesDemandesPage = () => {
                   <div className="flex justify-between mt-3">
                     <span className="flex items-center gap-1 text-xs">
                       <Euro className="w-3 h-3" />
-                      {d.gratuit ? "Gratuit" : d.prix || "—"}
+                      {d.gratuit ? t('requests.free') : d.prix || "—"}
                     </span>
 
                     <div className="flex gap-2">
@@ -179,13 +181,13 @@ const MesDemandesPage = () => {
                         className={`px-3 py-1 rounded-xl text-xs ${d.archived ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}
                       >
                         <Archive className="w-3 h-3 inline mr-1" />
-                        {d.archived ? "Restaurer" : "Archiver"}
+                        {d.archived ? t('requests.restore') : t('requests.archive')}
                       </button>
                       <button onClick={() => handleEdit(d)} className="px-3 py-1 rounded-xl bg-primary/10 text-primary text-xs">
-                        <Pencil className="w-3 h-3 inline mr-1" /> Modifier
+                        <Pencil className="w-3 h-3 inline mr-1" /> {t('requests.edit')}
                       </button>
                       <button onClick={() => setConfirmDeleteId(d.id)} className="px-3 py-1 rounded-xl bg-destructive/10 text-destructive text-xs">
-                        <Trash2 className="w-3 h-3 inline mr-1" /> Supprimer
+                        <Trash2 className="w-3 h-3 inline mr-1" /> {t('requests.delete')}
                       </button>
                     </div>
                   </div>
@@ -208,7 +210,7 @@ const MesDemandesPage = () => {
                 className="bg-card w-full p-6 rounded-t-3xl space-y-4 pb-20"
               >
               <h3 className="font-bold text-center">
-                Supprimer la demande ?
+                {t('requests.deleteTitle')}
               </h3>
 
               <div className="flex gap-2">
@@ -216,7 +218,7 @@ const MesDemandesPage = () => {
                   onClick={() => setConfirmDeleteId(null)}
                   className="flex-1 py-3 bg-secondary rounded-xl"
                 >
-                  Annuler
+                  {t('requests.cancel')}
                 </button>
 
                 <button
@@ -224,7 +226,7 @@ const MesDemandesPage = () => {
                   disabled={deleting}
                   className="flex-1 py-3 bg-destructive text-white rounded-xl disabled:opacity-60"
                 >
-                  {deleting ? "Suppression..." : "Supprimer"}
+                  {deleting ? t('requests.deleting') : t('requests.deleteBtn')}
                 </button>
               </div>
             </motion.div>

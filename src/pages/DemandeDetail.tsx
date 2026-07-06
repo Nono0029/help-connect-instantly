@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import ImageLightbox from "@/components/ImageLightbox";
 import { toast } from "sonner";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface Demande {
   id: number;
@@ -28,6 +29,7 @@ const DemandeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [demande, setDemande] = useState<Demande | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -106,7 +108,7 @@ const DemandeDetail = () => {
 
   if (!demande) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <p className="text-muted-foreground">Demande introuvable</p>
+      <p className="text-muted-foreground">{t('demandeDetail.notFound')}</p>
     </div>
   );
 
@@ -149,7 +151,7 @@ const DemandeDetail = () => {
           className="bg-card rounded-2xl border border-border p-4 space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary" className="rounded-lg">{demande.categorie}</Badge>
-            {demande.urgent && <Badge className="bg-destructive text-destructive-foreground rounded-lg"><Zap className="w-3 h-3 mr-1" />Urgent</Badge>}
+            {demande.urgent && <Badge className="bg-destructive text-destructive-foreground rounded-lg"><Zap className="w-3 h-3 mr-1" />{t('demandeDetail.urgent')}</Badge>}
           </div>
 
           <h2 className="text-lg font-bold text-foreground">{demande.titre}</h2>
@@ -172,7 +174,7 @@ const DemandeDetail = () => {
           <div className="flex items-center gap-1 pt-1">
             <Euro className="w-4 h-4 text-primary" />
             <span className={`font-bold text-base ${demande.gratuit ? "text-accent" : "text-foreground"}`}>
-              {demande.gratuit ? "Gratuit ❤️" : demande.prix}
+              {demande.gratuit ? t('demandeDetail.free') : demande.prix}
             </span>
           </div>
         </motion.div>
@@ -187,14 +189,14 @@ const DemandeDetail = () => {
             className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25"
           >
             <MessageCircle className="w-4 h-4 mr-2" />
-            {creating ? "Connexion..." : "Je veux aider 🤝"}
+            {creating ? t('demandeDetail.connecting') : t('demandeDetail.wantToHelp')}
           </Button>
         </div>
       )}
 
       {isOwner && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/90 backdrop-blur-xl border-t border-border">
-          <p className="text-center text-sm text-muted-foreground">C'est ta demande</p>
+          <p className="text-center text-sm text-muted-foreground">{t('demandeDetail.yourRequest')}</p>
         </div>
       )}
 

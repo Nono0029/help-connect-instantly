@@ -9,14 +9,10 @@ import { motion } from "framer-motion";
 import { Illu } from "@/components/Illustrations";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-
-const benefits = [
-  { icon: Briefcase, text: "Propose tes services à des milliers de personnes" },
-  { icon: Star, text: "Construis ta réputation avec les avis clients" },
-  { icon: Shield, text: "Paiements sécurisés et protégés" },
-];
+import { useTranslation } from "@/context/LanguageContext";
 
 const BecomeProPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState<"intro" | "form">("intro");
   const { user } = useAuth();
@@ -24,10 +20,15 @@ const BecomeProPage = () => {
   const [experience, setExperience] = useState("");
   const [tarif, setTarif] = useState("");
   const [loading, setLoading] = useState(false);
+  const benefits = [
+    { icon: Briefcase, text: t('becomePro.benefit1') },
+    { icon: Star, text: t('becomePro.benefit2') },
+    { icon: Shield, text: t('becomePro.benefit3') },
+  ];
 
   const handleSubmit = async () => {
     if (!competences || !experience || !tarif) {
-      toast.error("Remplis tous les champs");
+      toast.error(t('becomePro.fillFields'));
       return;
     }
     setLoading(true);
@@ -41,7 +42,7 @@ const BecomeProPage = () => {
     if (error) {
       toast.error("Erreur : " + error.message);
     } else {
-      toast.success("Demande envoyée ! Notre équipe te répondra sous 48h.");
+      toast.success(t('becomePro.sendSuccess'));
       navigate("/");
     }
   };
@@ -54,7 +55,7 @@ const BecomeProPage = () => {
             <button onClick={() => navigate("/settings")} className="p-1">
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-            <h1 className="text-lg font-bold text-foreground">Devenir prestataire</h1>
+            <h1 className="text-lg font-bold text-foreground">{t('becomePro.title')}</h1>
           </div>
         </header>
 
@@ -62,9 +63,9 @@ const BecomeProPage = () => {
           <Illu name="aide" className="w-48 mx-auto" />
 
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold text-foreground">Deviens prestataire</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t('becomePro.title')}</h2>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-              Rejoins notre communauté de prestataires et gagne de l'argent en aidant les autres
+              {t('becomePro.pageDesc')}
             </p>
           </div>
 
@@ -89,7 +90,7 @@ const BecomeProPage = () => {
             onClick={() => setStep("form")}
             className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25"
           >
-            <Sparkles className="w-4 h-4 mr-2" /> Commencer
+            <Sparkles className="w-4 h-4 mr-2" /> {t('becomePro.start')}
           </Button>
         </div>
       </div>
@@ -103,7 +104,7 @@ const BecomeProPage = () => {
           <button onClick={() => setStep("intro")} className="p-1">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-lg font-bold text-foreground">Devenir prestataire</h1>
+          <h1 className="text-lg font-bold text-foreground">{t('becomePro.title')}</h1>
         </div>
       </header>
 
@@ -115,9 +116,9 @@ const BecomeProPage = () => {
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground mb-1.5 block">Tes compétences</label>
+          <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('becomePro.skills')}</label>
           <Textarea
-            placeholder="Ex: Plomberie, électricité, jardinage, cours de maths..."
+            placeholder={t('becomePro.skillsPlaceholder')}
             value={competences}
             onChange={e => setCompetences(e.target.value)}
             className="min-h-[100px] rounded-xl bg-secondary border-none resize-none"
@@ -125,9 +126,9 @@ const BecomeProPage = () => {
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground mb-1.5 block">Ton expérience</label>
+          <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('becomePro.experience')}</label>
           <Textarea
-            placeholder="Parle-nous de ton parcours, tes formations, tes réalisations..."
+            placeholder={t('becomePro.experiencePlaceholder')}
             value={experience}
             onChange={e => setExperience(e.target.value)}
             className="min-h-[100px] rounded-xl bg-secondary border-none resize-none"
@@ -135,10 +136,10 @@ const BecomeProPage = () => {
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground mb-1.5 block">Tarif horaire indicatif (€)</label>
+          <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('becomePro.hourlyRate')}</label>
           <Input
             type="number"
-            placeholder="Ex: 25"
+            placeholder={t('becomePro.hourlyPlaceholder')}
             value={tarif}
             onChange={e => setTarif(e.target.value)}
             className="h-11 rounded-xl bg-secondary border-none"
@@ -150,7 +151,7 @@ const BecomeProPage = () => {
           disabled={loading}
           className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25"
         >
-          {loading ? "Envoi en cours..." : "Envoyer ma demande"}
+          {loading ? t('becomePro.sending') : t('becomePro.sendBtn')}
         </Button>
       </div>
     </div>

@@ -8,10 +8,12 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { signupSchema, authSchema } from "@/lib/validations";
 import { Illu } from "@/components/Illustrations";
+import { useTranslation } from "@/context/LanguageContext";
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,9 +48,9 @@ const AuthPage = () => {
     setLoading(false);
 
     if (err) {
-      if (err.includes("already registered")) setError("Cet email est déjà utilisé.");
-      else if (err.includes("Invalid login")) setError("Email ou mot de passe incorrect.");
-      else if (err.includes("Email not confirmed")) setError("Vérifie ta boîte mail pour confirmer ton compte.");
+      if (err.includes("already registered")) setError(t('auth.errorExists'));
+      else if (err.includes("Invalid login")) setError(t('auth.errorCredentials'));
+      else if (err.includes("Email not confirmed")) setError(t('auth.errorConfirm'));
       else setError(err);
       return;
     }
@@ -85,17 +87,17 @@ const AuthPage = () => {
           <h1 className="text-3xl font-bold text-foreground tracking-tight mb-1">
             Ask<span className="text-primary">oo</span>
           </h1>
-          <p className="text-sm text-muted-foreground">Demande, aide, connexion</p>
+          <p className="text-sm text-muted-foreground">{t('auth.tagline')}</p>
         </div>
 
         <div className="bg-secondary rounded-2xl p-1 flex mb-6">
-          {(["login", "signup"] as const).map(t => (
+          {(["login", "signup"] as const).map(tabItem => (
             <button
-              key={t}
-              onClick={() => { setTab(t); setError(""); }}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === t ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
+              key={tabItem}
+              onClick={() => { setTab(tabItem); setError(""); }}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === tabItem ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
             >
-              {t === "login" ? "Connexion" : "Inscription"}
+              {tabItem === "login" ? t('auth.login') : t('auth.signup')}
             </button>
           ))}
         </div>
@@ -111,12 +113,12 @@ const AuthPage = () => {
           >
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="pl-10 h-12 rounded-xl bg-secondary border-none" autoComplete="email" />
+              <Input type="email" placeholder={t('auth.email')} value={email} onChange={e => setEmail(e.target.value)} className="pl-10 h-12 rounded-xl bg-secondary border-none" autoComplete="email" />
             </div>
 
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input type={showPass ? "text" : "password"} placeholder="Mot de passe" value={password} onChange={e => setPassword(e.target.value)} className="pl-10 pr-10 h-12 rounded-xl bg-secondary border-none" autoComplete={tab === "signup" ? "new-password" : "current-password"} />
+              <Input type={showPass ? "text" : "password"} placeholder={t('auth.password')} value={password} onChange={e => setPassword(e.target.value)} className="pl-10 pr-10 h-12 rounded-xl bg-secondary border-none" autoComplete={tab === "signup" ? "new-password" : "current-password"} />
               <button onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -126,21 +128,21 @@ const AuthPage = () => {
               <>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input type="password" placeholder="Confirmer le mot de passe" value={confirm} onChange={e => setConfirm(e.target.value)} className="pl-10 h-12 rounded-xl bg-secondary border-none" autoComplete="new-password" />
+                  <Input type="password" placeholder={t('auth.confirmPassword')} value={confirm} onChange={e => setConfirm(e.target.value)} className="pl-10 h-12 rounded-xl bg-secondary border-none" autoComplete="new-password" />
                 </div>
 
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input placeholder="Ta ville (ex: Paris, Lyon...)" value={ville} onChange={e => setVille(e.target.value)} className="pl-10 h-12 rounded-xl bg-secondary border-none" />
+                  <Input placeholder={t('auth.city')} value={ville} onChange={e => setVille(e.target.value)} className="pl-10 h-12 rounded-xl bg-secondary border-none" />
                 </div>
 
                 <div className="relative">
                   <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input placeholder="Ton adresse (optionnel)" value={adresse} onChange={e => setAdresse(e.target.value)} className="pl-10 h-12 rounded-xl bg-secondary border-none" />
+                  <Input placeholder={t('auth.address')} value={adresse} onChange={e => setAdresse(e.target.value)} className="pl-10 h-12 rounded-xl bg-secondary border-none" />
                 </div>
 
                 <p className="text-[11px] text-muted-foreground px-1">
-                  🔒 Ton adresse n'est jamais partagée automatiquement — c'est toi qui choisis de l'envoyer dans le chat.
+                  {t('auth.addressNotice')}
                 </p>
               </>
             )}
@@ -154,14 +156,14 @@ const AuthPage = () => {
             <Button onClick={handleSubmit} disabled={loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 mt-2">
               <Sparkles className="w-4 h-4 mr-2" />
               {loading
-                ? (tab === "login" ? "Connexion..." : "Inscription...")
-                : (tab === "login" ? "Se connecter" : "Créer mon compte")}
+                ? (tab === "login" ? t('auth.loginLoading') : t('auth.signupLoading'))
+                : (tab === "login" ? t('auth.loginBtn') : t('auth.signupBtn'))}
             </Button>
           </motion.div>
         </AnimatePresence>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          En continuant, tu acceptes les conditions d'utilisation.
+          {t('auth.footer')}
         </p>
       </motion.div>
     </div>

@@ -16,10 +16,12 @@ import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "@/context/LanguageContext";
 
 const EditProfile = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [pseudo, setPseudo] = useState("");
   const [bio, setBio] = useState("");
@@ -118,9 +120,9 @@ const EditProfile = () => {
         avatar_url: publicUrl,
       });
 
-      toast.success("Photo de profil mise à jour ✨");
+      toast.success(t('editProfile.avatarUpdated'));
     } catch (err: any) {
-      toast.error("Erreur: " + err.message);
+      toast.error(t('editProfile.error') + err.message);
     }
 
     setUploading(false);
@@ -143,12 +145,12 @@ const EditProfile = () => {
     setLoading(false);
 
     if (error) {
-      toast.error("Erreur: " + error.message);
+      toast.error(t('editProfile.error') + error.message);
       console.error(error);
       return;
     }
 
-    toast.success("Profil mis à jour 💙");
+    toast.success(t('editProfile.profileUpdated'));
     navigate("/settings");
   };
 
@@ -169,7 +171,7 @@ const EditProfile = () => {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
 
-          <h1 className="text-lg font-bold text-foreground">Modifier le profil</h1>
+          <h1 className="text-lg font-bold text-foreground">{t('editProfile.title')}</h1>
 
           <button
             onClick={handleSave}
@@ -222,18 +224,18 @@ const EditProfile = () => {
             <Star className="w-6 h-6 fill-yellow-400 text-yellow-400" />
             <p className="text-3xl font-black text-foreground">{moyenne.toFixed(1)}</p>
           </div>
-          <p className="text-sm text-muted-foreground">{avis.length} avis reçus</p>
+          <p className="text-sm text-muted-foreground">{avis.length} {t('editProfile.reviews')}</p>
         </div>
 
         {/* PSEUDO */}
         <div>
-          <label className="text-sm font-semibold mb-2 block text-foreground">Pseudo</label>
+          <label className="text-sm font-semibold mb-2 block text-foreground">{t('editProfile.pseudo')}</label>
           <Input
             value={pseudo}
             onChange={(e) => setPseudo(e.target.value)}
             className="h-12 rounded-2xl bg-secondary border-none text-foreground"
             maxLength={30}
-            placeholder="Ton pseudo"
+            placeholder={t('editProfile.pseudoPlaceholder')}
           />
           <p className="text-[11px] text-muted-foreground mt-1 text-right">{pseudo.length}/30</p>
         </div>
@@ -242,13 +244,13 @@ const EditProfile = () => {
         <div>
           <label className="text-sm font-semibold mb-2 block text-foreground flex items-center gap-2">
             <MapPin className="w-4 h-4 text-primary" />
-            Ville
+            {t('editProfile.city')}
           </label>
           <Input
             value={ville}
             onChange={(e) => setVille(e.target.value)}
             className="h-12 rounded-2xl bg-secondary border-none text-foreground"
-            placeholder="Paris..."
+            placeholder={t('editProfile.cityPlaceholder')}
           />
         </div>
 
@@ -256,16 +258,16 @@ const EditProfile = () => {
         <div>
           <label className="text-sm font-semibold mb-2 block text-foreground flex items-center gap-2">
             <Home className="w-4 h-4 text-primary" />
-            Adresse
+            {t('editProfile.address')}
           </label>
           <Input
             value={adresse}
             onChange={(e) => setAdresse(e.target.value)}
             className="h-12 rounded-2xl bg-secondary border-none text-foreground"
-            placeholder="12 rue..."
+            placeholder={t('editProfile.addressPlaceholder')}
           />
           <p className="text-xs text-muted-foreground mt-2">
-            Cette adresse pourra être envoyée automatiquement dans les discussions 💙
+            {t('editProfile.addressHelper')}
           </p>
         </div>
 
@@ -275,16 +277,16 @@ const EditProfile = () => {
           disabled={loading}
           className="w-full h-14 rounded-2xl text-base font-bold btn-magic border-0"
         >
-          {loading ? "Sauvegarde..." : "Enregistrer"}
+          {loading ? t('editProfile.saving') : t('editProfile.save')}
         </Button>
 
         {/* AVIS */}
         <div className="space-y-3 pt-4">
-          <h2 className="text-xl font-black text-foreground">Avis reçus ⭐</h2>
+          <h2 className="text-xl font-black text-foreground">{t('editProfile.reviewsTitle')}</h2>
 
           {avis.length === 0 && (
             <div className="rounded-2xl bg-card border border-border p-4 text-sm text-muted-foreground">
-              Aucun avis pour le moment
+              {t('editProfile.noReviews')}
             </div>
           )}
 
@@ -295,7 +297,7 @@ const EditProfile = () => {
                   <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
-              <p className="text-sm text-foreground/90">{item.commentaire || "Pas de commentaire"}</p>
+              <p className="text-sm text-foreground/90">{item.commentaire || t('editProfile.noComment')}</p>
             </div>
           ))}
         </div>

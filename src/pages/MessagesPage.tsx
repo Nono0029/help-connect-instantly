@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "@/context/LanguageContext";
 import {
   ArrowLeft,
   MessageCircle,
@@ -34,17 +35,18 @@ interface Profile {
   avatar_url: string;
 }
 
-const statutConfig: Record<string, { label: string; color: string; icon: any }> = {
-  en_attente: { label: "En attente", color: "text-amber-500", icon: Clock },
-  en_cours: { label: "En cours", color: "text-accent", icon: MessageCircle },
-  payé: { label: "Payé", color: "text-emerald-500", icon: CheckCircle2 },
-  terminee: { label: "Terminée", color: "text-emerald-500", icon: CheckCircle2 },
-  fermée: { label: "Fermée", color: "text-muted-foreground", icon: XCircle },
-};
+const getStatutConfig = (t: (key: string) => string): Record<string, { label: string; color: string; icon: any }> => ({
+  en_attente: { label: t('messages.statusPending'), color: "text-amber-500", icon: Clock },
+  en_cours: { label: t('messages.statusProgress'), color: "text-accent", icon: MessageCircle },
+  payé: { label: t('messages.statusPaid'), color: "text-emerald-500", icon: CheckCircle2 },
+  terminee: { label: t('messages.statusDone'), color: "text-emerald-500", icon: CheckCircle2 },
+  fermée: { label: t('messages.statusClosed'), color: "text-muted-foreground", icon: XCircle },
+});
 
 const MessagesPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [lastMessages, setLastMessages] = useState<Record<number, string>>({});
@@ -98,7 +100,7 @@ const MessagesPage = () => {
           const last = msgs[0].content;
           setLastMessages(prev => ({
             ...prev,
-            [conv.id]: last.startsWith("📷:") ? "📷 Photo" : last,
+            [conv.id]: last.startsWith("📷:") ? t('messages.photo') : last,
           }));
         }
       }
@@ -136,7 +138,7 @@ const MessagesPage = () => {
 
   const getRole = (conv: Conversation) => {
     if (!user) return "Conversation";
-    if (conv.helper_id === user.id) return "Tu aides";
+    if (conv.helper_id === user.id) return t('messages.youHelp');
     if (conv.demande_user_id === user.id) return "Tu es aidé";
     return "Conversation";
   };
@@ -166,9 +168,9 @@ const MessagesPage = () => {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div>
-            <h1 className="text-lg font-bold text-foreground">Messages</h1>
+            <h1 className="text-lg font-bold text-foreground">{t('messages.title')}</h1>
             <p className="text-xs text-muted-foreground">
-              {conversations.filter(c => !c.archived).length} conversations actives
+              {t('messages.activeConversations', { count: conversations.filter(c => !c.archived).length })}
             </p>
           </div>
         </div>
@@ -192,7 +194,7 @@ const MessagesPage = () => {
               className="flex items-center gap-2 text-xs text-muted-foreground mb-2 hover:text-foreground transition-colors"
             >
               {showArchived ? <ArchiveX className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
-              {showArchived ? "Voir les actives" : `Archives (${conversations.filter(c => c.archived).length})`}
+              {showArchived ? t('messages.viewActive') : t('messages.archives', {n: conversations.filter(c => c.archived).length})}
             </button>
 
             {filtered.length === 0 && (
@@ -200,12 +202,12 @@ const MessagesPage = () => {
                 <Illu name={showArchived ? "messages" : "chat"} className="w-48 h-48" />
                 <div>
                   <p className="font-semibold text-foreground text-lg">
-                    {showArchived ? "Aucune conversation archivée" : "Aucune conversation"}
+                    {showArchived ? t('messages.noArchived') : t('messages.noConversations')}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1 max-w-xs">
                     {showArchived
-                      ? "Les conversations archivées apparaîtront ici"
-                      : "Explore les demandes près de chez toi et envoie un message pour proposer ton aide 🌱"}
+                      ? t('messages.archivedEmpty')
+                      : t('messages.exploreEmpty')}
                   </p>
                 </div>
               </div>
@@ -214,6 +216,7 @@ const MessagesPage = () => {
             <AnimatePresence>
               {filtered.map((conv, i) => {
                 const otherProfile = getOtherProfile(conv);
+                const statutConfig = getStatutConfig(t);
                 const sc = statutConfig[conv.statut] || statutConfig.en_attente;
                 const StatutIcon = sc.icon;
                 const lastMsg = lastMessages[conv.id];
@@ -271,7 +274,7 @@ const MessagesPage = () => {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleArchive(conv.id, !conv.archived); }}
                         className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border flex items-center justify-center hover:bg-accent/10 transition-colors"
-                        title={conv.archived ? "Restaurer" : "Archiver"}
+                        title={conv.archived ? t('messages.restore') : t('messages.archiveBtn')}
                       >
                         {conv.archived ? <ArchiveX className="w-3.5 h-3.5 text-muted-foreground" /> : <Archive className="w-3.5 h-3.5 text-muted-foreground" />}
                       </button>

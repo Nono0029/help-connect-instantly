@@ -2,6 +2,7 @@ import { Bell } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useTranslation } from "@/context/LanguageContext";
 
 const FILTERS = ["Toutes", "Messages", "Demandes", "Missions"] as const;
 type Filter = typeof FILTERS[number];
@@ -19,6 +20,7 @@ const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("Toutes");
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const filtered = useMemo(() => notifications.filter(n => matchFilter(n.message, filter)), [notifications, filter]);
 
@@ -32,10 +34,17 @@ const NotificationBell = () => {
 
   const getTemps = (created_at: string) => {
     const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
-    if (diff < 60) return "À l'instant";
-    if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-    if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)}h`;
-    return `Il y a ${Math.floor(diff / 86400)}j`;
+    if (diff < 60) return t('time.justNow');
+    if (diff < 3600) return t('time.minutesAgo', { n: Math.floor(diff / 60) });
+    if (diff < 86400) return t('time.hoursAgo', { n: Math.floor(diff / 3600) });
+    return t('time.daysAgo', { n: Math.floor(diff / 86400) });
+  };
+
+  const filterLabels: Record<Filter, string> = {
+    "Toutes": t('notifications.all'),
+    "Messages": t('notifications.messages'),
+    "Demandes": t('notifications.requests'),
+    "Missions": t('notifications.missions'),
   };
 
   return (
@@ -59,13 +68,13 @@ const NotificationBell = () => {
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-xl z-[9999] overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <p className="font-semibold text-sm text-foreground">Notifications</p>
+            <p className="font-semibold text-sm text-foreground">{t('notifications.title')}</p>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
                 className="text-xs text-primary hover:underline"
               >
-                Tout lire
+                {t('notifications.markAllRead')}
               </button>
             )}
           </div>
@@ -82,7 +91,7 @@ const NotificationBell = () => {
                     : "bg-secondary text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {f}
+                {filterLabels[f]}
               </button>
             ))}
           </div>
@@ -91,7 +100,7 @@ const NotificationBell = () => {
             {filtered.length === 0 ? (
               <div className="p-6 text-center">
                 <Bell className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Aucune notification</p>
+                <p className="text-sm text-muted-foreground">{t('notifications.noNotifications')}</p>
               </div>
             ) : (
               filtered.map(n => (

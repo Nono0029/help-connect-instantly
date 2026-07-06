@@ -1,18 +1,20 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, ShoppingBag, MessageCircle, Settings, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { icon: Home, label: "Accueil", path: "/" },
-  { icon: ShoppingBag, label: "Mes demandes", path: "/mes-demandes" },
-  { icon: Plus, label: "Poster", path: "/create-request", highlight: true },
-  { icon: MessageCircle, label: "Messages", path: "/messages" },
-  { icon: Settings, label: "Profil", path: "/settings" },
-];
+import { useTranslation } from "@/context/LanguageContext";
 
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { icon: Home, label: t('nav.home'), path: "/" },
+    { icon: ShoppingBag, label: t('nav.myRequests'), path: "/mes-demandes" },
+    { icon: Plus, label: t('nav.post'), path: "/create-request", highlight: true },
+    { icon: MessageCircle, label: t('nav.messages'), path: "/messages" },
+    { icon: Settings, label: t('nav.profile'), path: "/settings" },
+  ];
 
   const hiddenRoutes = ["/auth", "/chat/", "/demande/"];
   if (hiddenRoutes.some(r => location.pathname.startsWith(r))) return null;

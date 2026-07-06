@@ -2,27 +2,7 @@ import { useState } from "react";
 import { X, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-
-const typesFiltre = [
-  "Tout", "🏠 Maison", "🔧 Bricolage", "🐶 Animaux", "📚 Cours", "💬 Écoute", "💻 Tech", "🌱 Jardin", "🚗 Transport"
-];
-
-const distancesFiltre = [
-  { label: "< 500m", value: 0.5 },
-  { label: "< 1km", value: 1 },
-  { label: "< 2km", value: 2 },
-  { label: "< 5km", value: 5 },
-  { label: "< 10km", value: 10 },
-  { label: "Partout", value: 999 },
-];
-
-const prixFiltre = [
-  { label: "Gratuit", value: "gratuit" },
-  { label: "< 20€", value: "20" },
-  { label: "< 50€", value: "50" },
-  { label: "< 100€", value: "100" },
-  { label: "Tous les prix", value: "all" },
-];
+import { useTranslation } from "@/context/LanguageContext";
 
 interface Filters {
   type: string;
@@ -38,9 +18,31 @@ interface Props {
 }
 
 const SearchFilters = ({ open, onClose, filters, onApply }: Props) => {
+  const { t } = useTranslation();
   const [type, setType] = useState(filters.type);
   const [maxDistance, setMaxDistance] = useState(filters.maxDistance);
   const [prix, setPrix] = useState(filters.prix);
+
+  const typesFiltre = [
+    t('searchFilters.all'), "🏠 Maison", "🔧 Bricolage", "🐶 Animaux", "📚 Cours", "💬 Écoute", "💻 Tech", "🌱 Jardin", "🚗 Transport"
+  ];
+
+  const distancesFiltre = [
+    { label: "< 500m", value: 0.5 },
+    { label: "< 1km", value: 1 },
+    { label: "< 2km", value: 2 },
+    { label: "< 5km", value: 5 },
+    { label: "< 10km", value: 10 },
+    { label: t('searchFilters.everywhere'), value: 999 },
+  ];
+
+  const prixFiltre = [
+    { label: t('searchFilters.free'), value: "gratuit" },
+    { label: "< 20€", value: "20" },
+    { label: "< 50€", value: "50" },
+    { label: "< 100€", value: "100" },
+    { label: t('searchFilters.allPrices'), value: "all" },
+  ];
 
   const handleApply = () => {
     onApply({ type, maxDistance, prix });
@@ -78,27 +80,27 @@ const SearchFilters = ({ open, onClose, filters, onApply }: Props) => {
             <div className="flex items-center justify-between px-4 pb-3 border-b border-border">
               <button onClick={onClose} className="p-1 text-muted-foreground"><X className="w-5 h-5" /></button>
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4" /> Filtres
+                <SlidersHorizontal className="w-4 h-4" /> {t('searchFilters.title')}
               </h2>
-              <button onClick={handleReset} className="text-xs text-primary font-medium">Réinitialiser</button>
+              <button onClick={handleReset} className="text-xs text-primary font-medium">{t('searchFilters.reset')}</button>
             </div>
 
             <div className="px-4 py-5 space-y-6">
               {/* Type */}
               <div>
-                <label className="text-sm font-semibold text-foreground mb-2 block">Type de demande</label>
+                <label className="text-sm font-semibold text-foreground mb-2 block">{t('searchFilters.typeLabel')}</label>
                 <div className="flex flex-wrap gap-2">
-                  {typesFiltre.map(t => (
+                  {typesFiltre.map(typeItem => (
                     <button
-                      key={t}
-                      onClick={() => setType(t)}
+                      key={typeItem}
+                      onClick={() => setType(typeItem)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                        type === t
+                        type === typeItem
                           ? "bg-primary text-primary-foreground border-primary"
                           : "bg-secondary text-muted-foreground border-transparent"
                       }`}
                     >
-                      {t}
+                      {typeItem}
                     </button>
                   ))}
                 </div>
@@ -106,7 +108,7 @@ const SearchFilters = ({ open, onClose, filters, onApply }: Props) => {
 
               {/* Distance */}
               <div>
-                <label className="text-sm font-semibold text-foreground mb-2 block">Distance max</label>
+                <label className="text-sm font-semibold text-foreground mb-2 block">{t('searchFilters.distanceLabel')}</label>
                 <div className="flex flex-wrap gap-2">
                   {distancesFiltre.map(d => (
                     <button
@@ -126,7 +128,7 @@ const SearchFilters = ({ open, onClose, filters, onApply }: Props) => {
 
               {/* Prix */}
               <div>
-                <label className="text-sm font-semibold text-foreground mb-2 block">Budget</label>
+                <label className="text-sm font-semibold text-foreground mb-2 block">{t('searchFilters.budgetLabel')}</label>
                 <div className="flex flex-wrap gap-2">
                   {prixFiltre.map(p => (
                     <button
@@ -145,7 +147,7 @@ const SearchFilters = ({ open, onClose, filters, onApply }: Props) => {
               </div>
 
               <Button onClick={handleApply} className="w-full h-12 rounded-xl text-base font-semibold">
-                Appliquer les filtres
+                {t('searchFilters.apply')}
               </Button>
             </div>
           </motion.div>

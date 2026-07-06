@@ -5,10 +5,12 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/context/LanguageContext";
 
 const MonPortefeuille = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [wallet, setWallet] = useState<{ balance: number } | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -44,11 +46,11 @@ const MonPortefeuille = () => {
   const handleWithdraw = async () => {
     const amount = parseFloat(withdrawAmount);
     if (!amount || amount <= 0 || !wallet || amount > wallet.balance) {
-      toast.error("Montant invalide ou supérieur au solde");
+      toast.error(t('wallet.invalidAmount'));
       return;
     }
     if (amount < 5) {
-      toast.error("Montant minimum de retrait : 5€");
+      toast.error(t('wallet.minimumWithdraw'));
       return;
     }
     setWithdrawLoading(true);
@@ -59,13 +61,13 @@ const MonPortefeuille = () => {
       if (error) {
         const errData = data as any;
         if (errData?.error === "no_stripe_account") {
-          toast.error("Configure d'abord ton compte Stripe dans Paramètres > Paiements");
+          toast.error(t('wallet.configureStripeFirst'));
           setShowWithdraw(false);
           return;
         }
         throw new Error(error.message);
       }
-      toast.success(`💰 ${amount}€ envoyé vers ton compte bancaire !`);
+      toast.success(t('wallet.withdrawSuccess', { amount }));
       setShowWithdraw(false);
       setWithdrawAmount("");
 
@@ -79,7 +81,7 @@ const MonPortefeuille = () => {
         .limit(50);
       setTransactions(t || []);
     } catch (err: any) {
-      toast.error(err?.message || "Erreur lors du retrait");
+      toast.error(err?.message || t('wallet.withdrawError'));
     }
     setWithdrawLoading(false);
   };
@@ -99,7 +101,7 @@ const MonPortefeuille = () => {
         <button onClick={() => navigate("/settings")} className="w-9 h-9 rounded-full flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <p className="font-semibold">Mon portefeuille</p>
+        <p className="font-semibold">{t('wallet.title')}</p>
       </div>
 
       {/* Solde */}
@@ -107,7 +109,7 @@ const MonPortefeuille = () => {
         <div className="card-magic bg-gradient-to-br from-cyan-500/10 to-emerald-500/10 border-cyan-500/20">
           <div className="flex items-center gap-3 mb-2">
             <Wallet className="w-6 h-6 text-accent" />
-            <p className="text-sm text-muted-foreground">Solde disponible</p>
+            <p className="text-sm text-muted-foreground">{t('wallet.availableBalance')}</p>
           </div>
           <p className="text-4xl font-black text-foreground">
             {wallet?.balance?.toFixed(2) || "0.00"}€
@@ -116,7 +118,7 @@ const MonPortefeuille = () => {
             <button
               onClick={() => {
                 if (!stripeLinked) {
-                  toast.error("Configure ton compte Stripe d'abord dans Paramètres > Paiements");
+                  toast.error(t('wallet.configureStripeFirst'));
                   return;
                 }
                 setShowWithdraw(true);
@@ -124,7 +126,7 @@ const MonPortefeuille = () => {
               disabled={!wallet || wallet.balance <= 0}
               className="flex-1 h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <ArrowUpRight className="w-4 h-4" /> Retirer
+              <ArrowUpRight className="w-4 h-4" /> {t('wallet.withdraw')}
             </button>
             <button
               onClick={() => navigate("/payment-setup")}
@@ -135,7 +137,7 @@ const MonPortefeuille = () => {
           </div>
           {!stripeLinked && (
             <p className="text-xs text-destructive mt-2 flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3" /> Configure Stripe pour retirer tes fonds
+              <AlertTriangle className="w-3 h-3" /> {t('wallet.configureStripe')}
             </p>
           )}
         </div>
@@ -143,12 +145,12 @@ const MonPortefeuille = () => {
 
       {/* Historique */}
       <div className="px-4 mt-6">
-        <h3 className="text-sm font-semibold text-foreground mb-3">Historique des transactions</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-3">{t('wallet.history')}</h3>
         <div className="card-magic divide-y divide-border">
           {transactions.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground text-sm">
               <Plus className="w-8 h-8 mx-auto mb-2 opacity-40" />
-              Aucune transaction pour l'instant
+              {t('wallet.noTransactions')}
             </div>
           ) : (
             transactions.map((tx) => (
@@ -160,7 +162,7 @@ const MonPortefeuille = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">
-                    {tx.type === "credit" ? "Paiement reçu" : "Retrait bancaire"}
+                    {tx.type === "credit" ? t('wallet.paymentReceived') : t('wallet.bankWithdrawal')}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {tx.description || tx.reference || ""}
@@ -192,11 +194,11 @@ const MonPortefeuille = () => {
               className="bg-card w-full p-6 rounded-t-3xl space-y-4 max-w-lg mx-auto"
             >
               <div className="w-12 h-1.5 bg-muted rounded-full mx-auto" />
-              <h3 className="font-bold text-lg text-foreground">Retirer des fonds</h3>
-              <p className="text-sm text-muted-foreground">L'argent sera envoyé sur ton compte bancaire Stripe.</p>
+              <h3 className="font-bold text-lg text-foreground">{t('wallet.withdrawFunds')}</h3>
+              <p className="text-sm text-muted-foreground">{t('wallet.withdrawDesc')}</p>
 
               <div className="bg-muted rounded-2xl p-4 text-sm">
-                <p className="text-muted-foreground">Solde disponible</p>
+                <p className="text-muted-foreground">{t('wallet.availableBalance')}</p>
                 <p className="text-2xl font-bold text-foreground">{wallet?.balance?.toFixed(2) || "0.00"}€</p>
               </div>
 
@@ -207,17 +209,17 @@ const MonPortefeuille = () => {
                 max={wallet?.balance || 0}
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                placeholder="Montant à retirer (min 5€)"
+                placeholder={t('wallet.withdrawPlaceholder')}
                 className="w-full h-14 rounded-2xl bg-background border border-border px-4 text-lg font-bold text-foreground outline-none"
               />
 
               <div className="flex gap-3 pt-1">
                 <button onClick={() => { setShowWithdraw(false); setWithdrawAmount(""); }} className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground font-medium">
-                  Annuler
+                  {t('wallet.cancel')}
                 </button>
                 <button onClick={handleWithdraw} disabled={withdrawLoading || !withdrawAmount || parseFloat(withdrawAmount) < 5} className="flex-1 h-12 rounded-2xl btn-magic font-bold flex items-center justify-center gap-2 disabled:opacity-50">
                   {withdrawLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUpRight className="w-4 h-4" />}
-                  Retirer
+                  {t('wallet.withdraw')}
                 </button>
               </div>
             </motion.div>

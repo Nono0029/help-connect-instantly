@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface Profile {
   id: string;
@@ -44,6 +45,7 @@ const ProfilePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [avis, setAvis] = useState<Review[]>([]);
@@ -130,8 +132,8 @@ const ProfilePage = () => {
 
   if (!profile) return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
-      <p className="text-muted-foreground text-lg mb-2">Profil introuvable</p>
-      <p className="text-sm text-muted-foreground/60 text-center mb-6">Cet utilisateur n'a pas encore créé son profil public.</p>
+      <p className="text-muted-foreground text-lg mb-2">{t('profile.notFound')}</p>
+      <p className="text-sm text-muted-foreground/60 text-center mb-6">{t('profile.notFoundDesc')}</p>
       {user && user.id !== id && (
         <button
           onClick={async () => {
@@ -158,7 +160,7 @@ const ProfilePage = () => {
           className="px-6 h-11 rounded-xl btn-magic font-semibold"
         >
           <MessageCircle className="w-4 h-4 mr-2" />
-          Contacter quand même
+          {t('profile.contactAnyway')}
         </button>
       )}
     </div>
@@ -172,7 +174,7 @@ const ProfilePage = () => {
           <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-lg font-bold text-foreground">Profil</h1>
+          <h1 className="text-lg font-bold text-foreground">{t('profile.title')}</h1>
         </div>
       </header>
 
@@ -187,7 +189,7 @@ const ProfilePage = () => {
             )}
           </div>
 
-          <h2 className="text-xl font-bold text-foreground mt-4">{profile.pseudo || "Anonyme"}</h2>
+          <h2 className="text-xl font-bold text-foreground mt-4">{profile.pseudo || t('profile.anonymous')}</h2>
 
           {profile.ville && (
             <p className="text-sm text-muted-foreground flex items-center justify-center gap-1 mt-1">
@@ -221,19 +223,19 @@ const ProfilePage = () => {
               className="mt-4 w-full h-11 rounded-xl btn-magic font-semibold"
             >
               <MessageCircle className="w-4 h-4 mr-2" />
-              {contacting ? "Connexion..." : "Contacter"}
+              {contacting ? t('profile.connecting') : t('profile.contact')}
             </Button>
           )}
 
           <div className="flex items-center justify-center gap-1 mt-4">
             <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
             <span className="text-lg font-bold text-foreground">{moyenne.toFixed(1)}</span>
-            <span className="text-xs text-muted-foreground">({avis.length} avis)</span>
+            <span className="text-xs text-muted-foreground">({avis.length} {t('profile.reviews')})</span>
           </div>
 
           <div className="flex items-center justify-center gap-1 mt-1">
             <Medal className="w-4 h-4 text-accent" />
-            <span className="text-sm text-muted-foreground">{missions.length} mission{missions.length > 1 ? "s" : ""} accomplie{missions.length > 1 ? "s" : ""}</span>
+            <span className="text-sm text-muted-foreground">{missions.length} {missions.length > 1 ? t('profile.missions') : t('profile.mission')} {missions.length > 1 ? t('profile.completedPlural') : t('profile.completed')}</span>
           </div>
         </div>
 
@@ -244,28 +246,28 @@ const ProfilePage = () => {
               <ShoppingBag className="w-5 h-5" />
             </div>
             <p className="text-xl font-bold text-foreground">{demandeurCount}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Demandes</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('profile.statRequests')}</p>
           </div>
           <div className="bg-card border border-border rounded-2xl p-4 text-center">
             <div className="w-10 h-10 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center mx-auto mb-2">
               <TrendingUp className="w-5 h-5" />
             </div>
             <p className="text-xl font-bold text-foreground">{helperCount}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Propositions</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('profile.statOffers')}</p>
           </div>
           <div className="bg-card border border-border rounded-2xl p-4 text-center">
             <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center mx-auto mb-2">
               <Medal className="w-5 h-5" />
             </div>
             <p className="text-xl font-bold text-foreground">{missions.length}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Missions</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('profile.statMissions')}</p>
           </div>
           <div className="bg-card border border-border rounded-2xl p-4 text-center">
             <div className="w-10 h-10 rounded-xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center mx-auto mb-2">
               <Star className="w-5 h-5" />
             </div>
             <p className="text-xl font-bold text-foreground">{moyenne.toFixed(1)}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Moyenne</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('profile.statAverage')}</p>
           </div>
         </div>
 
@@ -274,7 +276,7 @@ const ProfilePage = () => {
           <div>
             <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-blue-500" />
-              Ses demandes
+              {t('profile.theirRequests')}
             </h3>
             <div className="space-y-2">
               {demandes.slice(0, 5).map(d => (
@@ -311,7 +313,7 @@ const ProfilePage = () => {
           <div>
             <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
               <Medal className="w-4 h-4 text-accent" />
-              Missions terminées
+              {t('profile.finishedMissions')}
             </h3>
 
             <div className="space-y-2">
@@ -326,7 +328,7 @@ const ProfilePage = () => {
                       {new Date(m.created_at).toLocaleDateString("fr-FR")}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="rounded-full text-[10px]">✅ Terminée</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px]">{t('profile.finished')}</Badge>
                 </div>
               ))}
             </div>
@@ -338,7 +340,7 @@ const ProfilePage = () => {
           <div>
             <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              Avis reçus
+              {t('profile.receivedReviews')}
             </h3>
 
             <div className="space-y-2">

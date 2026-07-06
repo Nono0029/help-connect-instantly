@@ -26,6 +26,7 @@ import ImageLightbox from "@/components/ImageLightbox";
 import { Illu } from "@/components/Illustrations";
 
 import { supabase } from "@/lib/supabase";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface Demande {
   id: number;
@@ -43,19 +44,31 @@ interface Demande {
   photos?: string[];
 }
 
-const categories = [
-  "Tout",
-  "🏠 Maison",
-  "🔧 Bricolage",
-  "🐶 Animaux",
-  "📚 Cours",
-  "💬 Écoute",
-  "💻 Tech",
-  "🌱 Jardin",
-];
-
 const Index = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const categoryKeys = [
+    "Tout",
+    "🏠 Maison",
+    "🔧 Bricolage",
+    "🐶 Animaux",
+    "📚 Cours",
+    "💬 Écoute",
+    "💻 Tech",
+    "🌱 Jardin",
+  ];
+
+  const categoryLabels: Record<string, string> = {
+    "Tout": t('home.all'),
+    "🏠 Maison": t('home.house'),
+    "🔧 Bricolage": t('home.diy'),
+    "🐶 Animaux": t('home.animals'),
+    "📚 Cours": t('home.tutoring'),
+    "💬 Écoute": t('home.listening'),
+    "💻 Tech": t('home.tech'),
+    "🌱 Jardin": t('home.garden'),
+  };
 
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] =
@@ -129,21 +142,15 @@ const Index = () => {
         1000
     );
 
-    if (diff < 60) return "À l'instant";
+    if (diff < 60) return t('time.justNow');
 
     if (diff < 3600)
-      return `Il y a ${Math.floor(
-        diff / 60
-      )} min`;
+      return t('time.minutesAgo', { n: Math.floor(diff / 60) });
 
     if (diff < 86400)
-      return `Il y a ${Math.floor(
-        diff / 3600
-      )} h`;
+      return t('time.hoursAgo', { n: Math.floor(diff / 3600) });
 
-    return `Il y a ${Math.floor(
-      diff / 86400
-    )} j`;
+    return t('time.daysAgo', { n: Math.floor(diff / 86400) });
   };
 
   // LIKE
@@ -247,7 +254,7 @@ const Index = () => {
                 Ask<span className="text-primary">oo</span> ✨
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Aidons-nous autour de nous 🌱
+                {t('home.tagline')}
               </p>
             </div>
 
@@ -295,19 +302,19 @@ const Index = () => {
           <div className="mb-4 rounded-3xl p-5 bg-magic-gradient dark:bg-cyan-gradient shadow-magic dark:shadow-dark-card border border-primary/20 flex items-center gap-4">
             <div className="flex-1 min-w-0">
               <p className="text-xl font-black text-foreground leading-tight">
-                Trouve de l'aide
+                {t('home.heroTitle')}
                 <br />
-                près de chez toi 🌍
+                {t('home.heroSubtitle')}
               </p>
 
               <p className="text-sm text-foreground/60 mt-1.5">
-                Une communauté bienveillante pour s'entraider.
+                {t('home.heroDesc')}
               </p>
 
               <div className="flex gap-2 mt-3 flex-wrap">
-                {["🌱 Bienveillance", "⚡ Rapide", "💬 Humain"].map((t) => (
-                  <div key={t} className="px-3 py-1 rounded-full bg-white/40 dark:bg-black/10 text-xs font-medium text-foreground border border-white/40 dark:border-white/10">
-                    {t}
+                {[t('home.tagBienveillance'), t('home.tagRapide'), t('home.tagHumain')].map((tag) => (
+                  <div key={tag} className="px-3 py-1 rounded-full bg-white/40 dark:bg-black/10 text-xs font-medium text-foreground border border-white/40 dark:border-white/10">
+                    {tag}
                   </div>
                 ))}
               </div>
@@ -324,7 +331,7 @@ const Index = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 
             <Input
-              placeholder="Rechercher une aide..."
+              placeholder={t('home.search')}
               value={search}
               onChange={(e) =>
                 setSearch(e.target.value)
@@ -362,8 +369,7 @@ const Index = () => {
             />
 
             <span className="ml-auto text-accent font-semibold">
-              {sorted.length} aides
-              disponibles {userCoords ? "📍 près de toi" : "🌟"}
+              {t('home.available', { count: sorted.length })} {userCoords ? t('home.nearYou') : "🌟"}
             </span>
 
           </div>
@@ -372,7 +378,7 @@ const Index = () => {
         {/* CATEGORIES */}
         <div className="flex gap-2 overflow-x-auto px-4 pb-4 scrollbar-hide">
 
-          {categories.map((cat) => (
+          {categoryKeys.map((cat) => (
 
             <button
               key={cat}
@@ -385,7 +391,7 @@ const Index = () => {
                   : "bg-background/60 border border-border text-muted-foreground hover:bg-primary/10"
               }`}
             >
-              {cat}
+              {categoryLabels[cat]}
             </button>
 
           ))}
@@ -415,12 +421,11 @@ const Index = () => {
             </div>
 
             <p className="font-bold text-foreground text-lg">
-              Aucune aide trouvée
+              {t('home.noResults')}
             </p>
 
             <p className="text-sm text-muted-foreground mt-2">
-              Sois le premier à aider
-              quelqu'un aujourd'hui 🐣
+              {t('home.noResultsDesc')}
             </p>
 
           </div>
@@ -535,7 +540,7 @@ const Index = () => {
 
                   {d.urgent && (
                     <Badge className="rounded-xl bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-300 border-none text-xs">
-                      ⚡ Urgent
+                      ⚡ {t('home.urgent')}
                     </Badge>
                   )}
 
@@ -549,7 +554,7 @@ const Index = () => {
                   }`}
                 >
                   {d.gratuit
-                    ? "Gratuit ❤️"
+                    ? t('home.free')
                     : `${d.prix} €`}
                 </span>
 

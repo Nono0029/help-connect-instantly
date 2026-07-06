@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import CityPicker from "@/components/CityPicker";
 import { toast } from "sonner";
+import { useTranslation } from "@/context/LanguageContext";
 
 const typesAide = [
   { id: "physique", label: "💪 Aide physique", desc: "Déménagement, ménage, portage..." },
@@ -44,6 +45,7 @@ interface Props {
 }
 
 const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }: Props) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
@@ -201,7 +203,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
             </div>
             <div className="flex items-center justify-between px-4 pb-3 border-b border-border">
               <button onClick={onClose} className="text-muted-foreground p-1"><X className="w-5 h-5" /></button>
-              <h2 className="text-base font-bold text-foreground">{isEdit ? "Modifier la demande" : "Poster une demande"}</h2>
+              <h2 className="text-base font-bold text-foreground">{isEdit ? t('postForm.editTitle') : t('postForm.createTitle')}</h2>
               <div className="w-7" />
             </div>
 
@@ -209,7 +211,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
               {!isEdit && (
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-2 block">
-                    Photos <span className="text-muted-foreground font-normal">(optionnel, max 5)</span>
+                    {t('postForm.photos')} <span className="text-muted-foreground font-normal">{t('postForm.photosOptional')}</span>
                   </label>
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     <button onClick={() => fileRef.current?.click()} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
@@ -218,7 +220,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                       ) : (
                         <Camera className="w-5 h-5" />
                       )}
-                      <span className="text-[10px] font-medium">{uploadingPhoto ? "Upload..." : "Ajouter"}</span>
+                      <span className="text-[10px] font-medium">{uploadingPhoto ? t('postForm.uploading') : t('postForm.add')}</span>
                     </button>
                     <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhoto} />
                     {photos.map((src, i) => (
@@ -239,29 +241,29 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
               )}
 
               <div>
-                <label className="text-sm font-semibold text-foreground mb-1.5 block">Titre de ta demande</label>
-                <Input placeholder="Ex: Besoin d'aide pour déménager..." value={titre} onChange={e => setTitre(e.target.value)} className="h-11 rounded-xl bg-secondary border-none" maxLength={80} />
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('postForm.titleField')}</label>
+                <Input placeholder={t('postForm.titlePlaceholder')} value={titre} onChange={e => setTitre(e.target.value)} className="h-11 rounded-xl bg-secondary border-none" maxLength={80} />
                 <p className="text-[11px] text-muted-foreground mt-1 text-right">{titre.length}/80</p>
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-foreground mb-1.5 block">Décris ton besoin</label>
-                <Textarea placeholder="Explique en détail ce dont tu as besoin, quand, où, etc." value={description} onChange={e => setDescription(e.target.value)} className="min-h-[100px] rounded-xl bg-secondary border-none resize-none" maxLength={500} />
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('postForm.description')}</label>
+                <Textarea placeholder={t('postForm.descPlaceholder')} value={description} onChange={e => setDescription(e.target.value)} className="min-h-[100px] rounded-xl bg-secondary border-none resize-none" maxLength={500} />
                 <p className="text-[11px] text-muted-foreground mt-1 text-right">{description.length}/500</p>
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-foreground mb-1.5 block">Ville de la demande</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('postForm.cityField')}</label>
                 <div className="h-11 rounded-xl bg-secondary px-4 flex items-center">
                   <CityPicker
-                    ville={villeForm || "Choisir une ville..."}
+                    ville={villeForm || t('postForm.cityFallback')}
                     onChange={(v, lat, lng) => { setVilleForm(v); setVilleLat(lat); setVilleLng(lng); }}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-foreground mb-2 block">Type d'aide</label>
+                <label className="text-sm font-semibold text-foreground mb-2 block">{t('postForm.helpType')}</label>
                 <div className="flex flex-wrap gap-2">
                   {typesAide.map(type => (
                     <button key={type.id} onClick={() => setSelectedType(type.id)}
@@ -279,7 +281,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-primary" /> Durée estimée
+                  <Clock className="w-4 h-4 text-primary" /> {t('postForm.duration')}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {durees.map(d => (
@@ -297,7 +299,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1.5">
-                  <Euro className="w-4 h-4 text-primary" /> Budget
+                  <Euro className="w-4 h-4 text-primary" /> {t('postForm.budget')}
                 </label>
                 <div className="flex items-center gap-3">
                   <button onClick={() => { setGratuit(true); setPrix(""); }}
@@ -306,10 +308,10 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                         ? "bg-accent text-accent-foreground border-accent shadow-md"
                         : "bg-secondary text-muted-foreground border-transparent"
                     }`}>
-                    ❤️ Gratuit
+                    {t('postForm.free')}
                   </button>
                   <div className="flex-1 relative">
-                    <Input type="number" placeholder="Prix proposé" value={prix} onChange={e => { setPrix(e.target.value); setGratuit(false); }} className="h-10 rounded-xl bg-secondary border-none pr-8" />
+                    <Input type="number" placeholder={t('postForm.pricePlaceholder')} value={prix} onChange={e => { setPrix(e.target.value); setGratuit(false); }} className="h-10 rounded-xl bg-secondary border-none pr-8" />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">€</span>
                   </div>
                 </div>
@@ -321,7 +323,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                     ? "bg-destructive/10 border-destructive/30 text-destructive"
                     : "bg-secondary border-transparent text-muted-foreground"
                 }`}>
-                <span className="text-sm font-medium">⚡ C'est urgent</span>
+                <span className="text-sm font-medium">{t('postForm.urgent')}</span>
                 <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${
                   urgent ? "bg-destructive justify-end" : "bg-muted-foreground/20 justify-start"
                 }`}>
@@ -331,11 +333,11 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
 
               <Button onClick={handleSubmit} disabled={!titre || !selectedType || !villeForm || loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25">
                 <Sparkles className="w-4 h-4 mr-2" />
-                {loading ? (isEdit ? "Modification..." : "Publication...") : (isEdit ? "Enregistrer les modifications" : "Publier ma demande")}
+                {loading ? (isEdit ? t('postForm.editSaving') : t('postForm.createSaving')) : (isEdit ? t('postForm.editBtn') : t('postForm.createBtn'))}
               </Button>
 
               <p className="text-center text-[11px] text-muted-foreground pb-4">
-                {isEdit ? "Tes modifications seront visibles immédiatement" : "Ta demande sera visible par les personnes autour de toi"}
+                {isEdit ? t('postForm.editHelper') : t('postForm.createHelper')}
               </p>
             </div>
           </motion.div>

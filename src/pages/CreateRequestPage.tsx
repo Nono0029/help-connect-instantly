@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "@/context/LanguageContext";
 
 const typesAide = [
   { id: "physique", label: "Aide physique", emoji: "💪" },
@@ -23,6 +24,7 @@ const typesAide = [
 const durees = ["< 30 min", "1h", "2h", "Demi-journée", "Journée", "Plusieurs jours"];
 
 const CreateRequestPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [titre, setTitre] = useState("");
@@ -60,7 +62,7 @@ const CreateRequestPage = () => {
 
   const handleSubmit = async () => {
     if (!titre || !selectedType || !user) {
-      toast.error("Remplis le titre et le type d'aide");
+      toast.error(t('createRequest.fillFields'));
       return;
     }
     setLoading(true);
@@ -80,7 +82,7 @@ const CreateRequestPage = () => {
     if (error) {
       toast.error("Erreur : " + error.message);
     } else {
-      toast.success("Demande publiée !");
+      toast.success(t('createRequest.publishSuccess'));
       navigate("/");
     }
   };
@@ -93,7 +95,7 @@ const CreateRequestPage = () => {
             <button onClick={() => navigate("/")} className="p-1">
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-            <h1 className="text-lg font-bold text-foreground">Nouvelle demande</h1>
+            <h1 className="text-lg font-bold text-foreground">{t('createRequest.title')}</h1>
           </div>
         </div>
       </header>
@@ -101,7 +103,7 @@ const CreateRequestPage = () => {
       <div className="px-4 py-4 space-y-5 pb-32">
         <div>
           <label className="text-sm font-semibold text-foreground mb-2 block">
-            Photos <span className="text-muted-foreground font-normal">(optionnel, max 5)</span>
+            {t('createRequest.photos')} <span className="text-muted-foreground font-normal">{t('createRequest.photosOptional')}</span>
           </label>
           <div className="flex gap-2 overflow-x-auto pb-1">
             <button onClick={() => fileRef.current?.click()} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
@@ -110,7 +112,7 @@ const CreateRequestPage = () => {
               ) : (
                 <Camera className="w-5 h-5" />
               )}
-              <span className="text-[10px] font-medium">{uploadingPhoto ? "Upload..." : "Ajouter"}</span>
+              <span className="text-[10px] font-medium">{uploadingPhoto ? t('createRequest.uploading') : t('createRequest.add')}</span>
             </button>
             <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhoto} />
             {photos.map((src, i) => (
@@ -130,19 +132,19 @@ const CreateRequestPage = () => {
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground mb-1.5 block">Titre de ta demande</label>
-          <Input placeholder="Ex: Besoin d'aide pour déménager..." value={titre} onChange={e => setTitre(e.target.value)} className="h-11 rounded-xl bg-secondary border-none" maxLength={80} />
+          <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('createRequest.titleField')}</label>
+          <Input placeholder={t('createRequest.titlePlaceholder')} value={titre} onChange={e => setTitre(e.target.value)} className="h-11 rounded-xl bg-secondary border-none" maxLength={80} />
           <p className="text-[11px] text-muted-foreground mt-1 text-right">{titre.length}/80</p>
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground mb-1.5 block">Décris ton besoin</label>
-          <Textarea placeholder="Explique en détail ce dont tu as besoin, quand, où, etc." value={description} onChange={e => setDescription(e.target.value)} className="min-h-[100px] rounded-xl bg-secondary border-none resize-none" maxLength={500} />
+          <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('createRequest.description')}</label>
+          <Textarea placeholder={t('createRequest.descPlaceholder')} value={description} onChange={e => setDescription(e.target.value)} className="min-h-[100px] rounded-xl bg-secondary border-none resize-none" maxLength={500} />
           <p className="text-[11px] text-muted-foreground mt-1 text-right">{description.length}/500</p>
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground mb-2 block">Type d'aide</label>
+          <label className="text-sm font-semibold text-foreground mb-2 block">{t('createRequest.helpType')}</label>
           <div className="flex flex-wrap gap-2">
             {typesAide.map(type => (
               <button key={type.id} onClick={() => setSelectedType(type.id)}
@@ -159,7 +161,7 @@ const CreateRequestPage = () => {
 
         <div>
           <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-primary" /> Durée estimée
+            <Clock className="w-4 h-4 text-primary" /> {t('createRequest.duration')}
           </label>
           <div className="flex flex-wrap gap-2">
             {durees.map(d => (
@@ -177,7 +179,7 @@ const CreateRequestPage = () => {
 
         <div>
           <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1.5">
-            <Euro className="w-4 h-4 text-primary" /> Budget
+            <Euro className="w-4 h-4 text-primary" /> {t('createRequest.budget')}
           </label>
           <div className="flex items-center gap-3">
             <button onClick={() => { setGratuit(true); setPrix(""); }}
@@ -186,10 +188,10 @@ const CreateRequestPage = () => {
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"
               }`}>
-              Gratuit
+              {t('createRequest.free')}
             </button>
             <div className="flex-1 relative">
-              <Input type="number" placeholder="Prix proposé" value={prix} onChange={e => { setPrix(e.target.value); setGratuit(false); }} className="h-10 rounded-xl bg-secondary border-none pr-8" />
+              <Input type="number" placeholder={t('createRequest.pricePlaceholder')} value={prix} onChange={e => { setPrix(e.target.value); setGratuit(false); }} className="h-10 rounded-xl bg-secondary border-none pr-8" />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">€</span>
             </div>
           </div>
@@ -199,7 +201,7 @@ const CreateRequestPage = () => {
           className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
             urgent ? "bg-destructive/10 border-destructive" : "bg-secondary border-border"
           }`}>
-          <span className="text-sm font-medium">C'est urgent</span>
+          <span className="text-sm font-medium">{t('createRequest.urgent')}</span>
           <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${urgent ? "bg-destructive justify-end" : "bg-muted-foreground/30"}`}>
             <div className="w-5 h-5 rounded-full bg-card shadow-sm" />
           </div>
@@ -207,7 +209,7 @@ const CreateRequestPage = () => {
 
         <Button onClick={handleSubmit} disabled={!titre || !selectedType || loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25">
           <Sparkles className="w-4 h-4 mr-2" />
-          {loading ? "Publication..." : "Publier ma demande"}
+          {loading ? t('createRequest.publishing') : t('createRequest.publishBtn')}
         </Button>
       </div>
     </div>

@@ -20,6 +20,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/context/LanguageContext";
 
 const defaultNotifPrefs = { messages: true, demandes: true, missions: true };
 
@@ -27,6 +28,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
+  const { t, language, setLanguage } = useTranslation();
 
   const [pseudo, setPseudo] = useState("");
   const [ville, setVille] = useState("");
@@ -130,12 +132,12 @@ const Settings = () => {
     setSaving(false);
 
     if (error) {
-      toast.error("Erreur lors de la sauvegarde");
+      toast.error(t('settings.saveError'));
       console.error(error);
       return;
     }
 
-    toast.success("Profil mis à jour 💙");
+    toast.success(t('settings.saveSuccess'));
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
@@ -148,54 +150,54 @@ const Settings = () => {
 
   const menuSections = [
     {
-      title: "Compte",
+      title: t('settings.sectionAccount'),
       items: [
         {
           icon: Wallet,
-          label: "Mon portefeuille",
-          desc: "Solde, retrait et historique",
+          label: t('settings.wallet'),
+          desc: t('settings.walletDesc'),
           action: () => navigate("/portefeuille"),
           toggle: false,
         },
         {
           icon: Shield,
-          label: "Sécurité",
-          desc: "Mot de passe et sécurité",
+          label: t('settings.security'),
+          desc: t('settings.securityDesc'),
           action: () => navigate("/change-password"),
           toggle: false,
         },
         {
           icon: CreditCard,
-          label: "Paiements Stripe",
-          desc: stripeLinked ? "✅ Compte connecté" : "Recevoir des paiements",
+          label: t('settings.stripePayments'),
+          desc: stripeLinked ? t('settings.stripeLinked') : t('settings.stripeDesc'),
           action: () => navigate("/payment-setup"),
           toggle: false,
         },
       ],
     },
     {
-      title: "Notifications",
+      title: t('settings.sectionNotifications'),
       items: [
         {
           icon: notifPrefs.messages ? Bell : BellOff,
-          label: "Messages",
-          desc: notifPrefs.messages ? "Activées" : "Désactivées",
+          label: t('settings.messages'),
+          desc: notifPrefs.messages ? t('settings.enabled') : t('settings.disabled'),
           action: () => toggleNotifPref("messages"),
           toggle: true,
           toggled: notifPrefs.messages,
         },
         {
           icon: notifPrefs.demandes ? Bell : BellOff,
-          label: "Demandes",
-          desc: notifPrefs.demandes ? "Activées" : "Désactivées",
+          label: t('settings.requests'),
+          desc: notifPrefs.demandes ? t('settings.enabled') : t('settings.disabled'),
           action: () => toggleNotifPref("demandes"),
           toggle: true,
           toggled: notifPrefs.demandes,
         },
         {
           icon: notifPrefs.missions ? Bell : BellOff,
-          label: "Missions",
-          desc: notifPrefs.missions ? "Activées" : "Désactivées",
+          label: t('settings.missions'),
+          desc: notifPrefs.missions ? t('settings.enabled') : t('settings.disabled'),
           action: () => toggleNotifPref("missions"),
           toggle: true,
           toggled: notifPrefs.missions,
@@ -203,12 +205,12 @@ const Settings = () => {
       ],
     },
     {
-      title: "Préférences",
+      title: t('settings.sectionPrefs'),
       items: [
         {
           icon: theme === "dark" ? Sun : Moon,
-          label: "Mode nuit",
-          desc: theme === "dark" ? "Activé" : "Désactivé",
+          label: t('settings.darkMode'),
+          desc: theme === "dark" ? t('settings.darkModeOn') : t('settings.darkModeOff'),
           action: toggleTheme,
           toggle: true,
           toggled: theme === "dark",
@@ -216,20 +218,20 @@ const Settings = () => {
       ],
     },
     {
-      title: "Support",
+      title: t('settings.sectionSupport'),
       items: [
         {
           icon: HelpCircle,
-          label: "Centre d'aide",
-          desc: "FAQ et assistance",
+          label: t('settings.helpCenter'),
+          desc: t('settings.helpCenterDesc'),
           action: () => navigate("/aide"),
           toggle: false,
         },
         {
           icon: Star,
-          label: "Noter l'application",
-          desc: "Merci pour ton soutien 💙",
-          action: () => toast.info("Bientôt disponible ✨"),
+          label: t('settings.rateApp'),
+          desc: t('settings.rateAppDesc'),
+          action: () => toast.info(t('settings.comingSoon')),
           toggle: false,
         },
       ],
@@ -249,9 +251,9 @@ const Settings = () => {
         </button>
 
         <div>
-          <p className="font-semibold">Paramètres</p>
+          <p className="font-semibold">{t('settings.title')}</p>
           <p className="text-xs text-muted-foreground">
-            Gère ton compte et tes préférences
+            {t('settings.subtitle')}
           </p>
         </div>
       </div>
@@ -268,7 +270,7 @@ const Settings = () => {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h2 className="font-bold text-lg truncate">{pseudo || "Mon profil"}</h2>
+              <h2 className="font-bold text-lg truncate">{pseudo || t('settings.myProfile')}</h2>
               <p className="text-sm text-muted-foreground truncate">{email}</p>
 
               <div className="flex items-center gap-1 mt-1">
@@ -277,7 +279,7 @@ const Settings = () => {
                   {moyenne.toFixed(1)}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  ({avisCount} avis)
+                  ({avisCount} {t('settings.reviews')})
                 </span>
               </div>
             </div>
@@ -336,6 +338,37 @@ const Settings = () => {
 
       </div>
 
+      {/* LANGUAGE */}
+      <div className="px-4 mt-5">
+        <h3 className="text-xs uppercase text-muted-foreground mb-2">
+          {t('settings.language')}
+        </h3>
+        <div className="card-magic divide-y divide-border">
+          <div className="flex gap-2 p-4">
+            <button
+              onClick={() => setLanguage('fr')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                language === 'fr'
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t('settings.langFr')}
+            </button>
+            <button
+              onClick={() => setLanguage('en')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                language === 'en'
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t('settings.langEn')}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* LOGOUT */}
       <div className="px-4 mt-8">
         <button
@@ -343,7 +376,7 @@ const Settings = () => {
           className="w-full h-12 rounded-2xl border border-red-500/20 text-red-400 flex items-center justify-center gap-2"
         >
           <LogOut className="w-4 h-4" />
-          Se déconnecter
+          {t('settings.logout')}
         </button>
       </div>
 

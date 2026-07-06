@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MapPin, Search, X, ChevronDown, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface CityResult {
   display_name: string;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 const CityPicker = ({ ville, onChange }: Props) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CityResult[]>([]);
@@ -77,14 +79,14 @@ const CityPicker = ({ ville, onChange }: Props) => {
               <div className="flex items-center justify-between px-4 pb-3 border-b border-border shrink-0">
                 <button onClick={() => setOpen(false)} className="text-muted-foreground p-1"><X className="w-5 h-5" /></button>
                 <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-primary" /> Choisir ma ville
+                  <MapPin className="w-4 h-4 text-primary" /> {t('cityPicker.title')}
                 </h2>
                 <div className="w-7" />
               </div>
               <div className="px-4 pt-3 pb-2 shrink-0">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input ref={inputRef} type="text" placeholder="Rechercher n'importe quelle ville..."
+                  <input ref={inputRef} type="text" placeholder={t('cityPicker.placeholder')}
                     value={query} onChange={e => setQuery(e.target.value)}
                     className="w-full h-11 pl-10 pr-4 rounded-xl bg-secondary border-none text-sm outline-none text-foreground placeholder:text-muted-foreground" />
                   {query && <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"><X className="w-4 h-4" /></button>}
@@ -92,8 +94,8 @@ const CityPicker = ({ ville, onChange }: Props) => {
               </div>
               <div className="overflow-y-auto px-4 pb-8 h-64">
                 {loading && <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 text-primary animate-spin" /></div>}
-                {!loading && query.length < 2 && <p className="text-center text-sm text-muted-foreground py-8">Tape au moins 2 lettres pour rechercher</p>}
-                {!loading && query.length >= 2 && results.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">Aucune ville trouvée pour « {query} »</p>}
+                {!loading && query.length < 2 && <p className="text-center text-sm text-muted-foreground py-8">{t('cityPicker.minChars')}</p>}
+                {!loading && query.length >= 2 && results.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">{t('cityPicker.noResults', { query })}</p>}
                 <div className="space-y-1">
                   {results.map((r, i) => (
                     <button key={i} onClick={() => handleSelect(r)}
