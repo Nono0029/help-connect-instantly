@@ -6,7 +6,7 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-const ALLOWED_ORIGINS = ["https://askoo.fr", "https://help-connect-instantly.vercel.app"];
+const ALLOWED_ORIGINS = ["https://askoo.fr", "https://www.askoo.fr", "https://help-connect-instantly.vercel.app"];
 
 serve(async (req) => {
   const origin = req.headers.get("origin") || "";
