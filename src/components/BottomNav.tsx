@@ -16,7 +16,20 @@ const BottomNav = () => {
     { icon: Settings, label: t('nav.profile'), path: "/settings" },
   ];
 
-  const hiddenRoutes = ["/auth", "/chat/", "/demande/"];
+  const hiddenRoutes = [
+    "/auth",
+    "/chat/",
+    "/demande/",
+    "/boost-profile",
+    "/edit-profile",
+    "/change-password",
+    "/payment-setup",
+    "/portefeuille",
+    "/become-pro",
+    "/privacy",
+    "/aide",
+    "/profile/",
+  ];
   if (hiddenRoutes.some(r => location.pathname.startsWith(r))) return null;
 
   return (
