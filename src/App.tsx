@@ -10,7 +10,6 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { AnimatePresence, motion } from "framer-motion";
 
 const Index = lazy(() => import("./pages/Index"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -45,46 +44,36 @@ function AnimatedRoutes() {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-      >
-        <Routes location={location}>
+    <Routes location={location}>
 
-        {/* Public */}
-        <Route path="/auth" element={<AuthPage />} />
+    {/* Public */}
+    <Route path="/auth" element={<AuthPage />} />
 
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Index />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
-          <Route path="/change-password" element={<ChangePassword />} />
-          <Route path="/demande/:id" element={<DemandeDetail />} />
-          <Route path="/mes-demandes" element={<MesDemandesPage />} />
+    {/* Protected routes */}
+    <Route element={<ProtectedRoute />}>
+      <Route path="/" element={<Index />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/edit-profile" element={<EditProfile />} />
+      <Route path="/change-password" element={<ChangePassword />} />
+      <Route path="/demande/:id" element={<DemandeDetail />} />
+      <Route path="/mes-demandes" element={<MesDemandesPage />} />
 
-          <Route path="/messages" element={<MessagesPage />} />
-          <Route path="/chat/:id" element={<ChatPage />} />
-          <Route path="/profile/:id" element={<ProfilePage />} />
-          <Route path="/payment-setup" element={<PaymentSetup />} />
-          <Route path="/portefeuille" element={<MonPortefeuille />} />
-          <Route path="/create-request" element={<CreateRequestPage />} />
-          <Route path="/aide" element={<AidePage />} />
-          <Route path="/become-pro" element={<BecomeProPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/boost-profile" element={<BoostProfilePage />} />
-        </Route>
+      <Route path="/messages" element={<MessagesPage />} />
+      <Route path="/chat/:id" element={<ChatPage />} />
+      <Route path="/profile/:id" element={<ProfilePage />} />
+      <Route path="/payment-setup" element={<PaymentSetup />} />
+      <Route path="/portefeuille" element={<MonPortefeuille />} />
+      <Route path="/create-request" element={<CreateRequestPage />} />
+      <Route path="/aide" element={<AidePage />} />
+      <Route path="/become-pro" element={<BecomeProPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/boost-profile" element={<BoostProfilePage />} />
+    </Route>
 
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
+    {/* 404 */}
+    <Route path="*" element={<NotFound />} />
 
-        </Routes>
-      </motion.div>
-    </AnimatePresence>
+    </Routes>
   );
 }
 
