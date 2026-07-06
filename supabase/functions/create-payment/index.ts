@@ -60,7 +60,8 @@ serve(async (req) => {
     }
 
     const prix = mission.demandes?.prix ? parseFloat(String(mission.demandes.prix).replace(/[^0-9.]/g, "")) : 0;
-    if (prix <= 0) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    const isUrgent = mission.demandes?.urgent === true;
+    if (prix <= 0 && !isUrgent) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
     // Lookup conversation from conversations table (conversations has demande_id, not mission_id)
     let convId = conversation_id;
@@ -69,7 +70,7 @@ serve(async (req) => {
       convId = conv?.id;
     }
 
-    const frais = 200;
+    const frais = 200 + (isUrgent ? 300 : 0);
     const montantCents = Math.round(prix * 100) + frais;
 
     const origin = req.headers.get("origin") || "https://help-connect-instantly.vercel.app";
@@ -103,7 +104,7 @@ serve(async (req) => {
       helper_id: mission.helper_id,
       stripe_session_id: session.id,
       montant: prix,
-      frais: 2,
+      frais: isUrgent ? 5 : 2,
       statut: "en_attente",
     });
 
