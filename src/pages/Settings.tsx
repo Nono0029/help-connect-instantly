@@ -14,6 +14,7 @@ import {
   Wallet,
   Rocket,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
@@ -315,14 +316,15 @@ const Settings = () => {
             <div className="card-magic divide-y divide-border">
 
               {section.items.map((item) => (
-                <button
+                <motion.button
                   key={item.label}
                   onClick={item.action}
                   disabled={!item.action && !item.toggle}
-                  className="w-full flex items-center gap-4 px-4 py-4"
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center gap-4 px-4 py-4 transition-colors duration-150 hover:bg-muted/50 rounded-xl"
                 >
 
-                  <item.icon className="w-5 h-5" />
+                  <item.icon className="w-5 h-5 text-muted-foreground" />
 
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium">{item.label}</p>
@@ -331,19 +333,23 @@ const Settings = () => {
 
                   {item.toggle ? (
                     <div
-                      className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-colors ${
+                      className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all duration-200 ${
                         (item as any).toggled
-                          ? "justify-end bg-cyan-400"
-                          : "justify-start bg-gray-400"
+                          ? "justify-end bg-primary"
+                          : "justify-start bg-muted"
                       } ${notifSaving ? "opacity-50" : ""}`}
                     >
-                      <div className="w-5 h-5 bg-white rounded-full shadow-sm transition-transform" />
+                      <motion.div
+                        layout
+                        className="w-5 h-5 bg-white rounded-full shadow-sm"
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      />
                     </div>
                   ) : (
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   )}
 
-                </button>
+                </motion.button>
               ))}
 
             </div>
