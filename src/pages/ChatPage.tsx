@@ -364,10 +364,17 @@ const ChatPage = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: { mission_id: mission.id, user_id: user.id, conversation_id: id },
+        body: { mission_id: mission.id, conversation_id: id },
       });
 
-      if (error || !data?.url) throw new Error(error?.message || t('chat.paymentError'));
+      if (error) {
+        console.error("create-payment error:", error);
+        throw new Error(error.message || error.error || t('chat.paymentError'));
+      }
+      if (!data?.url) {
+        console.error("create-payment no url:", data);
+        throw new Error(t('chat.paymentError'));
+      }
 
       const { data: p } = await supabase
         .from("payments")
@@ -380,8 +387,8 @@ const ChatPage = () => {
 
       window.location.href = data.url;
     } catch (err: any) {
+      console.error("Payment failed:", err);
       toast.error(err?.message || t('chat.paymentErrorDesc'));
-      console.error(err);
     }
 
     setPaymentLoading(false);
@@ -855,8 +862,8 @@ const ChatPage = () => {
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
           <button onClick={() => setShowConfirmMission(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">
             {user?.id === mission.helper_id
-              ? (mission.helper_confirme ? t('chat.waitingDemandeurConfirm') : t('chat.confirmMission'))
-              : (mission.demandeur_confirme ? t('chat.waitingHelperConfirm') : t('chat.confirmMission'))
+              ? (mission.helper_confirme ? t('chat.confirmMissionWaitingDemandeur') : t('chat.confirmMissionHelper'))
+              : (mission.demandeur_confirme ? t('chat.confirmMissionWaitingHelper') : t('chat.confirmMissionDemandeur'))
             }
           </button>
         </div>
@@ -884,11 +891,11 @@ const ChatPage = () => {
               </div>
 
               <div className="bg-muted/50 rounded-2xl p-4 space-y-2 text-sm text-muted-foreground">
-                <p>✅ <strong>{t('chat.confirmMissionDone')}</strong></p>
-                <p>🔒 <strong>{t('chat.confirmMoneySecured')}</strong></p>
+                <p>✅ <strong>{t('chat.confirmDone')}</strong></p>
+                <p>🔒 <strong>{t('chat.confirmEscrow')}</strong></p>
                 <p>💰 <strong>{t('chat.confirmFees')}</strong></p>
                 <p>🛡️ <strong>{t('chat.confirmProtection')}</strong></p>
-                <p className="text-xs text-muted-foreground/60 pt-1">{t('chat.confirmNote')}</p>
+                <p className="text-xs text-muted-foreground/60 pt-1">{t('chat.confirmSmall')}</p>
               </div>
 
               <div className="flex gap-3 pt-1">
