@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Rocket, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { useTranslation } from "@/context/LanguageContext";
 
 const BoostProfilePage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { t } = useTranslation();
   const [boostUntil, setBoostUntil] = useState<string | null>(null);
@@ -32,26 +33,45 @@ const BoostProfilePage = () => {
     fetchBoost();
   }, [user]);
 
+  // Activate boost after successful payment
+  useEffect(() => {
+    const activateBoost = async () => {
+      if (!user || searchParams.get("boost") !== "success") return;
+
+      const now = new Date();
+      const until = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({ id: user.id, boost_until: until.toISOString() });
+
+      if (!error) {
+        setBoostUntil(until.toISOString());
+        toast.success(t('boost.activated'));
+      }
+    };
+    activateBoost();
+  }, [user, searchParams]);
+
   const isBoostActive = boostUntil && new Date(boostUntil) > new Date();
 
   const handleActivate = async () => {
     if (!user) return;
     setActivating(true);
 
-    const now = new Date();
-    const until = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-boost-payment", {
+        body: {},
+      });
 
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({ id: user.id, boost_until: until.toISOString() });
+      if (error || !data?.url) {
+        throw new Error(error?.message || "Erreur de paiement");
+      }
 
-    setActivating(false);
-
-    if (error) {
-      toast.error("Erreur: " + error.message);
-    } else {
-      setBoostUntil(until.toISOString());
-      toast.success(t('boost.activated'));
+      window.location.href = data.url;
+    } catch (err: any) {
+      toast.error(err?.message || "Erreur lors du paiement");
+      setActivating(false);
     }
   };
 
