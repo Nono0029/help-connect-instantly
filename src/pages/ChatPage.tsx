@@ -78,7 +78,18 @@ const ChatPage = () => {
   const [isDemandeOwner, setIsDemandeOwner] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showConfirmMission, setShowConfirmMission] = useState(false);
-  const [payment, setPayment] = useState<any>(null);
+  interface Payment {
+    id: number;
+    mission_id: number;
+    statut: string;
+    montant: number;
+    frais: number;
+    stripe_session_id: string;
+    stripe_payment_intent?: string;
+    released_at?: string;
+    refunded_at?: string;
+  }
+  const [payment, setPayment] = useState<Payment | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
 
   const [text, setText] = useState("");
@@ -108,6 +119,9 @@ const ChatPage = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSentRef = useRef(0);
+  const otherUserIdRef = useRef<string | null>(null);
+  const conversationRef = useRef<Conversation | null>(null);
+  const missionRef = useRef<Mission | null>(null);
 
   const isImgMsg = (content: string) => content.startsWith("📷:");
 
@@ -138,10 +152,12 @@ const ChatPage = () => {
       .single();
 
     setConversation({ ...conv, demande });
+    conversationRef.current = { ...conv, demande };
 
     if (user) {
       const otherId = user.id === conv.helper_id ? conv.demandeur_id : conv.helper_id;
       setOtherUserId(otherId);
+      otherUserIdRef.current = otherId;
       setIsDemandeOwner(user.id === demande?.user_id);
 
       const { data: profile } = await supabase
@@ -179,7 +195,10 @@ const ChatPage = () => {
       .select("*")
       .eq("demande_id", conv.demande_id)
       .maybeSingle();
-    if (data) setMission(data as Mission);
+    if (data) {
+      setMission(data as Mission);
+      missionRef.current = data as Mission;
+    }
 
     const { data: p } = await supabase
       .from("payments")
@@ -535,16 +554,17 @@ const ChatPage = () => {
     presenceChannel
       .on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState();
+        const otherId = otherUserIdRef.current;
         const otherPresent = Object.values(state).some((presences: any) =>
-          presences.some((p: any) => p.user_id === otherUserId)
+          presences.some((p: any) => p.user_id === otherId)
         );
         setIsOnline(otherPresent);
       })
       .on("presence", { event: "join" }, ({ key, newPresences }) => {
-        if (newPresences.some((p: any) => p.user_id === otherUserId)) setIsOnline(true);
+        if (newPresences.some((p: any) => p.user_id === otherUserIdRef.current)) setIsOnline(true);
       })
       .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
-        if (leftPresences.some((p: any) => p.user_id === otherUserId)) setIsOnline(false);
+        if (leftPresences.some((p: any) => p.user_id === otherUserIdRef.current)) setIsOnline(false);
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -555,7 +575,7 @@ const ChatPage = () => {
     const typingChannel = supabase.channel(`typing-${id}`);
     typingChannel
       .on("broadcast", { event: "typing" }, (payload) => {
-        if (payload.payload.userId === otherUserId) {
+        if (payload.payload.userId === otherUserIdRef.current) {
           setIsTyping(true);
           if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
           typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
@@ -570,8 +590,10 @@ const ChatPage = () => {
         schema: "public",
         table: "payments",
       }, (payload) => {
-        const p = payload.new as any;
-        if (conversation && p?.mission_id === mission?.id) {
+        const p = payload.new as Payment;
+        const conv = conversationRef.current;
+        const mis = missionRef.current;
+        if (conv && p?.mission_id === mis?.id) {
           setPayment(p);
         }
       })

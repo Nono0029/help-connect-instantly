@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import ImageLightbox from "@/components/ImageLightbox";
+import { toast } from "sonner";
 
 interface Demande {
   id: number;
@@ -94,7 +95,7 @@ const DemandeDetail = () => {
 
     setCreating(false);
     if (newConv) navigate(`/chat/${newConv.id}`);
-    else if (error) alert("Erreur : " + error.message);
+    else if (error) toast.error("Erreur : " + error.message);
   };
 
   if (loading) return (

@@ -120,11 +120,13 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
           });
 
           const marker = L.marker([d.lat!, d.lng!], { icon, urgent: d.urgent });
+          const sanitize = (s: string) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+          const distLabel = dist < 1 ? (dist * 1000).toFixed(0) + "m" : dist.toFixed(1) + "km";
           marker.bindPopup(`
             <div style="font-family:sans-serif;min-width:180px;cursor:pointer" onclick="window.__mapNavigate(${d.id})">
-              <b style="font-size:13px">${d.titre}</b><br/>
-              <span style="font-size:11px;color:#888">${d.categorie}${d.ville ? " · " + d.ville : ""}</span><br/>
-              <span style="font-size:11px;color:#666">📍 ${dist < 1 ? (dist * 1000).toFixed(0) + "m" : dist.toFixed(1) + "km"}</span>
+              <b style="font-size:13px">${sanitize(d.titre)}</b><br/>
+              <span style="font-size:11px;color:#888">${sanitize(d.categorie)}${d.ville ? " · " + sanitize(d.ville) : ""}</span><br/>
+              <span style="font-size:11px;color:#666">📍 ${distLabel}</span>
             </div>
           `);
           mcg.addLayer(marker);

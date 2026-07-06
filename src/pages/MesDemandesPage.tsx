@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import PostDemandeForm from "@/components/PostDemandeForm";
 import NotificationBell from "@/components/NotificationBell";
+import { toast } from "sonner";
 
 interface Demande {
   id: number;
@@ -73,7 +74,7 @@ const MesDemandesPage = () => {
       setDemandes((prev) => prev.filter((d) => d.id !== id));
       setConfirmDeleteId(null);
     } catch (err: any) {
-      alert("Erreur : " + err.message);
+      toast.error("Erreur : " + err.message);
     }
 
     setDeleting(false);

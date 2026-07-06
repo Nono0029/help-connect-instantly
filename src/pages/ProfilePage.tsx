@@ -59,7 +59,8 @@ const ProfilePage = () => {
     if (!id) return;
 
     const load = async () => {
-      const { data: userData } = await supabase
+      try {
+        const { data: userData } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", id)
@@ -111,8 +112,11 @@ const ProfilePage = () => {
         .order("created_at", { ascending: false });
 
       if (demandesData) setDemandes(demandesData);
-
-      setLoading(false);
+      } catch (err) {
+        console.error("ProfilePage load error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     load();

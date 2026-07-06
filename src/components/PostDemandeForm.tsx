@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import CityPicker from "@/components/CityPicker";
+import { toast } from "sonner";
 
 const typesAide = [
   { id: "physique", label: "💪 Aide physique", desc: "Déménagement, ménage, portage..." },
@@ -116,6 +117,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
     gratuit: isGratuit,
     prix: isGratuit ? null : prix,
     urgent,
+    duree: duree || null,
     ville: villeForm || ville || "",
     lat: villeLat || null,
     lng: villeLng || null,
@@ -159,7 +161,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
 
   if (error) {
 
-    alert("Erreur : " + error.message);
+    toast.error("Erreur : " + error.message);
 
   } else {
 

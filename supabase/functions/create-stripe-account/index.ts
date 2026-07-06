@@ -10,45 +10,56 @@ const supabase = createClient(
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-retry-count",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
 
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: "missing authorization" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
-  }
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "missing authorization" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
 
-  const token = authHeader.replace("Bearer ", "");
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
-  }
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
 
-  const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", user.id).maybeSingle();
+    const { data: profile } = await supabase.from("profiles").select("stripe_account_id").eq("id", user.id).maybeSingle();
 
-  let accountId = profile?.stripe_account_id;
+    let accountId = profile?.stripe_account_id;
 
-  if (!accountId) {
-    const account = await stripe.accounts.create({
-      type: "express",
-      country: "FR",
-      email: user.email,
-      capabilities: { transfers: { requested: true } },
+    if (!accountId) {
+      const account = await stripe.accounts.create({
+        type: "express",
+        country: "FR",
+        email: user.email || undefined,
+        capabilities: { transfers: { requested: true } },
+      });
+      accountId = account.id;
+      const { error: updateError } = await supabase.from("profiles").update({ stripe_account_id: accountId }).eq("id", user.id);
+      if (updateError) {
+        console.error("Failed to save stripe_account_id:", updateError);
+      }
+    }
+
+    const origin = req.headers.get("origin") || "https://help-connect-instantly.vercel.app";
+
+    const accountLink = await stripe.accountLinks.create({
+      account: accountId!,
+      refresh_url: `${origin}/payment-setup`,
+      return_url: `${origin}/payment-setup?success=true`,
+      type: "account_onboarding",
     });
-    accountId = account.id;
-    await supabase.from("profiles").update({ stripe_account_id: accountId }).eq("id", user.id);
+
+    return new Response(JSON.stringify({ url: accountLink.url }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+  } catch (err) {
+    console.error("create-stripe-account error:", err);
+    const message = err instanceof Error ? err.message : "internal server error";
+    return new Response(JSON.stringify({ error: message }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
   }
-
-  const accountLink = await stripe.accountLinks.create({
-    account: accountId,
-    refresh_url: `${req.headers.get("origin")}/payment-setup`,
-    return_url: `${req.headers.get("origin")}/payment-setup?success=true`,
-    type: "account_onboarding",
-  });
-
-  return new Response(JSON.stringify({ url: accountLink.url }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
 });

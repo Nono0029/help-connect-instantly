@@ -1,6 +1,17 @@
-[functions]
-stripe-webhook.verify_jwt = false
-create-payment.verify_jwt = true
-create-stripe-account.verify_jwt = true
-release-payment.verify_jwt = true
-withdraw-wallet.verify_jwt = true
+[project]
+id = "tdymtslljytdihkblvwu"
+
+[functions.create-payment]
+verify_jwt = true
+
+[functions.create-stripe-account]
+verify_jwt = true
+
+[functions.release-payment]
+verify_jwt = true
+
+[functions.withdraw-wallet]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false

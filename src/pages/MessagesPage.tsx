@@ -54,7 +54,8 @@ const MessagesPage = () => {
   useEffect(() => {
     if (!user) return;
     const fetchConvs = async () => {
-      const { data: allConvs } = await supabase
+      try {
+        const { data: allConvs } = await supabase
         .from("conversations")
         .select("*")
         .order("created_at", { ascending: false });
@@ -111,8 +112,11 @@ const MessagesPage = () => {
       const profMap: Record<string, Profile> = {};
       (profData || []).forEach(p => { profMap[p.id] = p; });
       setProfiles(profMap);
-
-      setLoading(false);
+      } catch (err) {
+        console.error("MessagesPage fetchConvs error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchConvs();
   }, [user]);

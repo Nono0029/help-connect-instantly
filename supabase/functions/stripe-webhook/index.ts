@@ -10,14 +10,18 @@ const supabase = createClient(
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-retry-count",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
 
-  const sig = req.headers.get("stripe-signature")!;
+  const sig = req.headers.get("stripe-signature");
+  if (!sig) {
+    return new Response("Missing signature", { status: 400, headers: corsHeaders });
+  }
+
   const body = await req.text();
 
   let event: Stripe.Event;
@@ -27,46 +31,62 @@ serve(async (req) => {
     return new Response("Invalid signature", { status: 400, headers: corsHeaders });
   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const missionId = session.metadata?.mission_id;
-    const helperId = session.metadata?.helper_id;
-    const conversationId = session.metadata?.conversation_id;
+  try {
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const missionId = session.metadata?.mission_id;
+      const helperId = session.metadata?.helper_id;
+      const conversationId = session.metadata?.conversation_id;
 
-    if (missionId) {
-      await supabase.from("payments").update({ statut: "pay\u00e9", stripe_payment_intent: session.payment_intent as string }).eq("stripe_session_id", session.id);
-      await supabase.from("missions").update({ statut: "en_cours" }).eq("id", parseInt(missionId));
+      if (missionId) {
+        await supabase.from("payments").update({ statut: "pay\u00e9", stripe_payment_intent: session.payment_intent as string }).eq("stripe_session_id", session.id);
+        await supabase.from("missions").update({ statut: "en_cours" }).eq("id", parseInt(missionId));
 
-      if (conversationId) {
-        await supabase.from("conversations").update({ statut: "en_cours" }).eq("id", parseInt(conversationId));
+        if (conversationId) {
+          await supabase.from("conversations").update({ statut: "en_cours" }).eq("id", parseInt(conversationId));
 
-        if (helperId) {
-          await supabase.from("notifications").insert({
-            user_id: helperId,
-            message: "\uD83D\uDCB0 Paiement re\u00e7u ! L'argent est s\u00e9curis\u00e9 sur Stripe jusqu'\u00e0 la fin de la mission.",
-            conversation_id: parseInt(conversationId),
-            lu: false,
-          });
+          // Idempotency: check if notification already exists before inserting
+          if (helperId) {
+            const { data: existing } = await supabase
+              .from("notifications")
+              .select("id")
+              .eq("user_id", helperId)
+              .eq("conversation_id", parseInt(conversationId))
+              .eq("message", "\uD83D\uDCB0 Paiement re\u00e7u ! L'argent est s\u00e9curis\u00e9 sur Stripe jusqu'\u00e0 la fin de la mission.")
+              .maybeSingle();
+
+            if (!existing) {
+              await supabase.from("notifications").insert({
+                user_id: helperId,
+                message: "\uD83D\uDCB0 Paiement re\u00e7u ! L'argent est s\u00e9curis\u00e9 sur Stripe jusqu'\u00e0 la fin de la mission.",
+                conversation_id: parseInt(conversationId),
+                lu: false,
+              });
+            }
+          }
         }
       }
     }
-  }
 
-  if (event.type === "checkout.session.expired") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    await supabase.from("payments").update({ statut: "expir\u00e9" }).eq("stripe_session_id", session.id);
-  }
-
-  if (event.type === "charge.refunded") {
-    const charge = event.data.object as Stripe.Charge;
-    const paymentIntent = charge.payment_intent as string;
-
-    if (paymentIntent) {
-      await supabase
-        .from("payments")
-        .update({ statut: "rembours\u00e9", refunded_at: new Date().toISOString() })
-        .eq("stripe_payment_intent", paymentIntent);
+    if (event.type === "checkout.session.expired") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      await supabase.from("payments").update({ statut: "expir\u00e9" }).eq("stripe_session_id", session.id);
     }
+
+    if (event.type === "charge.refunded") {
+      const charge = event.data.object as Stripe.Charge;
+      const paymentIntent = charge.payment_intent as string;
+
+      if (paymentIntent) {
+        await supabase
+          .from("payments")
+          .update({ statut: "rembours\u00e9", refunded_at: new Date().toISOString() })
+          .eq("stripe_payment_intent", paymentIntent);
+      }
+    }
+  } catch (err) {
+    console.error("Webhook processing error:", err);
+    // Still return 200 to prevent Stripe from retrying indefinitely
   }
 
   return new Response("ok", { status: 200 });
