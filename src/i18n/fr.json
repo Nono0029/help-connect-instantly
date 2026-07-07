@@ -338,7 +338,20 @@
     "step2": "Tu entres ta carte bancaire ou utilises Apple/Google Pay",
     "step3": "L'argent est sécurisé sur Stripe — personne n'y touche avant la fin",
     "step4": "Le prestataire réalise la mission",
-    "step5": "Les deux parties confirment → l'argent est versé au prestataire"
+    "step5": "Les deux parties confirment → l'argent est versé au prestataire",
+    "bankDetailsTitle": "Recevoir mes paiements",
+    "bankDetailsDesc": "Renseigne le compte sur lequel tu veux être payé",
+    "holderNameLabel": "Nom du titulaire du compte",
+    "ibanLabel": "IBAN",
+    "saveButton": "Enregistrer",
+    "savingButton": "Enregistrement...",
+    "saveSuccess": "Coordonnées bancaires enregistrées",
+    "saveError": "Erreur lors de l'enregistrement",
+    "fillBothFields": "Merci de remplir l'IBAN et le nom du titulaire",
+    "withdrawHowTitle": "Comment récupérer mon argent ?",
+    "withdrawStep1": "Une fois une mission terminée et confirmée, l'argent arrive dans ton portefeuille Askoo",
+    "withdrawStep2": "Depuis \"Mon portefeuille\", demande un retrait vers le compte renseigné ci-dessus",
+    "withdrawStep3": "Le virement est envoyé sous quelques jours"
   },
   "help": {
     "title": "Aide & Contact",

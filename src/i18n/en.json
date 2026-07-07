@@ -338,7 +338,20 @@
     "step2": "Enter your card details or use Apple/Google Pay",
     "step3": "Money is secured on Stripe — no one touches it until the end",
     "step4": "The provider completes the mission",
-    "step5": "Both parties confirm → funds are released to the provider"
+    "step5": "Both parties confirm → funds are released to the provider",
+    "bankDetailsTitle": "Receive my payments",
+    "bankDetailsDesc": "Enter the account you want to be paid to",
+    "holderNameLabel": "Account holder name",
+    "ibanLabel": "IBAN",
+    "saveButton": "Save",
+    "savingButton": "Saving...",
+    "saveSuccess": "Bank details saved",
+    "saveError": "Error while saving",
+    "fillBothFields": "Please fill in the IBAN and the holder name",
+    "withdrawHowTitle": "How do I get paid out?",
+    "withdrawStep1": "Once a mission is completed and confirmed, the money lands in your Askoo wallet",
+    "withdrawStep2": "From \"My wallet\", request a withdrawal to the account entered above",
+    "withdrawStep3": "The transfer is sent within a few days"
   },
   "help": {
     "title": "Help & Contact",
