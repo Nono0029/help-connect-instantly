@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import CityPicker from "@/components/CityPicker";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
+import { getTotalEuros } from "@/lib/urgentFee";
 
 const typesAide = [
   { id: "menage", label: "🧹 Ménage / Nettoyage", desc: "Cleaning, ranging, organisation..." },
@@ -356,7 +357,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
               {urgent && !gratuit && prix && (
                 <div className="px-4 py-2.5 rounded-xl bg-destructive/5 border border-destructive/20 text-sm">
                   <span className="font-semibold text-destructive">
-                    {t('home.urgentTotal', { price: `${prix}€`, total: `${parseFloat(prix) + 3}` })}
+                    {t('home.urgentTotal', { price: `${prix}€`, total: getTotalEuros(parseFloat(prix), true) })}
                   </span>
                 </div>
               )}

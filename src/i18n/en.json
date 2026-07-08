@@ -39,8 +39,8 @@
     "noResults": "No help found",
     "noResultsDesc": "Be the first to help someone today 🐣",
     "urgent": "⚡ Urgent",
-    "urgentExtra": "+3€ urgent fees",
-    "urgentTotal": "Total: {price} + 3€ fees = {total}€",
+    "urgentExtra": "2€ fee + 1€ if urgent",
+    "urgentTotal": "Total: {price} + 2€ fee + 1€ if urgent = {total}€",
     "free": "Free ❤️",
     "all": "All",
     "menage": "🧹 Cleaning / Housekeeping",
@@ -242,7 +242,7 @@
     "langFr": "Français",
     "langEn": "English",
     "boost": "Profile boost",
-    "boostDesc": "Appear first for 7 days"
+    "boostDesc": "Appear first for 1 month"
   },
   "profile": {
     "title": "Profile",
@@ -550,7 +550,7 @@
   },
   "boost": {
     "title": "🚀 Profile boost",
-    "description": "Your profile and requests will appear first in search results for 7 days.",
+    "description": "Your profile and requests will appear first in search results for 1 month.",
     "price1Month": "1 month: €4.99",
     "activate": "Activate boost",
     "active": "Boost active until {date}",

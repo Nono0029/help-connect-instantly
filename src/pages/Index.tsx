@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { isUrgentActive } from "@/lib/urgentFee";
 
 import PostDemandeForm from "@/components/PostDemandeForm";
 import SearchFilters from "@/components/SearchFilters";
@@ -306,7 +307,9 @@ const Index = () => {
         return copy.sort((a, b) => {
           const boost = boostedCompare(a, b);
           if (boost !== 0) return boost;
-          if (a.urgent !== b.urgent) return a.urgent ? -1 : 1;
+          const aUrgent = isUrgentActive(a.urgent, a.created_at);
+          const bUrgent = isUrgentActive(b.urgent, b.created_at);
+          if (aUrgent !== bUrgent) return aUrgent ? -1 : 1;
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
       case "distance":
@@ -686,7 +689,7 @@ const Index = () => {
                     {d.categorie}
                   </Badge>
 
-                  {d.urgent && (
+                  {isUrgentActive(d.urgent, d.created_at) && (
                     <Badge className="rounded-xl bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-300 border-none text-xs">
                       ⚡ {t('home.urgent')}
                     </Badge>

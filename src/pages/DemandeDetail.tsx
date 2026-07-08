@@ -10,6 +10,7 @@ import ImageLightbox from "@/components/ImageLightbox";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
 import { formatTimeAgo } from "@/lib/utils";
+import { isUrgentActive, getTotalEuros } from "@/lib/urgentFee";
 
 interface Demande {
   id: number;
@@ -146,7 +147,7 @@ const DemandeDetail = () => {
           className="bg-card rounded-2xl border border-border p-4 space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary" className="rounded-lg">{demande.categorie}</Badge>
-            {demande.urgent && <Badge className="bg-destructive text-destructive-foreground rounded-lg"><Zap className="w-3 h-3 mr-1" />{t('demandeDetail.urgent')}</Badge>}
+            {isUrgentActive(demande.urgent, demande.created_at) && <Badge className="bg-destructive text-destructive-foreground rounded-lg"><Zap className="w-3 h-3 mr-1" />{t('demandeDetail.urgent')}</Badge>}
           </div>
 
           <h2 className="text-lg font-bold text-foreground">{demande.titre}</h2>
@@ -171,8 +172,8 @@ const DemandeDetail = () => {
             <span className={`font-bold text-base ${demande.gratuit ? "text-accent" : "text-foreground"}`}>
               {demande.gratuit
                 ? t('demandeDetail.free')
-                : demande.urgent && demande.prix
-                  ? t('home.urgentTotal', { price: `${demande.prix}€`, total: `${parseFloat(demande.prix) + 3}` })
+                : isUrgentActive(demande.urgent, demande.created_at) && demande.prix
+                  ? t('home.urgentTotal', { price: `${demande.prix}€`, total: getTotalEuros(parseFloat(demande.prix), true) })
                   : demande.prix
               }
             </span>

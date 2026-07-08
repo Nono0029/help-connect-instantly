@@ -41,7 +41,7 @@ serve(async (req) => {
       line_items: [{
         price_data: {
           currency: "eur",
-          product_data: { name: "🚀 Boost profil — 7 jours" },
+          product_data: { name: "🚀 Boost profil — 1 mois" },
           unit_amount: 499,
         },
         quantity: 1,

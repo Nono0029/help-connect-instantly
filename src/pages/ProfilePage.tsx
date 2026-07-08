@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
+import { isUrgentActive } from "@/lib/urgentFee";
 
 interface Profile {
   id: string;
@@ -354,7 +355,7 @@ const ProfilePage = () => {
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{d.description}</p>
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <Badge variant="secondary" className="rounded-lg text-[10px]">{d.categorie}</Badge>
-                        {d.urgent && <Badge className="bg-destructive text-destructive-foreground rounded-lg text-[10px]"><Zap className="w-3 h-3 mr-0.5" />Urgent</Badge>}
+                        {isUrgentActive(d.urgent, d.created_at) && <Badge className="bg-destructive text-destructive-foreground rounded-lg text-[10px]"><Zap className="w-3 h-3 mr-0.5" />Urgent</Badge>}
                         <span className="text-xs text-muted-foreground flex items-center gap-0.5">
                           <Clock className="w-3 h-3" />
                           {new Date(d.created_at).toLocaleDateString("fr-FR")}

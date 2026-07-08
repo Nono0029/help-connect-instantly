@@ -48,7 +48,8 @@ serve(async (req) => {
       // Handle boost payment
       if (paymentType === "boost" && userId) {
         const now = new Date();
-        const until = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const until = new Date(now);
+        until.setMonth(until.getMonth() + 1);
         await supabase.from("profiles").upsert({ id: userId, boost_until: until.toISOString() });
       }
 

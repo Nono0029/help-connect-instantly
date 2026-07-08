@@ -18,6 +18,7 @@ import NotificationBell from "@/components/NotificationBell";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
 import { EmptyState } from "@/components/EmptyState";
+import { isUrgentActive } from "@/lib/urgentFee";
 
 interface Demande {
   id: number;
@@ -160,7 +161,7 @@ const MesDemandesPage = () => {
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">{d.categorie}</span>
-                    {d.urgent && (
+                    {isUrgentActive(d.urgent, d.created_at) && (
                       <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded flex items-center gap-1">
                         <Zap className="w-3 h-3" /> {t('requests.urgent')}
                       </span>

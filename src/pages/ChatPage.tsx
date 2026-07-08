@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "@/context/LanguageContext";
+import { isUrgentActive } from "@/lib/urgentFee";
 import {
   ArrowLeft,
   Send,
@@ -57,6 +58,7 @@ interface Mission {
     titre?: string;
     prix?: string | number | null;
     urgent?: boolean | null;
+    created_at?: string | null;
   };
 }
 
@@ -211,7 +213,7 @@ const ChatPage = () => {
     if (!conv) return;
     const { data } = await supabase
       .from("missions")
-      .select("*, demandes(titre, prix, urgent)")
+      .select("*, demandes(titre, prix, urgent, created_at)")
       .eq("demande_id", conv.demande_id)
       .maybeSingle();
     if (!data) {
@@ -675,7 +677,7 @@ const ChatPage = () => {
   const missionPrice = mission?.demandes?.prix
     ? parseFloat(String(mission.demandes.prix).replace(/[^0-9.,]/g, "").replace(",", "."))
     : 0;
-  const missionHasStripePayment = !!mission && (missionPrice > 0 || mission.demandes?.urgent === true);
+  const missionHasStripePayment = !!mission && (missionPrice > 0 || isUrgentActive(mission.demandes?.urgent, mission.demandes?.created_at));
   const canPayMission =
     mission?.statut === "en_cours" &&
     isDemandeOwner &&
@@ -754,7 +756,7 @@ const ChatPage = () => {
         </div>
       )}
 
-      {/* PAIEMENT — show if there's a price OR if urgent (3€ fees) */}
+      {/* PAIEMENT — show if there's a price OR if urgent is still active (2€ fees + 1€ urgent) */}
       {canPayMission && (
         <div className="px-4 py-3 bg-card/80 border-b border-border">
           <div className="flex items-center gap-2 mb-2">

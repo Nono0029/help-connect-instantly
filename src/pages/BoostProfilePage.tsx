@@ -114,7 +114,7 @@ const BoostProfilePage = () => {
             "Apparaît en tête des résultats de recherche",
             "Plus de visibilité sur tes demandes",
             "Badge boost sur ton profil",
-            "Durée : 7 jours",
+            "Durée : 1 mois",
           ].map((benefit, i) => (
             <div key={i} className="flex items-center gap-3">
               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

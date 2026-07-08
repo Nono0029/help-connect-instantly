@@ -39,8 +39,8 @@
     "noResults": "Aucune aide trouvée",
     "noResultsDesc": "Sois le premier à aider quelqu'un aujourd'hui 🐣",
     "urgent": "⚡ Urgent",
-    "urgentExtra": "+3€ de frais urgents",
-    "urgentTotal": "Total: {price} + 3€ frais = {total}€",
+    "urgentExtra": "2€ de frais + 1€ si urgent",
+    "urgentTotal": "Total: {price} + 2€ de frais + 1€ si urgent = {total}€",
     "free": "Gratuit ❤️",
     "all": "Tout",
     "menage": "🧹 Ménage / Nettoyage",
@@ -242,7 +242,7 @@
     "langFr": "Français",
     "langEn": "English",
     "boost": "Boost profil",
-    "boostDesc": "Apparaître en premier pendant 7 jours"
+    "boostDesc": "Apparaître en premier pendant 1 mois"
   },
   "profile": {
     "title": "Profil",
@@ -550,7 +550,7 @@
   },
   "boost": {
     "title": "🚀 Boost profil",
-    "description": "Ton profil et tes demandes apparaîtront en premier dans les résultats de recherche pendant 7 jours.",
+    "description": "Ton profil et tes demandes apparaîtront en premier dans les résultats de recherche pendant 1 mois.",
     "price1Month": "1 mois : 4,99€",
     "activate": "Activer le boost",
     "active": "Boost actif jusqu'au {date}",
