@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Camera, Image, Euro, Clock, Sparkles, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
-import { getTotalEuros } from "@/lib/urgentFee";
+import { getTotalEuros, isBoostActive } from "@/lib/urgentFee";
 
 const typesAide = [
   { id: "menage", label: "Ménage / Nettoyage", emoji: "🧹" },
@@ -58,7 +58,14 @@ const CreateRequestPage = () => {
   const [loading, setLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [isBoosted, setIsBoosted] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("boost_until").eq("id", user.id).maybeSingle()
+      .then(({ data }) => setIsBoosted(isBoostActive(data?.boost_until)));
+  }, [user]);
 
   const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -233,7 +240,9 @@ const CreateRequestPage = () => {
         {urgent && !gratuit && prix && (
           <div className="px-4 py-2.5 rounded-xl bg-destructive/5 border border-destructive/20 text-sm">
             <span className="font-semibold text-destructive">
-              {t('home.urgentTotal', { price: `${prix}€`, total: getTotalEuros(parseFloat(prix), true) })}
+              {isBoosted
+                ? `Total : ${prix}€ + 2€ de frais (boost actif ✨)`
+                : t('home.urgentTotal', { price: `${prix}€`, total: getTotalEuros(parseFloat(prix), true, false) })}
             </span>
           </div>
         )}

@@ -9,12 +9,11 @@ import {
   User,
   ShoppingBag,
   MessageCircle,
-  Rocket,
+
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { isUrgentActive } from "@/lib/urgentFee";
@@ -97,10 +96,6 @@ const Index = () => {
 
   const [likedIds, setLikedIds] = useState<number[]>(() => {
     try { return JSON.parse(localStorage.getItem('askoo-likes') || '[]'); } catch { return []; }
-  });
-
-  const [recentlyViewed, setRecentlyViewed] = useState<{ id: number; titre: string; viewed_at: number }[]>(() => {
-    try { return JSON.parse(localStorage.getItem('askoo-recent-views') || '[]').slice(0, 5); } catch { return []; }
   });
 
   const [showForm, setShowForm] =
@@ -592,129 +587,76 @@ const Index = () => {
               transition={{
                 delay: i * 0.03,
               }}
-              onClick={() => {
-                try {
-                  const views = JSON.parse(localStorage.getItem('askoo-recent-views') || '[]');
-                  const newView = { id: d.id, titre: d.titre, viewed_at: Date.now() };
-                  const filtered = views.filter((v: any) => v.id !== d.id);
-                  const updated = [newView, ...filtered].slice(0, 10);
-                  localStorage.setItem('askoo-recent-views', JSON.stringify(updated));
-                  setRecentlyViewed(updated.slice(0, 5));
-                } catch {}
-                navigate(`/demande/${d.id}`);
-              }}
-              className="card-magic cursor-pointer active:scale-[0.98]"
+              onClick={() => navigate(`/demande/${d.id}`)}
+              className={`card-magic cursor-pointer active:scale-[0.98] overflow-hidden ${
+                isUrgentActive(d.urgent, d.created_at) ? "border-l-[3px] !border-l-red-400 dark:!border-l-red-400" : ""
+              }`}
             >
-
+              {/* Header row */}
               <div className="flex items-start justify-between mb-3">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="w-11 h-11 rounded-full bg-magic-gradient dark:bg-cyan-gradient flex items-center justify-center text-sm font-bold text-foreground shadow-warm">
-                    {d.auteur
-                      ?.slice(0, 2)
-                      .toUpperCase() || "??"}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative w-10 h-10 rounded-2xl bg-magic-gradient dark:bg-cyan-gradient flex items-center justify-center text-xs font-black text-foreground shadow-warm shrink-0">
+                    {d.auteur?.slice(0, 2).toUpperCase() || "??"}
+                    {d.user_id && boostedUserIds.has(d.user_id) && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 flex items-center justify-center text-[8px]">⭐</span>
+                    )}
                   </div>
-
-                  <div>
-
-                    <p className="text-sm font-semibold text-foreground">
-                      {d.auteur}
-                    </p>
-
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {d.ville || ville}
-                      </span>
-
-                      <span>•</span>
-
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {getTemps(
-                          d.created_at
-                        )}
-                      </span>
-
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-bold text-foreground truncate">{d.auteur}</p>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
+                      <MapPin className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{d.ville || ville}</span>
+                      <span className="opacity-40 mx-0.5">·</span>
+                      <Clock className="w-3 h-3 shrink-0" />
+                      <span className="whitespace-nowrap">{getTemps(d.created_at)}</span>
                     </div>
                   </div>
                 </div>
-
-                <button
-                  onClick={(e) =>
-                    toggleLike(d.id, e)
-                  }
-                  className="p-1"
-                >
-                  <Heart
-                    className={`w-5 h-5 transition-all ${
-                      likedIds.includes(d.id)
-                        ? "fill-pink-400 text-pink-400 scale-110"
-                        : "text-muted-foreground"
-                    }`}
-                  />
+                <button onClick={(e) => toggleLike(d.id, e)} className="p-1 shrink-0 ml-2">
+                  <Heart className={`w-5 h-5 transition-all ${likedIds.includes(d.id) ? "fill-pink-400 text-pink-400 scale-110" : "text-muted-foreground/40"}`} />
                 </button>
               </div>
 
-              <h3 className="font-bold text-foreground mb-1 text-[15px]">
-                {d.titre}
-              </h3>
-
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                {d.description}
-              </p>
+              {/* Content */}
+              <h3 className="font-extrabold text-foreground text-[15px] leading-snug mb-1.5">{d.titre}</h3>
+              <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed mb-3">{d.description}</p>
 
               {d.photos && d.photos.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" onClick={e => e.stopPropagation()}>
+                <div className="flex gap-2 overflow-x-auto pb-2 mb-1 scrollbar-hide" onClick={e => e.stopPropagation()}>
                   {d.photos.map((src, i) => (
-                    <img
-                      key={i}
-                      src={src}
-                      alt=""
-                      loading="lazy"
+                    <img key={i} src={src} alt="" loading="lazy"
                       onClick={() => setLightbox({ images: d.photos!, index: i })}
-                      className="shrink-0 w-20 h-20 rounded-xl object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                      className="shrink-0 w-20 h-20 rounded-xl object-cover border border-border/50 cursor-pointer hover:opacity-80 transition-opacity"
                     />
                   ))}
                 </div>
               )}
 
-              <div className="flex items-center justify-between">
+              {/* Divider */}
+              <div className="h-px bg-border/40 mb-3" />
 
-                <div className="flex items-center gap-2 flex-wrap">
-
-                  <Badge className="rounded-xl bg-primary/15 text-foreground border-none text-xs">
+              {/* Footer */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-primary/10 text-foreground/80 truncate max-w-[130px]">
                     {d.categorie}
-                  </Badge>
-
+                  </span>
                   {isUrgentActive(d.urgent, d.created_at) && (
-                    <Badge className="rounded-xl bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-300 border-none text-xs">
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-300 whitespace-nowrap">
                       ⚡ {t('home.urgent')}
-                    </Badge>
+                    </span>
                   )}
-
                   {d.user_id && boostedUserIds.has(d.user_id) && (
-                    <Badge className="rounded-xl bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-300 border-none text-xs">
-                      <Rocket className="w-3 h-3 mr-0.5" /> Boost
-                    </Badge>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300 whitespace-nowrap">
+                      🚀 Pro
+                    </span>
                   )}
-
                 </div>
-
-                <span
-                  className={`text-sm font-black ${
-                    d.gratuit
-                      ? "text-accent"
-                      : "text-foreground"
-                  }`}
-                >
-                  {d.gratuit
-                    ? t('home.free')
-                    : `${d.prix} €`}
-                </span>
-
+                <div className={`shrink-0 font-black text-[13px] px-3 py-1.5 rounded-2xl whitespace-nowrap ${
+                  d.gratuit ? "bg-accent/10 text-accent" : "bg-foreground/[0.06] text-foreground"
+                }`}>
+                  {d.gratuit ? t('home.free') : `${d.prix} €`}
+                </div>
               </div>
             </motion.div>
 
@@ -722,36 +664,6 @@ const Index = () => {
         </AnimatePresence>
         )}
 
-        {/* RECENTLY VIEWED */}
-        {!loading && recentlyViewed.length > 0 && (
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-foreground">{t('home.recentlyViewed')}</h2>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {recentlyViewed.map((view) => (
-                <button
-                  key={view.id}
-                  onClick={() => navigate(`/demande/${view.id}`)}
-                  className="shrink-0 w-40 p-3 rounded-2xl bg-background/70 border border-border text-left hover:bg-primary/10 transition-all"
-                >
-                  <p className="text-xs font-semibold text-foreground line-clamp-2 mb-1">{view.titre}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {(() => {
-                      const diff = Math.floor((Date.now() - view.viewed_at) / 60000);
-                      if (diff < 1) return t('time.justNow');
-                      if (diff < 60) return t('time.minutesAgo', { n: diff });
-                      const h = Math.floor(diff / 60);
-                      if (h < 24) return t('time.hoursAgo', { n: h });
-                      const d = Math.floor(h / 24);
-                      return t('time.daysAgo', { n: d });
-                    })()}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* MODALS */}

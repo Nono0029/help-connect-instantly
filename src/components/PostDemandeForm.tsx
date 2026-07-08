@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import CityPicker from "@/components/CityPicker";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
-import { getTotalEuros } from "@/lib/urgentFee";
+import { getTotalEuros, isBoostActive } from "@/lib/urgentFee";
 
 const typesAide = [
   { id: "menage", label: "🧹 Ménage / Nettoyage", desc: "Cleaning, ranging, organisation..." },
@@ -76,12 +76,19 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   const [duree, setDuree] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isBoosted, setIsBoosted] = useState(false);
   const [villeForm, setVilleForm] = useState("");
   const [villeLat, setVilleLat] = useState(0);
   const [villeLng, setVilleLng] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const isEdit = !!demandeToEdit;
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("boost_until").eq("id", user.id).maybeSingle()
+      .then(({ data }) => setIsBoosted(isBoostActive(data?.boost_until)));
+  }, [user]);
 
   useEffect(() => {
     if (demandeToEdit) {
@@ -357,7 +364,9 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
               {urgent && !gratuit && prix && (
                 <div className="px-4 py-2.5 rounded-xl bg-destructive/5 border border-destructive/20 text-sm">
                   <span className="font-semibold text-destructive">
-                    {t('home.urgentTotal', { price: `${prix}€`, total: getTotalEuros(parseFloat(prix), true) })}
+                    {isBoosted
+                      ? `Total : ${prix}€ + 2€ de frais (boost actif ✨)`
+                      : t('home.urgentTotal', { price: `${prix}€`, total: getTotalEuros(parseFloat(prix), true, false) })}
                   </span>
                 </div>
               )}

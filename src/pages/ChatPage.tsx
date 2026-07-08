@@ -832,8 +832,8 @@ const ChatPage = () => {
                 {otherProfile?.pseudo?.[0]?.toUpperCase() || "?"}
               </button>
             )}
-            <div className={`flex flex-col ${isMe(msg.sender_id) ? "items-end" : "items-start"}`}>
-              <div className={`max-w-[78%] px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
+            <div className={`flex flex-col min-w-0 flex-1 ${isMe(msg.sender_id) ? "items-end" : "items-start"}`}>
+              <div className={`max-w-[72vw] sm:max-w-sm px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
                 isMe(msg.sender_id)
                   ? "bg-magic-gradient dark:bg-[linear-gradient(135deg,#00b4d8_0%,#00c875_100%)] text-foreground dark:text-white shadow-soft"
                   : "bg-white/75 dark:bg-[#0d2530]/80 border border-border text-foreground dark:text-cyan-50 shadow-card"

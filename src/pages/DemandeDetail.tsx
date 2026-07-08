@@ -10,7 +10,7 @@ import ImageLightbox from "@/components/ImageLightbox";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
 import { formatTimeAgo } from "@/lib/utils";
-import { isUrgentActive, getTotalEuros } from "@/lib/urgentFee";
+import { isUrgentActive, getTotalEuros, isBoostActive } from "@/lib/urgentFee";
 
 interface Demande {
   id: number;
@@ -35,6 +35,7 @@ const DemandeDetail = () => {
   const [demande, setDemande] = useState<Demande | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [isBoosted, setIsBoosted] = useState(false);
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   useEffect(() => {
@@ -49,6 +50,12 @@ const DemandeDetail = () => {
     };
     fetch();
   }, [id]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("boost_until").eq("id", user.id).maybeSingle()
+      .then(({ data }) => setIsBoosted(isBoostActive(data?.boost_until)));
+  }, [user]);
 
   const getTemps = (created_at: string) => formatTimeAgo(created_at, t);
 
@@ -173,7 +180,7 @@ const DemandeDetail = () => {
               {demande.gratuit
                 ? t('demandeDetail.free')
                 : isUrgentActive(demande.urgent, demande.created_at) && demande.prix
-                  ? t('home.urgentTotal', { price: `${demande.prix}€`, total: getTotalEuros(parseFloat(demande.prix), true) })
+                  ? t('home.urgentTotal', { price: `${demande.prix}€`, total: getTotalEuros(parseFloat(demande.prix), true, isBoosted) })
                   : demande.prix
               }
             </span>

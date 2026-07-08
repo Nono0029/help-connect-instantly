@@ -90,9 +90,22 @@ serve(async (req) => {
 
     const prix = parseEuroAmount(mission.demandes?.prix);
     // Urgent surcharge only applies for 7 days after the request was created.
-    const isUrgent = mission.demandes?.urgent === true
-      && (Date.now() - new Date(mission.demandes?.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000;
-    if (prix <= 0 && !isUrgent) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    const createdAt = mission.demandes?.created_at;
+    const urgentActive = mission.demandes?.urgent === true
+      && !!createdAt
+      && (Date.now() - new Date(createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
+    // Boosted users (active boost subscription) are exempt from the +1€ urgent surcharge.
+    const { data: requesterProfile } = await supabase
+      .from("profiles")
+      .select("boost_until")
+      .eq("id", user.id)
+      .maybeSingle();
+    const requesterBoosted = !!requesterProfile?.boost_until
+      && new Date(requesterProfile.boost_until).getTime() > Date.now();
+
+    const isUrgentBillable = urgentActive && !requesterBoosted;
+    if (prix <= 0 && !urgentActive) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
     // Lookup conversation from conversations table (conversations has demande_id, not mission_id)
     let convId = conversation_id;
@@ -101,7 +114,7 @@ serve(async (req) => {
       convId = conv?.id;
     }
 
-    const frais = 200 + (isUrgent ? 100 : 0);
+    const frais = 200 + (isUrgentBillable ? 100 : 0);
     const montantCents = Math.round(prix * 100) + frais;
 
     const origin = req.headers.get("origin") || "https://help-connect-instantly.vercel.app";
@@ -134,7 +147,7 @@ serve(async (req) => {
       helper_id: mission.helper_id,
       stripe_session_id: session.id,
       montant: prix,
-      frais: isUrgent ? 3 : 2,
+      frais: isUrgentBillable ? 3 : 2,
       statut: "en_attente",
     });
 
