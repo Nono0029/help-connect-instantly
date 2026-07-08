@@ -145,36 +145,36 @@ export default {
 
       boxShadow: {
         magic:
-          "0 16px 60px rgba(246,229,141,0.35), 0 4px 20px rgba(186,220,88,0.2)",
+          "0 16px 60px rgba(224,162,59,0.25), 0 4px 20px rgba(61,122,84,0.15)",
 
         soft:
-          "0 8px 40px rgba(255,220,80,0.15)",
+          "0 8px 40px rgba(224,162,59,0.15)",
 
         glow:
-          "0 0 30px rgba(255,220,80,0.3)",
+          "0 0 30px rgba(224,162,59,0.3)",
 
         "dark-glow":
-          "0 0 30px rgba(0,180,216,0.25)",
+          "0 0 30px rgba(78,168,112,0.3)",
 
         card:
-          "0 8px 32px rgba(255,220,80,0.1)",
+          "0 8px 32px rgba(61,122,84,0.08)",
 
         "dark-card":
-          "0 8px 32px rgba(0,180,216,0.08)",
+          "0 8px 32px rgba(78,168,112,0.1)",
       },
 
       backgroundImage: {
         "magic-gradient":
-          "linear-gradient(135deg,#f6e58d 0%,#badc58 100%)",
+          "linear-gradient(135deg,#4C8B64 0%,#2A5940 100%)",
 
         "hero-gradient":
-          "linear-gradient(135deg,#fffef6 0%,#fff4b5 40%,#dfffd8 100%)",
+          "linear-gradient(135deg,#FBF6EA 0%,#F3E9CE 50%,#EAF3DE 100%)",
 
         "dark-gradient":
-          "linear-gradient(135deg,#06131a 0%,#0b1c24 50%,#102c2c 100%)",
+          "linear-gradient(135deg,#1A1712 0%,#211F1A 50%,#1D2618 100%)",
 
         "cyan-gradient":
-          "linear-gradient(135deg,#00b4d8 0%,#00c875 100%)",
+          "linear-gradient(135deg,#4C8B64 0%,#2A5940 100%)",
       },
 
       keyframes: {
