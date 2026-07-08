@@ -12,14 +12,17 @@ export const URGENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
  * Whether a request's urgent surcharge/badge should still apply.
- * `createdAt` is optional to support a brand-new, not-yet-persisted
- * request (e.g. in the creation form), which is always within window.
+ * `createdAt` should be the persisted request's `created_at`. If it is
+ * missing or invalid, this conservatively returns false (matching the
+ * payment edge function's behavior) rather than assuming urgency is
+ * still active. For a brand-new, not-yet-persisted request (e.g. the
+ * creation form's live preview), don't call this helper at all — use
+ * the user's toggle state directly, since there is no `created_at` yet.
  */
 export function isUrgentActive(urgent: boolean | null | undefined, createdAt?: string | null): boolean {
-  if (!urgent) return false;
-  if (!createdAt) return true;
+  if (!urgent || !createdAt) return false;
   const created = new Date(createdAt).getTime();
-  if (Number.isNaN(created)) return true;
+  if (Number.isNaN(created)) return false;
   return Date.now() - created < URGENT_WINDOW_MS;
 }
 
