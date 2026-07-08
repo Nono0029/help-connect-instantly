@@ -92,7 +92,7 @@
     "paymentSecure": "Secure payment",
     "paymentPendingDesc": "A previous payment was not completed. You can try again.",
     "paymentExpiredDesc": "The payment session has expired. You can try again.",
-    "paymentDesc": "💰 Money is locked on Stripe until both parties confirm. Total: price + €2 fee.",
+    "paymentDesc": "Payment by Stripe. Money is locked until both parties confirm. The total includes the price and fees.",
     "paymentLocked": "💬 Send at least 5 messages to unlock secure payment.",
     "payBtn": "Pay with Stripe 💳",
     "messagesLeft": "🔒 {n} messages remaining",

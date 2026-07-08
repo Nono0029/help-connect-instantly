@@ -10,6 +10,11 @@ const supabase = createClient(
 
 const ALLOWED_ORIGINS = ["https://askoo.fr", "https://www.askoo.fr", "https://help-connect-instantly.vercel.app"];
 
+const parseEuroAmount = (value: unknown) => {
+  const parsed = parseFloat(String(value || "").replace(/[^0-9.,]/g, "").replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
 serve(async (req) => {
   const origin = req.headers.get("origin") || "";
   const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
@@ -47,19 +52,43 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "only the requester can initiate payment" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    // Prevent duplicate payments: check for existing en_attente payment
+    const { data: paidPayment } = await supabase
+      .from("payments")
+      .select("id")
+      .eq("mission_id", mission_id)
+      .in("statut", ["payé", "termine"])
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (paidPayment) {
+      return new Response(JSON.stringify({ error: "payment already completed" }), { status: 409, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    // Reuse an open Checkout session instead of blocking the requester.
     const { data: existingPayment } = await supabase
       .from("payments")
       .select("id, stripe_session_id")
       .eq("mission_id", mission_id)
       .eq("statut", "en_attente")
+      .order("id", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (existingPayment) {
-      return new Response(JSON.stringify({ error: "payment already in progress" }), { status: 409, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      try {
+        const existingSession = await stripe.checkout.sessions.retrieve(existingPayment.stripe_session_id);
+        if (existingSession.status === "open" && existingSession.url) {
+          return new Response(JSON.stringify({ url: existingSession.url }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+        }
+      } catch (err) {
+        console.error("existing checkout lookup failed:", err);
+      }
+
+      await supabase.from("payments").update({ statut: "expiré" }).eq("id", existingPayment.id);
     }
 
-    const prix = mission.demandes?.prix ? parseFloat(String(mission.demandes.prix).replace(/[^0-9.]/g, "")) : 0;
+    const prix = parseEuroAmount(mission.demandes?.prix);
     const isUrgent = mission.demandes?.urgent === true;
     if (prix <= 0 && !isUrgent) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
@@ -76,7 +105,6 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "https://help-connect-instantly.vercel.app";
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
       mode: "payment",
       line_items: [{
         price_data: {

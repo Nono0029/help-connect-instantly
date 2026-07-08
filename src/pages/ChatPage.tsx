@@ -53,6 +53,11 @@ interface Mission {
   statut: string;
   helper_confirme: boolean;
   demandeur_confirme: boolean;
+  demandes?: {
+    titre?: string;
+    prix?: string | number | null;
+    urgent?: boolean | null;
+  };
 }
 
 interface Profile {
@@ -202,30 +207,38 @@ const ChatPage = () => {
     }
   };
 
-  const fetchMission = async (conv: any) => {
+  const fetchMission = async (conv: Conversation) => {
     if (!conv) return;
     const { data } = await supabase
       .from("missions")
-      .select("*")
+      .select("*, demandes(titre, prix, urgent)")
       .eq("demande_id", conv.demande_id)
       .maybeSingle();
-    if (data) {
-      setMission(data as Mission);
-      missionRef.current = data as Mission;
+    if (!data) {
+      setMission(null);
+      missionRef.current = null;
+      setPayment(null);
+      return;
     }
+
+    const missionData = data as Mission;
+    setMission(missionData);
+    missionRef.current = missionData;
 
     const { data: p } = await supabase
       .from("payments")
       .select("*")
-      .eq("mission_id", data?.id)
+      .eq("mission_id", missionData.id)
+      .order("id", { ascending: false })
+      .limit(1)
       .maybeSingle();
-    if (p) setPayment(p);
+    setPayment(p || null);
 
-    if (user && data) {
+    if (user) {
       const { data: avis } = await supabase
         .from("avis")
         .select("id")
-        .eq("mission_id", data.id)
+        .eq("mission_id", missionData.id)
         .eq("auteur_id", user.id)
         .maybeSingle();
       if (avis) setAvisDonne(true);
@@ -659,6 +672,15 @@ const ChatPage = () => {
   }, [messages, mission, isDemandeOwner]);
 
   const isMe = (senderId: string) => senderId === user?.id;
+  const missionPrice = mission?.demandes?.prix
+    ? parseFloat(String(mission.demandes.prix).replace(/[^0-9.,]/g, "").replace(",", "."))
+    : 0;
+  const missionHasStripePayment = !!mission && (missionPrice > 0 || mission.demandes?.urgent === true);
+  const canPayMission =
+    mission?.statut === "en_cours" &&
+    isDemandeOwner &&
+    missionHasStripePayment &&
+    (!payment || payment.statut === "en_attente" || payment.statut === "expiré");
   const isActive = conversation?.statut !== "fermée";
 
   return (
@@ -706,7 +728,7 @@ const ChatPage = () => {
             : t('chat.discussion')}
           </p>
 
-          {messages.length >= 5 && mission?.statut === "en_cours" && (
+          {canPayMission && (
             <div className="mt-3 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               <p className="text-[11px] text-accent font-semibold">{t('chat.paymentUnlocked')}</p>
@@ -733,12 +755,12 @@ const ChatPage = () => {
       )}
 
       {/* PAIEMENT — show if there's a price OR if urgent (3€ fees) */}
-      {mission?.statut === "en_cours" && isDemandeOwner && (mission.demandes?.urgent || (mission.demandes?.prix && parseFloat(String(mission.demandes.prix).replace(/[^0-9.]/g, "")) > 0)) && (!payment || payment?.statut === "en_attente" || payment?.statut === "expir\u00e9") && (
+      {canPayMission && (
         <div className="px-4 py-3 bg-card/80 border-b border-border">
           <div className="flex items-center gap-2 mb-2">
             <Lock className="w-4 h-4 text-accent" />
             <p className="text-sm font-semibold text-foreground">
-              {payment?.statut === "en_attente" ? t('chat.paymentPending') : messages.length >= 5 ? t('chat.paymentAvailable') : t('chat.paymentSecure')}
+              {payment?.statut === "en_attente" ? t('chat.paymentPending') : t('chat.paymentAvailable')}
             </p>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
@@ -746,25 +768,19 @@ const ChatPage = () => {
               ? t('chat.paymentPendingDesc')
               : payment?.statut === "expir\u00e9"
                 ? t('chat.paymentExpiredDesc')
-                : messages.length >= 5
-                  ? t('chat.paymentDesc')
-                  : t('chat.paymentLocked')}
+                : t('chat.paymentDesc')}
           </p>
           <button
             onClick={handlePayment}
-            disabled={paymentLoading || messages.length < 5}
-            className={`w-full h-11 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
-              messages.length >= 5
-                ? "btn-magic"
-                : "bg-muted border border-border text-muted-foreground cursor-not-allowed"
-            }`}
+            disabled={paymentLoading}
+            className="w-full h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60"
           >
             {paymentLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <CreditCard className="w-4 h-4" />
             )}
-            {messages.length >= 5 ? t('chat.payBtn') : t('chat.messagesLeft', {n: 5 - messages.length})}
+            {t('chat.payBtn')}
           </button>
         </div>
       )}

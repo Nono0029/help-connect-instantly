@@ -37,7 +37,6 @@ serve(async (req) => {
     const sessionOrigin = req.headers.get("origin") || "https://help-connect-instantly.vercel.app";
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
       mode: "payment",
       line_items: [{
         price_data: {

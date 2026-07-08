@@ -92,7 +92,7 @@
     "paymentSecure": "Paiement sécurisé",
     "paymentPendingDesc": "Un paiement précédent n'a pas été complété. Tu peux réessayer.",
     "paymentExpiredDesc": "La session de paiement a expiré. Tu peux réessayer.",
-    "paymentDesc": "💰 L'argent est bloqué sur Stripe jusqu'à confirmation des deux parties. Total : prix + 2€ de frais.",
+    "paymentDesc": "Paiement par Stripe. L'argent est bloqué jusqu'à confirmation des deux parties. Le total inclut le prix et les frais.",
     "paymentLocked": "💬 Envoie au moins 5 messages pour débloquer le paiement sécurisé.",
     "payBtn": "Payer avec Stripe 💳",
     "messagesLeft": "🔒 {n} messages restants",
