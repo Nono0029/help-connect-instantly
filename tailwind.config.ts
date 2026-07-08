@@ -25,7 +25,13 @@ export default {
     extend: {
       fontFamily: {
         sans: [
-          "Outfit",
+          "Inter",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "sans-serif",
+        ],
+        display: [
+          "Figtree",
           "-apple-system",
           "BlinkMacSystemFont",
           "sans-serif",
