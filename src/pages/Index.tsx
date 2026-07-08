@@ -9,7 +9,19 @@ import {
   User,
   ShoppingBag,
   MessageCircle,
-
+  Sparkles,
+  Truck,
+  UtensilsCrossed,
+  ShoppingCart,
+  Package,
+  Dumbbell,
+  Hammer,
+  Sprout,
+  Laptop,
+  GraduationCap,
+  PawPrint,
+  Car,
+  Star,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -86,6 +98,23 @@ const Index = () => {
     "💬 Écoute / Social": t('home.listening'),
     "🚗 Transport": t('home.transport'),
     "✨ Autre": t('home.other'),
+  };
+
+  const categoryIcons: Record<string, typeof Sprout> = {
+    "🧹 Ménage / Nettoyage": Sparkles,
+    "📦 Déménagement": Truck,
+    "🍳 Cuisine / Repas": UtensilsCrossed,
+    "🛒 Courses / Achats": ShoppingCart,
+    "📮 Portage / Livraison": Package,
+    "💪 Aide physique": Dumbbell,
+    "🔧 Bricolage": Hammer,
+    "🌱 Jardin / Plantes": Sprout,
+    "💻 Tech / Informatique": Laptop,
+    "📚 Cours / Tutorat": GraduationCap,
+    "🐶 Animaux": PawPrint,
+    "💬 Écoute / Social": MessageCircle,
+    "🚗 Transport": Car,
+    "✨ Autre": Star,
   };
 
   const [search, setSearch] = useState("");
@@ -595,8 +624,11 @@ const Index = () => {
               {/* Header row */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="relative w-10 h-10 rounded-2xl bg-magic-gradient dark:bg-cyan-gradient flex items-center justify-center text-xs font-black text-foreground shadow-warm shrink-0">
-                    {d.auteur?.slice(0, 2).toUpperCase() || "??"}
+                  <div className="relative w-11 h-11 rounded-2xl bg-secondary flex items-center justify-center shrink-0">
+                    {(() => {
+                      const CatIcon = categoryIcons[d.categorie] || Star;
+                      return <CatIcon className="w-5 h-5 text-secondary-foreground" />;
+                    })()}
                     {d.user_id && boostedUserIds.has(d.user_id) && (
                       <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 flex items-center justify-center text-[8px]">⭐</span>
                     )}
@@ -612,9 +644,16 @@ const Index = () => {
                     </div>
                   </div>
                 </div>
-                <button onClick={(e) => toggleLike(d.id, e)} className="p-1 shrink-0 ml-2">
-                  <Heart className={`w-5 h-5 transition-all ${likedIds.includes(d.id) ? "fill-pink-400 text-pink-400 scale-110" : "text-muted-foreground/40"}`} />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  {isUrgentActive(d.urgent, d.created_at) && (
+                    <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-accent text-accent-foreground whitespace-nowrap">
+                      {t('home.urgentBadge')}
+                    </span>
+                  )}
+                  <button onClick={(e) => toggleLike(d.id, e)} className="p-1">
+                    <Heart className={`w-5 h-5 transition-all ${likedIds.includes(d.id) ? "fill-pink-400 text-pink-400 scale-110" : "text-muted-foreground/40"}`} />
+                  </button>
+                </div>
               </div>
 
               {/* Content */}
@@ -636,28 +675,22 @@ const Index = () => {
               <div className="h-px bg-border/40 mb-3" />
 
               {/* Footer */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-primary/10 text-foreground/80 truncate max-w-[130px]">
-                    {d.categorie}
+              <div className="flex items-center gap-1.5 flex-wrap mb-3">
+                <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-primary/10 text-foreground/80 truncate max-w-[130px]">
+                  {d.categorie}
+                </span>
+                {d.user_id && boostedUserIds.has(d.user_id) && (
+                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300 whitespace-nowrap">
+                    🚀 Pro
                   </span>
-                  {isUrgentActive(d.urgent, d.created_at) && (
-                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-300 whitespace-nowrap">
-                      ⚡ {t('home.urgent')}
-                    </span>
-                  )}
-                  {d.user_id && boostedUserIds.has(d.user_id) && (
-                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300 whitespace-nowrap">
-                      🚀 Pro
-                    </span>
-                  )}
-                </div>
-                <div className={`shrink-0 font-black text-[13px] px-3 py-1.5 rounded-2xl whitespace-nowrap ${
-                  d.gratuit ? "bg-accent/10 text-accent" : "bg-foreground/[0.06] text-foreground"
-                }`}>
-                  {d.gratuit ? t('home.free') : `${d.prix} €`}
-                </div>
+                )}
               </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); navigate(`/demande/${d.id}`); }}
+                className="w-full bg-primary text-primary-foreground font-bold text-[14px] py-3 rounded-2xl active:scale-[0.98] transition-transform"
+              >
+                {t('home.respond')} · {d.gratuit ? t('home.free') : `${d.prix} €`}
+              </button>
             </motion.div>
 
           ))}

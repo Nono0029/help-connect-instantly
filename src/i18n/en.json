@@ -63,7 +63,9 @@
     "sortRecent": "🕐 Most recent",
     "sortUrgent": "⚡ Urgent first",
     "recentlyViewed": "👁️ Recently viewed",
-    "noRecentlyViewed": "No demands viewed yet"
+    "noRecentlyViewed": "No demands viewed yet",
+    "respond": "Reply",
+    "urgentBadge": "Urgent"
   },
   "time": {
     "justNow": "Just now",

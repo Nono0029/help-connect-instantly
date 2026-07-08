@@ -63,7 +63,9 @@
     "sortRecent": "🕐 Plus récent",
     "sortUrgent": "⚡ Urgent d'abord",
     "recentlyViewed": "👁️ Vus récentement",
-    "noRecentlyViewed": "Aucune demande consultée"
+    "noRecentlyViewed": "Aucune demande consultée",
+    "respond": "Répondre",
+    "urgentBadge": "Urgent"
   },
   "time": {
     "justNow": "À l'instant",
