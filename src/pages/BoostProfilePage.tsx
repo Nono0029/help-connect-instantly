@@ -33,25 +33,24 @@ const BoostProfilePage = () => {
     fetchBoost();
   }, [user]);
 
-  // Activate boost after successful payment
+  // Stripe's webhook is the only place that activates the boost.
   useEffect(() => {
-    const activateBoost = async () => {
+    const refreshBoostAfterPayment = async () => {
       if (!user || searchParams.get("boost") !== "success") return;
 
-      const now = new Date();
-      const until = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
-        .upsert({ id: user.id, boost_until: until.toISOString() });
+        .select("boost_until")
+        .eq("id", user.id)
+        .maybeSingle();
 
-      if (!error) {
-        setBoostUntil(until.toISOString());
+      if (!error && data?.boost_until && new Date(data.boost_until) > new Date()) {
+        setBoostUntil(data.boost_until);
         toast.success(t('boost.activated'));
       }
     };
-    activateBoost();
-  }, [user, searchParams]);
+    refreshBoostAfterPayment();
+  }, [user, searchParams, t]);
 
   const isBoostActive = boostUntil && new Date(boostUntil) > new Date();
 

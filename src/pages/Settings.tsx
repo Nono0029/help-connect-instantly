@@ -43,7 +43,6 @@ const Settings = () => {
 
   const [moyenne, setMoyenne] = useState(0);
   const [avisCount, setAvisCount] = useState(0);
-  const [stripeLinked, setStripeLinked] = useState(false);
   const [notifPrefs, setNotifPrefs] = useState(defaultNotifPrefs);
 
   const email = user?.email || "";
@@ -69,7 +68,6 @@ const Settings = () => {
         setVille(data.ville || "");
         setAdresse(data.adresse || "");
         setAvatarUrl(data.avatar_url || "");
-        setStripeLinked(data.stripe_onboarding || false);
         if (data.notif_prefs) setNotifPrefs(data.notif_prefs);
       } else {
         const { error: insertError } = await supabase.from("profiles").upsert({

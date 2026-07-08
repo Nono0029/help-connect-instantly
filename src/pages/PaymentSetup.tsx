@@ -34,20 +34,22 @@ const PaymentSetup = () => {
 
   const handleSave = async () => {
     if (!user) return;
-    if (!iban.trim() || !bankHolderName.trim()) {
+    const normalizedIban = iban.replace(/\s+/g, "").toUpperCase();
+    if (!normalizedIban || !bankHolderName.trim() || normalizedIban.length < 14 || normalizedIban.length > 34) {
       toast.error(t("paymentSetup.fillBothFields"));
       return;
     }
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ iban: iban.trim(), bank_holder_name: bankHolderName.trim() })
+      .update({ iban: normalizedIban, bank_holder_name: bankHolderName.trim() })
       .eq("id", user.id);
     setSaving(false);
     if (error) {
       toast.error(t("paymentSetup.saveError"));
       return;
     }
+    setIban(normalizedIban);
     toast.success(t("paymentSetup.saveSuccess"));
   };
 
@@ -100,6 +102,9 @@ const PaymentSetup = () => {
                   className="w-full h-11 rounded-xl bg-secondary border-none px-3 text-sm tracking-wide"
                 />
               </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {t("paymentSetup.bankPrivacy")}
+              </p>
               <button
                 onClick={handleSave}
                 disabled={saving}

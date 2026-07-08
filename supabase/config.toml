@@ -4,9 +4,6 @@ id = "tdymtslljytdihkblvwu"
 [functions.create-payment]
 verify_jwt = true
 
-[functions.create-stripe-account]
-verify_jwt = true
-
 [functions.release-payment]
 verify_jwt = true
 

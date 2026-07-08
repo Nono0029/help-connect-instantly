@@ -18,7 +18,7 @@ const MonPortefeuille = () => {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
-  const [stripeLinked, setStripeLinked] = useState(false);
+  const [bankReady, setBankReady] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -35,8 +35,12 @@ const MonPortefeuille = () => {
         .limit(50);
       setTransactions(t || []);
 
-      const { data: p } = await supabase.from("profiles").select("stripe_onboarding").eq("id", user.id).maybeSingle();
-      setStripeLinked(p?.stripe_onboarding || false);
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("iban, bank_holder_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      setBankReady(Boolean(p?.iban && p?.bank_holder_name));
 
       setLoading(false);
     };
@@ -56,12 +60,12 @@ const MonPortefeuille = () => {
     setWithdrawLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("withdraw-wallet", {
-        body: { user_id: user!.id, amount },
+        body: { amount },
       });
       if (error) {
         const errData = data as any;
-        if (errData?.error === "no_stripe_account") {
-          toast.error(t('wallet.configureStripeFirst'));
+        if (errData?.error === "no_bank_details") {
+          toast.error(t('wallet.configureBankFirst'));
           setShowWithdraw(false);
           return;
         }
@@ -117,8 +121,8 @@ const MonPortefeuille = () => {
           <div className="flex gap-2 mt-4">
             <button
               onClick={() => {
-                if (!stripeLinked) {
-                  toast.error(t('wallet.configureStripeFirst'));
+                if (!bankReady) {
+                  toast.error(t('wallet.configureBankFirst'));
                   return;
                 }
                 setShowWithdraw(true);
@@ -132,12 +136,12 @@ const MonPortefeuille = () => {
               onClick={() => navigate("/payment-setup")}
               className="flex-1 h-11 rounded-2xl bg-card border border-border text-sm font-semibold flex items-center justify-center gap-2"
             >
-              <CreditCard className="w-4 h-4" /> Stripe
+              <CreditCard className="w-4 h-4" /> {t('wallet.bankDetails')}
             </button>
           </div>
-          {!stripeLinked && (
+          {!bankReady && (
             <p className="text-xs text-destructive mt-2 flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3" /> {t('wallet.configureStripe')}
+              <AlertTriangle className="w-3 h-3" /> {t('wallet.configureBank')}
             </p>
           )}
         </div>

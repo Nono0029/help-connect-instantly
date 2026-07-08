@@ -11,7 +11,7 @@ const ALLOWED_ORIGINS = ["https://askoo.fr", "https://www.askoo.fr", "https://he
 serve(async (req) => {
   const origin = req.headers.get("origin") || "";
   const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  
+
   const corsHeaders = {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -38,25 +38,26 @@ serve(async (req) => {
     const { mission_id } = body;
     if (!mission_id) return new Response(JSON.stringify({ error: "missing mission_id" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
-    const { data: mission } = await supabase.from("missions").select("helper_id, demandeur_id, helper_confirme, demandeur_confirme").eq("id", mission_id).maybeSingle();
+    const { data: mission } = await supabase
+      .from("missions")
+      .select("helper_id, demandeur_id, helper_confirme, demandeur_confirme")
+      .eq("id", mission_id)
+      .maybeSingle();
     if (!mission) return new Response(JSON.stringify({ error: "mission not found" }), { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
     if (user.id !== mission.demandeur_id && user.id !== mission.helper_id) {
       return new Response(JSON.stringify({ error: "not a participant of this mission" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    // Sécurité supplémentaire : les fonds ne peuvent être libérés que si les DEUX parties
-    // ont confirmé la fin de la mission (empêche une libération anticipée/unilatérale)
     if (!mission.helper_confirme || !mission.demandeur_confirme) {
       return new Response(JSON.stringify({ error: "mission not confirmed by both parties yet" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    // Atomic: update payment status ONLY if still "payé" (prevents double release)
     const { data: payment, error: updateError } = await supabase
       .from("payments")
       .update({ statut: "termine", released_at: new Date().toISOString() })
       .eq("mission_id", mission_id)
-      .eq("statut", "pay\u00e9")
+      .eq("statut", "payé")
       .select("*")
       .maybeSingle();
 
