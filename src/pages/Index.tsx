@@ -58,6 +58,7 @@ interface Demande {
   lat?: number;
   lng?: number;
   photos?: string[];
+  user_id?: string;
 }
 
 const Index = () => {
