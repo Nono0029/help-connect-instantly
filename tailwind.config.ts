@@ -25,13 +25,13 @@ export default {
     extend: {
       fontFamily: {
         sans: [
-          "Inter",
+          "DM Sans",
           "-apple-system",
           "BlinkMacSystemFont",
           "sans-serif",
         ],
         display: [
-          "Figtree",
+          "Plus Jakarta Sans",
           "-apple-system",
           "BlinkMacSystemFont",
           "sans-serif",

@@ -357,23 +357,10 @@ const Index = () => {
   ].filter(Boolean).length, [filters]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
-
-      {/* 🌈 BLOBS */}
-      <div className="fixed top-[-100px] left-[-100px] w-72 h-72 bg-primary/20 blur-3xl rounded-full animate-blob pointer-events-none" />
-
-      <div
-        className="fixed top-[40%] right-[-80px] w-60 h-60 bg-accent/20 blur-3xl rounded-full animate-blob pointer-events-none"
-        style={{ animationDelay: "3s" }}
-      />
-
-      <div
-        className="fixed bottom-[-80px] left-[30%] w-56 h-56 bg-secondary/40 blur-3xl rounded-full animate-blob pointer-events-none"
-        style={{ animationDelay: "6s" }}
-      />
+    <div className="min-h-screen bg-background text-foreground flex flex-col relative">
 
       {/* HEADER */}
-      <header className="sticky top-0 z-50 glass border-b border-border">
+      <header className="sticky top-0 z-50 glass border-b border-border/60">
 
         <div className="px-4 pt-4 pb-3">
 
@@ -381,10 +368,11 @@ const Index = () => {
           <div className="flex items-center justify-between mb-4">
 
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-foreground">
-                Ask<span className="text-primary">oo</span> ✨
+              <h1 className="text-[26px] font-extrabold tracking-tight text-foreground font-display leading-none">
+                Ask<span className="text-primary">oo</span>
+                <span className="ml-1 text-base">✨</span>
               </h1>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-[11px] text-muted-foreground mt-0.5 font-medium tracking-wide">
                 {t('home.tagline')}
               </p>
             </div>
@@ -429,30 +417,32 @@ const Index = () => {
             </div>
           </div>
 
-          {/* HERO */}
-          <div className="mb-4 rounded-3xl p-5 bg-magic-gradient dark:bg-cyan-gradient shadow-magic dark:shadow-dark-card border border-primary/20 flex items-center gap-4">
-            <div className="flex-1 min-w-0">
-              <p className="text-xl font-black text-foreground leading-tight">
-                {t('home.heroTitle')}
-                <br />
-                {t('home.heroSubtitle')}
-              </p>
-
-              <p className="text-sm text-foreground/60 mt-1.5">
-                {t('home.heroDesc')}
-              </p>
-
-              <div className="flex gap-2 mt-3 flex-wrap">
-                {[t('home.tagBienveillance'), t('home.tagRapide'), t('home.tagHumain')].map((tag) => (
-                  <div key={tag} className="px-3 py-1 rounded-full bg-white/40 dark:bg-black/10 text-xs font-medium text-foreground border border-white/40 dark:border-white/10">
-                    {tag}
-                  </div>
-                ))}
+          {/* HERO — liquid glass */}
+          <div className="mb-4 hero-glass rounded-[2rem] overflow-hidden relative">
+            <div className="flex items-center gap-3 px-5 pt-5 pb-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-bold tracking-widest uppercase text-primary/70 dark:text-primary/80 mb-1">
+                  Entraide locale
+                </p>
+                <h2 className="text-[22px] font-extrabold text-foreground leading-[1.15] font-display">
+                  {t('home.heroTitle')}
+                  <br />
+                  <span className="text-primary">{t('home.heroSubtitle')}</span>
+                </h2>
+                <p className="text-[12px] text-foreground/55 mt-1.5 leading-relaxed">
+                  {t('home.heroDesc')}
+                </p>
+                <div className="flex gap-2 mt-3 flex-wrap">
+                  {[t('home.tagBienveillance'), t('home.tagRapide'), t('home.tagHumain')].map((tag) => (
+                    <span key={tag} className="px-2.5 py-1 rounded-full bg-white/45 dark:bg-white/8 text-[11px] font-semibold text-foreground/80 backdrop-blur-sm border border-white/50 dark:border-white/10">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <div className="hidden sm:block shrink-0">
-              <Illu name="hero" className="w-36 h-36" />
+              <div className="shrink-0 -mb-1">
+                <Illu name="hero" className="w-32 h-32 drop-shadow-xl" />
+              </div>
             </div>
           </div>
 
@@ -467,7 +457,7 @@ const Index = () => {
               onChange={(e) =>
                 setSearch(e.target.value)
               }
-              className="pl-10 pr-10 h-12 rounded-2xl bg-background/70 border border-border text-foreground placeholder:text-muted-foreground backdrop-blur-sm"
+              className="pl-10 pr-10 h-12 rounded-2xl bg-white/60 dark:bg-white/5 border border-white/60 dark:border-white/10 backdrop-blur-xl text-foreground placeholder:text-muted-foreground shadow-sm"
             />
 
             <Button
@@ -500,10 +490,10 @@ const Index = () => {
               <button
                 key={opt.key}
                 onClick={() => setSortBy(opt.key)}
-                className={`shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all ${
+                className={`shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
                   sortBy === opt.key
-                    ? "bg-primary/15 text-foreground border border-primary/30"
-                    : "bg-background/60 border border-border text-muted-foreground hover:bg-primary/10"
+                    ? "bg-primary text-white shadow-sm shadow-primary/30 border-none"
+                    : "bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 text-muted-foreground backdrop-blur-sm hover:bg-primary/10"
                 }`}
               >
                 {opt.label}
@@ -540,7 +530,7 @@ const Index = () => {
               }
               className={`shrink-0 px-4 py-2 rounded-2xl text-xs font-semibold transition-all ${
                 selectedCat === cat
-                  ? "bg-magic-gradient dark:bg-cyan-gradient text-foreground shadow-warm dark:shadow-dark-card border border-primary/30"
+                  ? "bg-primary text-white shadow-sm shadow-primary/30 border-none"
                   : "bg-background/60 border border-border text-muted-foreground hover:bg-primary/10"
               }`}
             >
@@ -688,7 +678,7 @@ const Index = () => {
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); navigate(`/demande/${d.id}`); }}
-                className="w-full bg-primary text-primary-foreground font-bold text-[14px] py-3 rounded-2xl active:scale-[0.98] transition-transform"
+                className="btn-magic w-full text-[14px] py-3 rounded-2xl"
               >
                 {t('home.respond')} · {d.gratuit ? t('home.free') : `${d.prix} €`}
               </button>

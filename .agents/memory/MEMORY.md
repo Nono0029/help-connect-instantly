@@ -1,0 +1,2 @@
+- [Boost/urgent fee logic](boost-urgent-fee.md) — boosted users exempt from +1€ urgent surcharge; check both server and frontend.
+- [TS baseline errors](ts-baseline.md) — 15 pre-existing TS errors in the repo (sidebar, LanguageContext, MesDemandesPage archived, MonPortefeuille t, ChatPage Illu name).

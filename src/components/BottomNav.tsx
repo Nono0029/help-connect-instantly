@@ -10,49 +10,43 @@ const BottomNav = () => {
   const { t } = useTranslation();
 
   const navItems = [
-    { icon: Home, label: t('nav.home'), path: "/" },
-    { icon: ShoppingBag, label: t('nav.myRequests'), path: "/mes-demandes" },
-    { icon: Plus, label: t('nav.post'), path: "/create-request", highlight: true },
-    { icon: MessageCircle, label: t('nav.messages'), path: "/messages" },
-    { icon: Settings, label: t('nav.profile'), path: "/settings" },
+    { icon: Home,          label: t('nav.home'),       path: "/" },
+    { icon: ShoppingBag,   label: t('nav.myRequests'), path: "/mes-demandes" },
+    { icon: Plus,          label: t('nav.post'),       path: "/create-request", highlight: true },
+    { icon: MessageCircle, label: t('nav.messages'),   path: "/messages" },
+    { icon: Settings,      label: t('nav.profile'),    path: "/settings" },
   ];
 
   const hiddenRoutes = [
-    "/auth",
-    "/chat/",
-    "/demande/",
-    "/boost-profile",
-    "/edit-profile",
-    "/change-password",
-    "/payment-setup",
-    "/portefeuille",
-    "/become-pro",
-    "/privacy",
-    "/aide",
-    "/profile/",
+    "/auth", "/chat/", "/demande/", "/boost-profile", "/edit-profile",
+    "/change-password", "/payment-setup", "/portefeuille", "/become-pro",
+    "/privacy", "/aide", "/profile/",
   ];
   if (hiddenRoutes.some(r => location.pathname.startsWith(r))) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-t border-border safe-area-bottom">
+    <nav className="bottom-nav-glass fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
       <div className="flex items-center justify-around px-2 py-1 max-w-lg mx-auto">
         {navItems.map((item) => {
-          const isActive = item.path === "/"
-            ? location.pathname === "/"
-            : location.pathname.startsWith(item.path);
+          const isActive =
+            item.path === "/"
+              ? location.pathname === "/"
+              : location.pathname.startsWith(item.path);
 
           if (item.highlight) {
             return (
               <motion.button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                whileTap={{ scale: 0.9 }}
-                className="flex flex-col items-center gap-0.5 px-3 py-1.5 -mt-4"
+                whileTap={{ scale: 0.88 }}
+                className="flex flex-col items-center gap-0.5 px-3 py-1.5 -mt-5"
               >
-                <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 transition-all duration-200 hover:shadow-xl hover:shadow-primary/40 hover:scale-105">
-                  <item.icon className="w-5 h-5" />
+                <div className="w-[52px] h-[52px] rounded-full btn-magic flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground">{item.label}</span>
+                <span className="text-[10px] font-semibold text-muted-foreground mt-0.5">
+                  {item.label}
+                </span>
               </motion.button>
             );
           }
@@ -61,19 +55,19 @@ const BottomNav = () => {
             <motion.button
               key={item.path}
               onClick={() => navigate(item.path)}
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.82 }}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 min-w-[48px] min-h-[48px] justify-center",
-                isActive ? "bg-primary/10" : "hover:bg-muted/50"
+                "flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 min-w-[48px] min-h-[48px] justify-center",
+                isActive ? "bg-primary/10" : "hover:bg-primary/5"
               )}
             >
               <item.icon className={cn(
                 "w-5 h-5 transition-colors duration-200",
-                isActive ? "text-primary" : "text-muted-foreground"
+                isActive ? "text-primary" : "text-muted-foreground/70"
               )} />
               <span className={cn(
-                "text-[10px] font-medium transition-colors duration-200",
-                isActive ? "text-primary" : "text-muted-foreground"
+                "text-[10px] font-semibold transition-colors duration-200",
+                isActive ? "text-primary" : "text-muted-foreground/60"
               )}>
                 {item.label}
               </span>

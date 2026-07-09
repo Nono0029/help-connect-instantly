@@ -77,6 +77,29 @@ function AnimatedRoutes() {
   );
 }
 
+/** Liquid-glass background orbs — rendered once, global to all pages */
+function BackgroundOrbs() {
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+      {/* Top-left — vert */}
+      <div
+        className="bg-orb w-[480px] h-[480px] bg-primary/25"
+        style={{ top: "-120px", left: "-120px", animationDuration: "11s" }}
+      />
+      {/* Mid-right — jaune */}
+      <div
+        className="bg-orb w-[360px] h-[360px] bg-accent/20"
+        style={{ top: "35%", right: "-80px", animationDuration: "14s", animationDelay: "4s" }}
+      />
+      {/* Bottom-center — vert doux */}
+      <div
+        className="bg-orb w-[320px] h-[320px] bg-primary/15"
+        style={{ bottom: "-80px", left: "25%", animationDuration: "12s", animationDelay: "8s" }}
+      />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -87,16 +110,17 @@ export default function App() {
             <Sonner />
             <BrowserRouter>
               <AuthProvider>
+                <BackgroundOrbs />
                 <ErrorBoundary>
                   <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
                     <AnimatedRoutes />
                   </Suspense>
                 </ErrorBoundary>
-              <BottomNav />
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
+                <BottomNav />
+              </AuthProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ThemeProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );

@@ -827,7 +827,7 @@ const ChatPage = () => {
             {!isMe(msg.sender_id) && (
               <button
                 onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}
-                className="w-8 h-8 rounded-full bg-accent/10 text-accent dark:text-cyan-400 flex items-center justify-center text-[10px] font-bold shrink-0 hover:ring-2 hover:ring-accent/50 transition-all"
+                className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold shrink-0 hover:ring-2 hover:ring-primary/30 transition-all"
               >
                 {otherProfile?.pseudo?.[0]?.toUpperCase() || "?"}
               </button>
@@ -835,8 +835,8 @@ const ChatPage = () => {
             <div className={`flex flex-col min-w-0 flex-1 ${isMe(msg.sender_id) ? "items-end" : "items-start"}`}>
               <div className={`max-w-[72vw] sm:max-w-sm px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
                 isMe(msg.sender_id)
-                  ? "bg-magic-gradient dark:bg-[linear-gradient(135deg,#00b4d8_0%,#00c875_100%)] text-foreground dark:text-white shadow-soft"
-                  : "bg-white/75 dark:bg-[#0d2530]/80 border border-border text-foreground dark:text-cyan-50 shadow-card"
+                  ? "bg-[linear-gradient(135deg,#4ade80_0%,#22c55e_50%,#16a34a_100%)] text-white shadow-soft"
+                  : "bg-white/80 dark:bg-white/6 border border-white/60 dark:border-white/8 text-foreground shadow-card"
               }`}>
                 {isImgMsg(msg.content) ? (
                   <img src={msg.content.slice(3)} alt="photo" onClick={() => setLightbox({ images: allChatPhotos, index: allChatPhotos.indexOf(msg.content.slice(3)) })} className="rounded-xl max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" />
