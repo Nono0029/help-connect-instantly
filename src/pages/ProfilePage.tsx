@@ -216,7 +216,7 @@ const ProfilePage = () => {
 
           <h2 className="text-xl font-bold text-foreground mt-4 flex items-center justify-center gap-2">
             {profile.pseudo || t('profile.anonymous')}
-            {(profile.stripe_onboarding || user?.email) && (
+            {profile.stripe_onboarding && (
               <span title={t('profile.verified')}>✅</span>
             )}
           </h2>
