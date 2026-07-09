@@ -567,7 +567,6 @@ select:focus-visible {
 
 /* ─── BOTTOM NAV GLASS ───────────────────────────────────────────── */
 .bottom-nav-glass {
-  position: relative;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 50%),
     rgba(255, 255, 255, 0.72);
