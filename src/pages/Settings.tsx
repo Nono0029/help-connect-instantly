@@ -13,6 +13,7 @@ import {
   CreditCard,
   Wallet,
   Rocket,
+  User,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -154,6 +155,13 @@ const Settings = () => {
     {
       title: t('settings.sectionAccount'),
       items: [
+        {
+          icon: User,
+          label: t('settings.viewProfile'),
+          desc: t('settings.viewProfileDesc'),
+          action: () => user && navigate(`/profile/${user.id}`),
+          toggle: false,
+        },
         {
           icon: Wallet,
           label: t('settings.wallet'),
