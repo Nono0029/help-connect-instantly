@@ -88,10 +88,15 @@ serve(async (req) => {
       await supabase.from("payments").update({ statut: "expiré" }).eq("id", existingPayment.id);
     }
 
-    const prix = parseEuroAmount(mission.demandes?.prix);
+    // demandes(*) can come back as an object or (depending on relationship
+    // inference) an array with one item — handle both defensively.
+    const demandeData = Array.isArray(mission.demandes) ? mission.demandes[0] : mission.demandes;
+
+    const prix = parseEuroAmount(demandeData?.prix);
     // Urgent surcharge only applies for 7 days after the request was created.
-    const createdAt = mission.demandes?.created_at;
-    const urgentActive = mission.demandes?.urgent === true
+    const createdAt = demandeData?.created_at;
+    const isFlaggedUrgent = demandeData?.urgent === true || demandeData?.urgent === "true" || demandeData?.urgent === "t";
+    const urgentActive = isFlaggedUrgent
       && !!createdAt
       && (Date.now() - new Date(createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
 
@@ -105,6 +110,12 @@ serve(async (req) => {
       && new Date(requesterProfile.boost_until).getTime() > Date.now();
 
     const isUrgentBillable = urgentActive && !requesterBoosted;
+
+    console.log("create-payment pricing debug:", {
+      mission_id, prix, rawUrgent: demandeData?.urgent, createdAt, urgentActive,
+      requesterBoosted, isUrgentBillable, demandesWasArray: Array.isArray(mission.demandes),
+    });
+
     if (prix <= 0 && !urgentActive) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
     // Lookup conversation from conversations table (conversations has demande_id, not mission_id)
@@ -124,7 +135,7 @@ serve(async (req) => {
       line_items: [{
         price_data: {
           currency: "eur",
-          product_data: { name: mission.demandes?.titre || "Mission" },
+          product_data: { name: demandeData?.titre || "Mission" },
           unit_amount: montantCents,
         },
         quantity: 1,
