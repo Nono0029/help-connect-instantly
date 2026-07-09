@@ -119,6 +119,7 @@
     "confirmMissionHelper": "🌱 Confirmer la mission",
     "confirmMissionWaitingDemandeur": "✅ En attente de confirmation de l'helper",
     "confirmMissionDemandeur": "🌱 Confirmer la mission",
+    "confirmMissionLocked": "🔒 Paie d'abord pour pouvoir confirmer",
     "confirmTitle": "Confirmer la mission ?",
     "confirmDone": "✅ La mission est terminée — tout s'est bien passé ?",
     "confirmEscrow": "🔒 Argent sécurisé — les fonds sont bloqués sur Stripe et seront reversés au prestataire quand les deux confirment.",
