@@ -119,6 +119,7 @@
     "confirmMissionHelper": "🌱 Confirm mission",
     "confirmMissionWaitingDemandeur": "✅ Waiting for provider confirmation",
     "confirmMissionDemandeur": "🌱 Confirm mission",
+    "confirmMissionLocked": "🔒 Pay first to confirm",
     "confirmTitle": "Confirm mission?",
     "confirmDone": "✅ Mission is complete — everything went well?",
     "confirmEscrow": "🔒 Money secured — funds are locked on Stripe and will be released to the provider when both confirm.",
