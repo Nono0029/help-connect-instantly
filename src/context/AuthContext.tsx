@@ -12,16 +12,23 @@ interface AuthContextType {
 }
 
 const ensureProfile = async (user: User) => {
-  const { data: existing } = await supabase
+  const { data: existing, error: selectError } = await supabase
     .from("profiles")
     .select("id")
     .eq("id", user.id)
     .maybeSingle();
+  if (selectError) {
+    console.error("ensureProfile: failed to check existing profile:", selectError.message);
+    return;
+  }
   if (!existing) {
-    await supabase.from("profiles").upsert({
+    const { error: upsertError } = await supabase.from("profiles").upsert({
       id: user.id,
       pseudo: user.email?.split("@")[0] || user.id.slice(0, 8),
     });
+    if (upsertError) {
+      console.error("ensureProfile: failed to create profile:", upsertError.message);
+    }
   }
 };
 
