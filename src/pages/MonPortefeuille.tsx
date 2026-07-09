@@ -48,6 +48,10 @@ const MonPortefeuille = () => {
   }, [user]);
 
   const handleWithdraw = async () => {
+    if (!user) {
+      toast.error(t('wallet.withdrawError'));
+      return;
+    }
     const amount = parseFloat(withdrawAmount);
     if (!amount || amount <= 0 || !wallet || amount > wallet.balance) {
       toast.error(t('wallet.invalidAmount'));
@@ -75,15 +79,15 @@ const MonPortefeuille = () => {
       setShowWithdraw(false);
       setWithdrawAmount("");
 
-      const { data: w } = await supabase.from("wallets").select("balance").eq("user_id", user!.id).maybeSingle();
+      const { data: w } = await supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
       if (w) setWallet(w);
-      const { data: t } = await supabase
+      const { data: tx } = await supabase
         .from("wallet_transactions")
         .select("*")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(50);
-      setTransactions(t || []);
+      setTransactions(tx || []);
     } catch (err: any) {
       toast.error(err?.message || t('wallet.withdrawError'));
     }
