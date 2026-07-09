@@ -85,7 +85,11 @@ const MesDemandesPage = () => {
   };
 
   const handleArchive = async (id: number, archived: boolean) => {
-    await supabase.from("demandes").update({ archived }).eq("id", id);
+    const { error } = await supabase.from("demandes").update({ archived }).eq("id", id);
+    if (error) {
+      toast.error("Erreur : " + error.message);
+      return;
+    }
     setDemandes(prev => prev.map(d => d.id === id ? { ...d, archived: archived as any } : d));
   };
 
