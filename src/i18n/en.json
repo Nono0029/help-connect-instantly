@@ -215,6 +215,8 @@
     "reviews": "reviews",
     "logout": "Log out",
     "sectionAccount": "Account",
+    "viewProfile": "View my profile",
+    "viewProfileDesc": "Your reviews, stats and missions",
     "wallet": "My wallet",
     "walletDesc": "Balance, withdrawal and history",
     "security": "Security",
