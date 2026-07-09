@@ -476,11 +476,11 @@ const ChatPage = () => {
   };
 
   const envoyerAdresse = async () => {
-    if (!adresse.trim()) return;
+    if (!adresse.trim() || !user || !id) return;
     const label = isDemandeOwner ? t('chat.sendAddressDemandeur') : t('chat.sendAddress');
     await supabase.from("messages").insert({
-      conversation_id: parseInt(id!),
-      sender_id: user?.id,
+      conversation_id: parseInt(id),
+      sender_id: user.id,
       content: `📍 ${label} :\n${adresse}\n${ville}`,
     });
     setAdresseEnvoyee(true);
