@@ -314,6 +314,10 @@ const ChatPage = () => {
 
   const confirmerMission = async () => {
     if (!mission || !user) return;
+    if (user.id === mission.demandeur_id && !paymentDone) {
+      toast.error(t('chat.confirmMissionLocked'));
+      return;
+    }
 
     const updates: any = {};
     if (user.id === mission.helper_id) updates.helper_confirme = true;
@@ -684,6 +688,8 @@ const ChatPage = () => {
     missionHasStripePayment &&
     (!payment || payment.statut === "en_attente" || payment.statut === "expiré");
   const isActive = conversation?.statut !== "fermée";
+  const paymentDone = !missionHasStripePayment || payment?.statut === "payé" || payment?.statut === "termine";
+  const canConfirmMission = user?.id === mission?.helper_id || paymentDone;
 
   return (
     <div className="h-screen flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
@@ -699,7 +705,7 @@ const ChatPage = () => {
           <ArrowLeft className="w-5 h-5 text-accent dark:text-cyan-400" />
         </button>
 
-        {payment?.statut === "pay\u00e9" && (
+        {!!mission && (
           <button
             onClick={() => setShowSignal(true)}
             className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shrink-0 shadow-card hover:bg-destructive/10 hover:border-destructive/30 transition-all"
@@ -878,10 +884,21 @@ const ChatPage = () => {
       {/* CONFIRM */}
       {mission?.statut === "en_cours" && (
         <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
-          <button onClick={() => setShowConfirmMission(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">
-            {user?.id === mission.helper_id
-              ? (mission.helper_confirme ? t('chat.confirmMissionWaitingDemandeur') : t('chat.confirmMissionHelper'))
-              : (mission.demandeur_confirme ? t('chat.confirmMissionWaitingHelper') : t('chat.confirmMissionDemandeur'))
+          <button
+            onClick={() => canConfirmMission && setShowConfirmMission(true)}
+            disabled={!canConfirmMission}
+            title={!canConfirmMission ? t('chat.confirmMissionLocked') : undefined}
+            className={`w-full py-3 rounded-[24px] font-bold ${
+              canConfirmMission
+                ? "btn-magic"
+                : "bg-muted text-muted-foreground cursor-not-allowed"
+            }`}
+          >
+            {!canConfirmMission
+              ? t('chat.confirmMissionLocked')
+              : user?.id === mission.helper_id
+                ? (mission.helper_confirme ? t('chat.confirmMissionWaitingDemandeur') : t('chat.confirmMissionHelper'))
+                : (mission.demandeur_confirme ? t('chat.confirmMissionWaitingHelper') : t('chat.confirmMissionDemandeur'))
             }
           </button>
         </div>
