@@ -127,7 +127,11 @@ const MessagesPage = () => {
   }, [user]);
 
   const handleArchive = async (convId: number, archived: boolean) => {
-    await supabase.from("conversations").update({ archived }).eq("id", convId);
+    const { error } = await supabase.from("conversations").update({ archived }).eq("id", convId);
+    if (error) {
+      console.error("MessagesPage handleArchive error:", error);
+      return;
+    }
     setConversations(prev => prev.map(c => c.id === convId ? { ...c, archived } : c));
   };
 
