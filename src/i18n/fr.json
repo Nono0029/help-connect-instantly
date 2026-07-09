@@ -215,6 +215,8 @@
     "reviews": "avis",
     "logout": "Se déconnecter",
     "sectionAccount": "Compte",
+    "viewProfile": "Voir mon profil",
+    "viewProfileDesc": "Vos avis, statistiques et missions",
     "wallet": "Mon portefeuille",
     "walletDesc": "Solde, retrait et historique",
     "security": "Sécurité",
