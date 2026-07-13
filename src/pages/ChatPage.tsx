@@ -213,7 +213,7 @@ const ChatPage = () => {
     if (!conv) return;
     const { data } = await supabase
       .from("missions")
-      .select("*, demandes(titre, prix, urgent, created_at)")
+      .select("*, demandes(titre, prix, gratuit, urgent, created_at)")
       .eq("demande_id", conv.demande_id)
       .maybeSingle();
     if (!data) {
@@ -679,9 +679,11 @@ const ChatPage = () => {
 
   const isMe = (senderId: string) => senderId === user?.id;
   const missionDemande = Array.isArray(mission?.demandes) ? mission.demandes[0] : mission?.demandes;
-  const missionPrice = missionDemande?.prix
-    ? parseFloat(String(missionDemande.prix).replace(/[^0-9.,]/g, "").replace(",", "."))
-    : 0;
+  const missionPrice = missionDemande?.gratuit
+    ? 0
+    : missionDemande?.prix
+      ? parseFloat(String(missionDemande.prix).replace(/[^0-9.,]/g, "").replace(",", "."))
+      : 0;
   const missionHasStripePayment = !!mission && (missionPrice > 0 || isUrgentActive(missionDemande?.urgent, missionDemande?.created_at));
   const canPayMission =
     mission?.statut === "en_cours" &&

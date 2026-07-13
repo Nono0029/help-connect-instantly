@@ -92,7 +92,7 @@ serve(async (req) => {
     // inference) an array with one item — handle both defensively.
     const demandeData = Array.isArray(mission.demandes) ? mission.demandes[0] : mission.demandes;
 
-    const prix = parseEuroAmount(demandeData?.prix);
+    const prix = demandeData?.gratuit ? 0 : parseEuroAmount(demandeData?.prix);
     // Urgent surcharge only applies for 7 days after the request was created.
     const createdAt = demandeData?.created_at;
     const isFlaggedUrgent = demandeData?.urgent === true || demandeData?.urgent === "true" || demandeData?.urgent === "t";
