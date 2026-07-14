@@ -213,7 +213,7 @@ const ChatPage = () => {
     if (!conv) return;
     const { data } = await supabase
       .from("missions")
-      .select("*, demandes(titre, prix, gratuit, urgent, created_at)")
+      .select("*, demandes(titre, prix, urgent, created_at)")
       .eq("demande_id", conv.demande_id)
       .maybeSingle();
     if (!data) {
@@ -453,10 +453,12 @@ const ChatPage = () => {
     if (!signalRaison || !mission || !user || !id) return;
     setSignalLoading(true);
     try {
+      const reportedId = user.id === mission.helper_id ? mission.demandeur_id : mission.helper_id;
       await supabase.from("signals").insert({
         mission_id: mission.id,
         conversation_id: parseInt(id),
         reporter_id: user.id,
+        reported_id: reportedId,
         raison: signalRaison,
         description: signalDescription,
         photos: signalPhotos,
@@ -678,13 +680,10 @@ const ChatPage = () => {
   }, [messages, mission, isDemandeOwner]);
 
   const isMe = (senderId: string) => senderId === user?.id;
-  const missionDemande = Array.isArray(mission?.demandes) ? mission.demandes[0] : mission?.demandes;
-  const missionPrice = missionDemande?.gratuit
-    ? 0
-    : missionDemande?.prix
-      ? parseFloat(String(missionDemande.prix).replace(/[^0-9.,]/g, "").replace(",", "."))
-      : 0;
-  const missionHasStripePayment = !!mission && (missionPrice > 0 || isUrgentActive(missionDemande?.urgent, missionDemande?.created_at));
+  const missionPrice = mission?.demandes?.prix
+    ? parseFloat(String(mission.demandes.prix).replace(/[^0-9.,]/g, "").replace(",", "."))
+    : 0;
+  const missionHasStripePayment = !!mission && missionPrice > 0;
   const canPayMission =
     mission?.statut === "en_cours" &&
     isDemandeOwner &&
