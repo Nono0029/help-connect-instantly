@@ -2,10 +2,18 @@
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
+interface AuthProfile {
+  id: string;
+  is_admin: boolean;
+  blocked: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isAdmin: boolean;
+  isBlocked: boolean;
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -32,25 +40,47 @@ const ensureProfile = async (user: User) => {
   }
 };
 
+const fetchAuthProfile = async (userId: string): Promise<AuthProfile | null> => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, is_admin, blocked")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) {
+    console.error("fetchAuthProfile: failed to load profile:", error.message);
+    return null;
+  }
+  return data as AuthProfile | null;
+};
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authProfile, setAuthProfile] = useState<AuthProfile | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) ensureProfile(session.user);
+      if (session?.user) {
+        await ensureProfile(session.user);
+        setAuthProfile(await fetchAuthProfile(session.user.id));
+      }
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) ensureProfile(session.user);
+      if (session?.user) {
+        await ensureProfile(session.user);
+        setAuthProfile(await fetchAuthProfile(session.user.id));
+      } else {
+        setAuthProfile(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -73,7 +103,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{
+      user,
+      session,
+      loading,
+      isAdmin: authProfile?.is_admin ?? false,
+      isBlocked: authProfile?.blocked ?? false,
+      signUp,
+      signIn,
+      signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   );
