@@ -14,6 +14,7 @@ import {
   Wallet,
   Rocket,
   User,
+  Flag,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -30,7 +31,7 @@ const defaultNotifPrefs = { messages: true, demandes: true, missions: true };
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const { t, language, setLanguage } = useTranslation();
 
   const [pseudo, setPseudo] = useState("");
@@ -253,6 +254,18 @@ const Settings = () => {
         },
       ],
     },
+    ...(isAdmin ? [{
+      title: "Administration",
+      items: [
+        {
+          icon: Flag,
+          label: "Signalements",
+          desc: "Voir et traiter les signalements d'utilisateurs",
+          action: () => navigate("/admin/reports"),
+          toggle: false,
+        },
+      ],
+    }] : []),
   ];
 
   return (
