@@ -530,7 +530,7 @@ select:focus-visible {
   will-change: transform;
 }
 @media (max-width: 768px) {
-  .bg-orb { animation: none; filter: blur(50px); }
+  .bg-orb { animation: float 7s ease-in-out infinite; filter: blur(45px); }
 }
 
 /* ─── PAGE TRANSITION ────────────────────────────────────────────── */
