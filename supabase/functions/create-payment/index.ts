@@ -88,15 +88,19 @@ serve(async (req) => {
       await supabase.from("payments").update({ statut: "expiré" }).eq("id", existingPayment.id);
     }
 
-    // demandes(*) can come back as an object or (depending on relationship
-    // inference) an array with one item — handle both defensively.
-    const demandeData = Array.isArray(mission.demandes) ? mission.demandes[0] : mission.demandes;
+    const prix = parseEuroAmount(mission.demandes?.prix);
 
-    const prix = demandeData?.gratuit ? 0 : parseEuroAmount(demandeData?.prix);
+    // Free missions (prix = 0) never go through Stripe.
+    if (prix <= 0) {
+      return new Response(
+        JSON.stringify({ error: "free mission — no payment needed" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Urgent surcharge only applies for 7 days after the request was created.
-    const createdAt = demandeData?.created_at;
-    const isFlaggedUrgent = demandeData?.urgent === true || demandeData?.urgent === "true" || demandeData?.urgent === "t";
-    const urgentActive = isFlaggedUrgent
+    const createdAt = mission.demandes?.created_at;
+    const urgentActive = mission.demandes?.urgent === true
       && !!createdAt
       && (Date.now() - new Date(createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
 
@@ -111,13 +115,6 @@ serve(async (req) => {
 
     const isUrgentBillable = urgentActive && !requesterBoosted;
 
-    console.log("create-payment pricing debug:", {
-      mission_id, prix, rawUrgent: demandeData?.urgent, createdAt, urgentActive,
-      requesterBoosted, isUrgentBillable, demandesWasArray: Array.isArray(mission.demandes),
-    });
-
-    if (prix <= 0 && !urgentActive) return new Response(JSON.stringify({ error: "invalid price" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
-
     // Lookup conversation from conversations table (conversations has demande_id, not mission_id)
     let convId = conversation_id;
     if (!convId) {
@@ -125,29 +122,50 @@ serve(async (req) => {
       convId = conv?.id;
     }
 
-    const frais = 200 + (isUrgentBillable ? 100 : 0);
-    const montantCents = Math.round(prix * 100) + frais;
+    const reqOrigin = req.headers.get("origin") || "https://help-connect-instantly.vercel.app";
 
-    const origin = req.headers.get("origin") || "https://help-connect-instantly.vercel.app";
+    // Build separate line items so Stripe shows each charge clearly.
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+      {
+        price_data: {
+          currency: "eur",
+          product_data: { name: mission.demandes?.titre || "Mission" },
+          unit_amount: Math.round(prix * 100),
+        },
+        quantity: 1,
+      },
+      {
+        price_data: {
+          currency: "eur",
+          product_data: { name: "Frais de service" },
+          unit_amount: 200,
+        },
+        quantity: 1,
+      },
+    ];
+
+    if (isUrgentBillable) {
+      lineItems.push({
+        price_data: {
+          currency: "eur",
+          product_data: { name: "Annonce urgente boostée" },
+          unit_amount: 100,
+        },
+        quantity: 1,
+      });
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [{
-        price_data: {
-          currency: "eur",
-          product_data: { name: demandeData?.titre || "Mission" },
-          unit_amount: montantCents,
-        },
-        quantity: 1,
-      }],
+      line_items: lineItems,
       metadata: {
         mission_id: mission_id.toString(),
         helper_id: mission.helper_id,
         payeur_id: user.id,
         conversation_id: convId?.toString() || "",
       },
-      success_url: `${origin}/chat/${convId}?payment=success`,
-      cancel_url: `${origin}/chat/${convId}?payment=cancel`,
+      success_url: `${reqOrigin}/chat/${convId}?payment=success`,
+      cancel_url: `${reqOrigin}/chat/${convId}?payment=cancel`,
     });
 
     if (!session.url) return new Response(JSON.stringify({ error: "stripe error" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
