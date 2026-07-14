@@ -15,8 +15,10 @@ SET reported_id = CASE
   ELSE m.helper_id
 END
 FROM (
-  SELECT missions.id, missions.helper_id, missions.demandeur_id,
-         (signals.reporter_id = missions.helper_id) AS reporter_helper,
+  SELECT missions.id,
+         missions.helper_id::text,
+         missions.demandeur_id::text,
+         (signals.reporter_id = missions.helper_id::text) AS reporter_helper,
          signals.id AS signal_id
   FROM missions
   JOIN signals ON signals.mission_id = missions.id
