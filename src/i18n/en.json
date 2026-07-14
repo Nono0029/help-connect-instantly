@@ -442,7 +442,9 @@
     "publishing": "Publishing...",
     "publishBtn": "Publish my request",
     "fillFields": "Fill in the title and help type",
-    "publishSuccess": "Request published!"
+    "publishSuccess": "Request published!",
+    "cityLabel": "City",
+    "cityRequired": "Please select your city"
   },
   "postForm": {
     "editTitle": "Edit request",

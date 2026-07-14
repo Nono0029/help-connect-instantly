@@ -404,7 +404,13 @@ const ChatPage = () => {
         .maybeSingle();
       if (p) setPayment(p);
 
-      window.location.href = data.url;
+      const isStandalonePwa = (window.navigator as any).standalone === true
+        || window.matchMedia('(display-mode: standalone)').matches;
+      if (isStandalonePwa) {
+        window.open(data.url, '_blank');
+      } else {
+        window.location.href = data.url;
+      }
     } catch (err: any) {
       console.error("Payment failed:", err);
       toast.error(err?.message || t('chat.paymentErrorDesc'));

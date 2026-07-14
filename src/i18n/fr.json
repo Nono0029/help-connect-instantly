@@ -442,7 +442,9 @@
     "publishing": "Publication...",
     "publishBtn": "Publier ma demande",
     "fillFields": "Remplis le titre et le type d'aide",
-    "publishSuccess": "Demande publiée !"
+    "publishSuccess": "Demande publiée !",
+    "cityLabel": "Ville",
+    "cityRequired": "Merci de sélectionner ta ville"
   },
   "postForm": {
     "editTitle": "Modifier la demande",

@@ -67,7 +67,13 @@ const BoostProfilePage = () => {
         throw new Error(error?.message || "Erreur de paiement");
       }
 
-      window.location.href = data.url;
+      const isStandalonePwa = (window.navigator as any).standalone === true
+        || window.matchMedia('(display-mode: standalone)').matches;
+      if (isStandalonePwa) {
+        window.open(data.url, '_blank');
+      } else {
+        window.location.href = data.url;
+      }
     } catch (err: any) {
       toast.error(err?.message || "Erreur lors du paiement");
       setActivating(false);

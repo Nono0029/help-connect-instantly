@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { getTotalEuros, isBoostActive } from "@/lib/urgentFee";
+import CityPicker from "@/components/CityPicker";
 
 const typesAide = [
   { id: "menage", label: "Ménage / Nettoyage", emoji: "🧹" },
@@ -56,6 +57,9 @@ const CreateRequestPage = () => {
   const [duree, setDuree] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [ville, setVille] = useState("");
+  const [lat, setLat] = useState(0);
+  const [lng, setLng] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [isBoosted, setIsBoosted] = useState(false);
@@ -92,6 +96,10 @@ const CreateRequestPage = () => {
       toast.error(t('createRequest.fillFields'));
       return;
     }
+    if (!ville) {
+      toast.error(t('createRequest.cityRequired'));
+      return;
+    }
     setLoading(true);
     const typeLabel = typesAide.find(t => t.id === selectedType)?.label || selectedType;
     const { error } = await supabase.from("demandes").insert([{
@@ -101,6 +109,9 @@ const CreateRequestPage = () => {
       prix: gratuit ? null : prix,
       gratuit,
       urgent,
+      ville,
+      lat: lat || null,
+      lng: lng || null,
       auteur: user.email?.split("@")[0] || "Anonyme",
       user_id: user.id,
       photos: photos.length > 0 ? photos : null,
@@ -168,6 +179,11 @@ const CreateRequestPage = () => {
           <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('createRequest.description')}</label>
           <Textarea placeholder={t('createRequest.descPlaceholder')} value={description} onChange={e => setDescription(e.target.value)} className="min-h-[100px] rounded-xl bg-secondary border-none resize-none" maxLength={500} />
           <p className="text-[11px] text-muted-foreground mt-1 text-right">{description.length}/500</p>
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-foreground mb-1.5 block">{t('createRequest.cityLabel')}</label>
+          <CityPicker ville={ville} onChange={(v, la, lo) => { setVille(v); setLat(la); setLng(lo); }} />
         </div>
 
         <div>

@@ -206,7 +206,23 @@ const Index = () => {
   useEffect(() => {
     fetchDemandes();
     navigator.geolocation.getCurrentPosition(
-      (pos) => setUserCoords([pos.coords.latitude, pos.coords.longitude]),
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserCoords([latitude, longitude]);
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=fr`
+          );
+          const data = await res.json();
+          const cityName = data?.address?.city || data?.address?.town || data?.address?.village || data?.address?.municipality;
+          if (cityName) {
+            setVille(cityName);
+            setVilleCoords([latitude, longitude]);
+          }
+        } catch (err) {
+          console.error("reverse geocoding failed:", err);
+        }
+      },
       () => {},
       { enableHighAccuracy: true, timeout: 10000 }
     );
