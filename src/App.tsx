@@ -29,6 +29,7 @@ const BecomeProPage = lazy(() => import("./pages/BecomeProPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const MonPortefeuille = lazy(() => import("./pages/MonPortefeuille"));
 const BoostProfilePage = lazy(() => import("./pages/BoostProfilePage"));
+const AdminReportsPage = lazy(() => import("./pages/AdminReportsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,6 +69,7 @@ function AnimatedRoutes() {
       <Route path="/become-pro" element={<BecomeProPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/boost-profile" element={<BoostProfilePage />} />
+      <Route path="/admin/reports" element={<AdminReportsPage />} />
     </Route>
 
     {/* 404 */}
