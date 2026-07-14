@@ -844,7 +844,7 @@ const ChatPage = () => {
               <div className={`max-w-[72vw] sm:max-w-sm px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
                 isMe(msg.sender_id)
                   ? "bg-[linear-gradient(135deg,#4ade80_0%,#22c55e_50%,#16a34a_100%)] text-white shadow-soft"
-                  : "bg-white/80 dark:bg-white/6 border border-white/60 dark:border-white/8 text-foreground shadow-card"
+                  : "bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-600 shadow-card"
               }`}>
                 {isImgMsg(msg.content) ? (
                   <img src={msg.content.slice(3)} alt="photo" onClick={() => setLightbox({ images: allChatPhotos, index: allChatPhotos.indexOf(msg.content.slice(3)) })} className="rounded-xl max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" />
