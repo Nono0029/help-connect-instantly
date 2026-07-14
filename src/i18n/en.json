@@ -65,7 +65,8 @@
     "recentlyViewed": "👁️ Recently viewed",
     "noRecentlyViewed": "No demands viewed yet",
     "respond": "Reply",
-    "urgentBadge": "Urgent"
+    "urgentBadge": "Urgent",
+    "radiusAll": "Any distance"
   },
   "time": {
     "justNow": "Just now",

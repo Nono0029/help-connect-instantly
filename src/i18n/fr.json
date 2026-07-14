@@ -65,7 +65,8 @@
     "recentlyViewed": "👁️ Vus récentement",
     "noRecentlyViewed": "Aucune demande consultée",
     "respond": "Répondre",
-    "urgentBadge": "Urgent"
+    "urgentBadge": "Urgent",
+    "radiusAll": "Tout rayon"
   },
   "time": {
     "justNow": "À l'instant",

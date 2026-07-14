@@ -150,6 +150,7 @@ const Index = () => {
     ]);
 
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  const [radiusKm, setRadiusKm] = useState<number | null>(null);
 
   const [demandes, setDemandes] = useState<
     Demande[]
@@ -282,13 +283,19 @@ const Index = () => {
           d.prix.replace(/[^0-9.]/g, "")
         ) <= parseFloat(filters.prix));
 
+    const matchRadius =
+      !radiusKm ||
+      (d.lat != null && d.lng != null &&
+        getDistance(villeCoords[0], villeCoords[1], d.lat, d.lng) <= radiusKm);
+
     return (
       matchSearch &&
       matchCat &&
       matchType &&
-      matchPrix
+      matchPrix &&
+      matchRadius
     );
-  }), [demandes, debouncedSearch, selectedCat, filters]);
+  }), [demandes, debouncedSearch, selectedCat, filters, radiusKm, villeCoords]);
 
   const categoryCounts = useMemo(() => {
     const baseFiltered = demandes.filter((d) => {
@@ -527,6 +534,18 @@ const Index = () => {
                 setVilleCoords([lat, lng]);
               }}
             />
+
+            <select
+              value={radiusKm ?? "all"}
+              onChange={(e) => setRadiusKm(e.target.value === "all" ? null : Number(e.target.value))}
+              className="bg-secondary text-foreground text-[11px] font-medium rounded-full px-2.5 py-1 border-none outline-none"
+            >
+              <option value="all">{t('home.radiusAll')}</option>
+              <option value="5">5 km</option>
+              <option value="10">10 km</option>
+              <option value="25">25 km</option>
+              <option value="50">50 km</option>
+            </select>
 
             <span className="ml-auto text-accent font-semibold">
               {t('home.available', { count: sorted.length })} {userCoords ? t('home.nearYou') : "🌟"}
