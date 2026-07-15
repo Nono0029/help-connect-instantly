@@ -94,7 +94,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
               </div>
               <div className="overflow-y-auto px-4 pb-8 h-64">
                 {loading && <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 text-primary animate-spin" /></div>}
-                {!loading && query.length < 2 && <p className="text-center text-sm text-muted-foreground py-8">{t('cityPicker.minChars')}</p>}
+                {!loading && query.length < 2 && <p className="text-center text-sm text-muted-foreground py-8">Tapez au moins 2 lettres pour lancer la recherche</p>}
                 {!loading && query.length >= 2 && results.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">{t('cityPicker.noResults', { query })}</p>}
                 <div className="space-y-1">
                   {results.map((r, i) => (
