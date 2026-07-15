@@ -21,12 +21,14 @@ interface Props {
   lng: number;
   userLat?: number;
   userLng?: number;
+  radiusKm?: number | null;
 }
 
-const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
+const MapView = ({ demandes, ville, lat, lng, userLat, userLng, radiusKm }: Props) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersLayerRef = useRef<any>(null);
+  const circleRef = useRef<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -115,6 +117,24 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
     const centerLat = userLat || lat;
     const centerLng = userLng || lng;
 
+    // Recentre la carte en douceur sur la nouvelle ville / position à chaque changement
+    map.flyTo([centerLat, centerLng], map.getZoom() < 10 ? 12 : map.getZoom(), { duration: 0.8 });
+
+    // Cercle affichant visuellement le rayon de recherche choisi
+    if (circleRef.current) {
+      map.removeLayer(circleRef.current);
+      circleRef.current = null;
+    }
+    if (radiusKm) {
+      circleRef.current = L.circle([centerLat, centerLng], {
+        radius: radiusKm * 1000,
+        color: "#3D7A54",
+        weight: 1.5,
+        fillColor: "#3D7A54",
+        fillOpacity: 0.08,
+      }).addTo(map);
+    }
+
     const demandesAvecCoords = demandes.filter(d => d.lat && d.lng);
     if (demandesAvecCoords.length === 0) return;
 
@@ -159,7 +179,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
     });
 
     markersLayerRef.current.addLayer(mcg);
-  }, [demandes, lat, lng, userLat, userLng]);
+  }, [demandes, lat, lng, userLat, userLng, radiusKm]);
 
   return (
     <div className="mx-4 mt-3 rounded-2xl overflow-hidden border border-border relative z-0 h-52">
