@@ -118,9 +118,11 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
 
     if (userLat && userLng && userMarkerRef.current) {
       userMarkerRef.current.setLatLng([userLat, userLng]);
-      userMarkerRef.current.setStyle({ display: "block" });
-    } else if (userMarkerRef.current) {
-      userMarkerRef.current.setStyle({ display: "none" });
+      if (!map.hasLayer(userMarkerRef.current)) {
+        userMarkerRef.current.addTo(map);
+      }
+    } else if (userMarkerRef.current && map.hasLayer(userMarkerRef.current)) {
+      map.removeLayer(userMarkerRef.current);
     }
 
     const demandesAvecCoords = demandes.filter(d => d.lat && d.lng);
