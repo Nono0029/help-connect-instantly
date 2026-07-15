@@ -178,8 +178,7 @@ const Index = () => {
       .select("*")
       .order("created_at", {
         ascending: false,
-      })
-      .limit(300);
+      });
 
     const filtered = (data || []).filter(d => !completedIds.includes(d.id));
     setDemandes(filtered);
