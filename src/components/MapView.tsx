@@ -113,15 +113,14 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
 
     markersLayerRef.current.clearLayers();
 
-    const centerLat = userLat || lat;
-    const centerLng = userLng || lng;
+    map.invalidateSize();
+    map.flyTo([lat, lng], map.getZoom() < 10 ? 12 : map.getZoom(), { duration: 0.8 });
 
-    // Recentre la carte en douceur sur la nouvelle ville / position à chaque changement
-    map.flyTo([centerLat, centerLng], map.getZoom() < 10 ? 12 : map.getZoom(), { duration: 0.8 });
-
-    // Déplace le point bleu à la vraie position actuelle au lieu de le laisser figé
-    if (userMarkerRef.current) {
-      userMarkerRef.current.setLatLng([centerLat, centerLng]);
+    if (userLat && userLng && userMarkerRef.current) {
+      userMarkerRef.current.setLatLng([userLat, userLng]);
+      userMarkerRef.current.setStyle({ display: "block" });
+    } else if (userMarkerRef.current) {
+      userMarkerRef.current.setStyle({ display: "none" });
     }
 
     const demandesAvecCoords = demandes.filter(d => d.lat && d.lng);
@@ -144,7 +143,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
     });
 
     demandesAvecCoords.forEach((d) => {
-      const dist = getDistance(centerLat, centerLng, d.lat!, d.lng!);
+      const dist = getDistance(lat, lng, d.lat!, d.lng!);
       const color = d.urgent ? "#ef4444" : "#22c55e";
 
       const icon = L.divIcon({
