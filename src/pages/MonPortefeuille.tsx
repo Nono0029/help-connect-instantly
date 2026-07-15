@@ -27,13 +27,13 @@ const MonPortefeuille = () => {
       if (w) setWallet(w);
       else setWallet({ balance: 0 });
 
-      const { data: t } = await supabase
+      const { data: txData } = await supabase
         .from("wallet_transactions")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(50);
-      setTransactions(t || []);
+      setTransactions(txData || []);
 
       const { data: p } = await supabase
         .from("profiles")

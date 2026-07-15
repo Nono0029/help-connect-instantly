@@ -169,7 +169,31 @@
     "errorPhoto": "Error sending the photo",
     "errorSignal": "Error reporting the issue",
     "signalSent": "Report sent. We will review the situation.",
-    "systemProblem": "🚩 A problem has been reported on this mission."
+    "systemProblem": "🚩 A problem has been reported on this mission.",
+    "confirmNo": "No",
+    "confirmYes": "Yes, all good!",
+    "missionAcceptedNotif": "✅ Mission accepted by the helper!",
+    "missionConfirmed": "🌱 {name} confirmed the mission",
+    "missionFinishedMsg": "🎉 Mission complete! Thank you both.",
+    "missionFinishedNotif": "🎉 Mission complete! Both parties have confirmed.",
+    "missionFinishedThanks": "🎉 Mission complete! Thank you for your help.",
+    "missionRefusedNotif": "❌ The mission was refused.",
+    "paymentError": "Payment error",
+    "paymentErrorDesc": "Payment failed. Check your payment information.",
+    "photoSendError": "Error sending the photo",
+    "problemReported": "🚩 A problem has been reported.",
+    "reportBadBehavior": "Inappropriate behavior",
+    "reportDescLabel": "Description (optional)",
+    "reportDescPlaceholder": "Explain what happened...",
+    "reportError": "Error reporting the issue",
+    "reportPhotosLabel": "Proofs (photos, optional)",
+    "reportReasonLabel": "Reason for report",
+    "reportSelectReason": "Select a reason...",
+    "reportSent": "Report sent.",
+    "reviewDone": "✅ Review sent",
+    "reviewSubtitle": "Your review helps the community",
+    "someone": "Someone",
+    "uploadError": "Error uploading"
   },
   "requests": {
     "title": "My requests",
@@ -301,7 +325,8 @@
     "bioPlaceholder": "Tell us about yourself...",
     "skills": "Skills",
     "skillsPlaceholder": "Type a skill and press Enter",
-    "predefinedSkills": "Suggestions"
+    "predefinedSkills": "Suggestions",
+    "error": "Error saving profile"
   },
   "demandeDetail": {
     "notFound": "Request not found",
@@ -332,7 +357,8 @@
     "bankDetails": "Bank",
     "withdrawFunds": "Request a withdrawal",
     "withdrawSuccess": "💰 Withdrawal request for €{amount} recorded!",
-    "withdrawError": "Error during withdrawal"
+    "withdrawError": "Error during withdrawal",
+    "cancel": "Cancel"
   },
   "paymentSetup": {
     "title": "Payments",
@@ -392,7 +418,8 @@
     "q5": "Is identity verified?",
     "a5": "Yes, we offer identity verification via official ID. Verified members display a blue badge. While verification is not mandatory, it is strongly recommended for trust between members.",
     "q6": "What to do in case of a dispute?",
-    "a6": "In case of disagreement, first contact the other member via messaging to find a solution. If no agreement is reached, write to us at askoo.contact@gmail.com. We review each situation and make a decision within 48h."
+    "a6": "In case of disagreement, first contact the other member via messaging to find a solution. If no agreement is reached, write to us at askoo.contact@gmail.com. We review each situation and make a decision within 48h.",
+    "noResults": "No results found"
   },
   "becomePro": {
     "title": "Become a provider",

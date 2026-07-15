@@ -166,41 +166,45 @@ const Index = () => {
   // FETCH
   const fetchDemandes = async () => {
     setLoading(true);
-    const { data: completedMissions } = await supabase
-      .from("missions")
-      .select("demande_id")
-      .eq("statut", "terminee");
-    const completedIds = completedMissions?.map(m => m.demande_id) || [];
+    try {
+      const { data: completedMissions } = await supabase
+        .from("missions")
+        .select("demande_id")
+        .eq("statut", "terminee");
+      const completedIds = completedMissions?.map(m => m.demande_id) || [];
 
-    const { data } = await supabase
-      .from("demandes")
-      .select("*")
-      .order("created_at", {
-        ascending: false,
-      });
+      const { data } = await supabase
+        .from("demandes")
+        .select("*")
+        .order("created_at", {
+          ascending: false,
+        });
 
-    const filtered = (data || []).filter(d => !completedIds.includes(d.id));
-    setDemandes(filtered);
+      const filtered = (data || []).filter(d => !completedIds.includes(d.id));
+      setDemandes(filtered);
 
-    // Fetch boosted profiles
-    const userIds = [...new Set(filtered.map(d => d.user_id).filter(Boolean))];
-    if (userIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, boost_until")
-        .in("id", userIds);
+      // Fetch boosted profiles
+      const userIds = [...new Set(filtered.map(d => d.user_id).filter(Boolean))];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, boost_until")
+          .in("id", userIds);
 
-      const boosted = new Set<string>();
-      const now = new Date();
-      profiles?.forEach(p => {
-        if (p.boost_until && new Date(p.boost_until) > now) {
-          boosted.add(p.id);
-        }
-      });
-      setBoostedUserIds(boosted);
+        const boosted = new Set<string>();
+        const now = new Date();
+        profiles?.forEach(p => {
+          if (p.boost_until && new Date(p.boost_until) > now) {
+            boosted.add(p.id);
+          }
+        });
+        setBoostedUserIds(boosted);
+      }
+    } catch (err) {
+      console.error("fetchDemandes error:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   useEffect(() => {

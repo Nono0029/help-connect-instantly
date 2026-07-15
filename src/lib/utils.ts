@@ -14,7 +14,10 @@ export function getDistance(lat1: number, lon1: number, lat2: number, lon2: numb
 }
 
 export function formatTimeAgo(created_at: string, t: (key: string, params?: Record<string, string | number>) => string): string {
-  const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
+  const timestamp = new Date(created_at).getTime();
+  if (!created_at || isNaN(timestamp)) return t('time.justNow');
+  const diff = Math.floor((Date.now() - timestamp) / 1000);
+  if (diff < 0) return t('time.justNow');
   if (diff < 60) return t('time.justNow');
   if (diff < 3600) return t('time.minutesAgo', { n: Math.floor(diff / 60) });
   if (diff < 86400) return t('time.hoursAgo', { n: Math.floor(diff / 3600) });

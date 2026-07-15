@@ -53,19 +53,21 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "mission not confirmed by both parties yet" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    const { data: payment, error: updateError } = await supabase
+    // First: fetch the payment while it's still "payé" to ensure idempotency
+    const { data: payment, error: fetchError } = await supabase
       .from("payments")
-      .update({ statut: "termine", released_at: new Date().toISOString() })
+      .select("*")
       .eq("mission_id", mission_id)
       .eq("statut", "payé")
-      .select("*")
       .maybeSingle();
 
-    if (updateError || !payment) {
+    if (fetchError || !payment) {
       return new Response(JSON.stringify({ error: "no payment found or already released" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
     const montant = Number(payment.montant);
+
+    // Second: credit the wallet BEFORE marking payment as done
     const { error: creditError } = await supabase.rpc("credit_wallet", {
       p_user_id: payment.helper_id,
       p_amount: montant,
@@ -75,7 +77,21 @@ serve(async (req) => {
 
     if (creditError) {
       console.error("credit_wallet error:", creditError);
+      // Do NOT update payment status — allow retry on next call
       return new Response(JSON.stringify({ error: "failed to credit wallet" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    // Third: only mark as "termine" AFTER wallet is credited
+    const { error: updateError } = await supabase
+      .from("payments")
+      .update({ statut: "termine", released_at: new Date().toISOString() })
+      .eq("id", payment.id)
+      .eq("statut", "payé");
+
+    if (updateError) {
+      // Wallet was credited but status not updated — log for manual reconciliation
+      console.error("CRITICAL: wallet credited but payment status update failed:", updateError);
+      return new Response(JSON.stringify({ error: "wallet credited but status update failed — needs manual reconciliation" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
     return new Response(JSON.stringify({ success: true, credited: montant }), { headers: { "Content-Type": "application/json", ...corsHeaders } });

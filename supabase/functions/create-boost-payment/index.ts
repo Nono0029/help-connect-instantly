@@ -34,7 +34,22 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    const sessionOrigin = req.headers.get("origin") || "https://help-connect-instantly.vercel.app";
+    // Check if user already has an active boost
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("boost_until")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.boost_until && new Date(profile.boost_until).getTime() > Date.now()) {
+      return new Response(
+        JSON.stringify({ error: "boost_already_active", message: "Tu as déjà un boost actif." }),
+        { status: 409, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Use validated origin for Stripe redirect URLs (prevent open redirect)
+    const reqOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -50,8 +65,8 @@ serve(async (req) => {
         user_id: user.id,
         type: "boost",
       },
-      success_url: `${sessionOrigin}/boost-profile?boost=success`,
-      cancel_url: `${sessionOrigin}/boost-profile`,
+      success_url: `${reqOrigin}/boost-profile?boost=success`,
+      cancel_url: `${reqOrigin}/boost-profile`,
     });
 
     if (!session.url) {

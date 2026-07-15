@@ -33,6 +33,12 @@ const CityPicker = ({ ville, onChange }: Props) => {
   }, [open]);
 
   useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (query.length < 2) { setResults([]); return; }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {

@@ -53,17 +53,18 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "solde insuffisant" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    // Déduction atomique : ne déduit que si le solde est toujours suffisant au moment de l'update
+    // Déduction atomique : on vérifie que le solde n'a pas changé entre la lecture et l'update
+    const currentBalance = Number(wallet.balance);
     const { data: updatedWallet, error: deductError } = await supabase
       .from("wallets")
-      .update({ balance: Number(wallet.balance) - amount, updated_at: new Date().toISOString() })
+      .update({ balance: currentBalance - amount, updated_at: new Date().toISOString() })
       .eq("user_id", user_id)
-      .gte("balance", amount)
+      .eq("balance", currentBalance)
       .select("balance")
       .maybeSingle();
 
     if (deductError || !updatedWallet) {
-      return new Response(JSON.stringify({ error: "Erreur lors de la déduction du solde" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      return new Response(JSON.stringify({ error: "Solde modifié entre-temps, réessayez" }), { status: 409, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
     // Crée la demande de retrait à traiter manuellement (virement bancaire hors app)
@@ -80,19 +81,29 @@ serve(async (req) => {
       .maybeSingle();
 
     if (reqError) {
-      // Remboursement du solde si la demande n'a pas pu être créée
-      await supabase.from("wallets").update({ balance: Number(wallet.balance) }).eq("user_id", user_id);
+      // Remboursement atomique : on crédite le wallet au lieu de restaurer un snapshot périmé
+      await supabase.rpc("credit_wallet", {
+        p_user_id: user_id,
+        p_amount: amount,
+        p_reference: `withdrawal_refund_${Date.now()}`,
+        p_description: "Remboursement suite à un échec de création de retrait",
+      });
       console.error("withdrawal_requests insert failed:", reqError);
       return new Response(JSON.stringify({ error: "Erreur lors de la création de la demande de retrait" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    await supabase.from("wallet_transactions").insert({
+    // Log de la transaction (si ça échoue, on log mais on ne bloque pas)
+    const { error: txError } = await supabase.from("wallet_transactions").insert({
       user_id,
       type: "withdrawal",
       amount: -amount,
       reference: withdrawalRequest?.id ? `withdrawal_${withdrawalRequest.id}` : null,
       description: "Retrait vers compte bancaire (virement manuel)",
     });
+
+    if (txError) {
+      console.error("CRITICAL: withdrawal created but wallet_transactions insert failed:", txError);
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: "Demande de retrait enregistrée, le virement sera envoyé sous quelques jours." }),

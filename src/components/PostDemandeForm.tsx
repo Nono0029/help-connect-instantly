@@ -129,7 +129,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   };
 
   const handleSubmit = async () => {
-  if (!titre || !selectedType || !villeForm) return;
+  if (!user || !titre || !selectedType || !villeForm) return;
 
   setLoading(true);
 

@@ -122,7 +122,8 @@ serve(async (req) => {
       convId = conv?.id;
     }
 
-    const reqOrigin = req.headers.get("origin") || "https://help-connect-instantly.vercel.app";
+    // Use validated origin for Stripe redirect URLs (prevent open redirect)
+    const reqOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
 
     // Build separate line items so Stripe shows each charge clearly.
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
@@ -160,12 +161,12 @@ serve(async (req) => {
       line_items: lineItems,
       metadata: {
         mission_id: mission_id.toString(),
-        helper_id: mission.helper_id,
+        helper_id: mission.helper_id || "",
         payeur_id: user.id,
         conversation_id: convId?.toString() || "",
       },
-      success_url: `${reqOrigin}/chat/${convId}?payment=success`,
-      cancel_url: `${reqOrigin}/chat/${convId}?payment=cancel`,
+      success_url: `${reqOrigin}/chat/${convId || ""}?payment=success`,
+      cancel_url: `${reqOrigin}/chat/${convId || ""}?payment=cancel`,
     });
 
     if (!session.url) return new Response(JSON.stringify({ error: "stripe error" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });

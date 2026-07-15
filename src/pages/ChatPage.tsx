@@ -256,34 +256,40 @@ const ChatPage = () => {
     if (!conversation || !user) return;
     setActionLoading(true);
 
-    await supabase.from("missions").insert({
-      demande_id: conversation.demande_id,
-      helper_id: conversation.helper_id,
-      demandeur_id: conversation.demandeur_id,
-      statut: "en_cours",
-      helper_confirme: false,
-      demandeur_confirme: false,
-    });
-
-    await supabase.from("conversations").update({ statut: "en_cours" }).eq("id", conversation.id);
-
-    await supabase.from("messages").insert({
-      conversation_id: parseInt(id!),
-      sender_id: user.id,
-      content: t('chat.missionAccepted'),
-    });
-
-    if (otherUserId) {
-      await supabase.from("notifications").insert({
-        user_id: otherUserId,
-        message: t('chat.missionAcceptedNotif'),
-        conversation_id: conversation.id,
-        lu: false,
+    try {
+      const { error: missionErr } = await supabase.from("missions").insert({
+        demande_id: conversation.demande_id,
+        helper_id: conversation.helper_id,
+        demandeur_id: conversation.demandeur_id,
+        statut: "en_cours",
+        helper_confirme: false,
+        demandeur_confirme: false,
       });
-    }
+      if (missionErr) throw missionErr;
 
-    fetchConversation();
-    fetchMission(conversation);
+      await supabase.from("conversations").update({ statut: "en_cours" }).eq("id", conversation.id);
+
+      await supabase.from("messages").insert({
+        conversation_id: parseInt(id!),
+        sender_id: user.id,
+        content: t('chat.missionAccepted'),
+      });
+
+      if (otherUserId) {
+        await supabase.from("notifications").insert({
+          user_id: otherUserId,
+          message: t('chat.missionAcceptedNotif'),
+          conversation_id: conversation.id,
+          lu: false,
+        });
+      }
+
+      fetchConversation();
+      fetchMission(conversation);
+    } catch (err) {
+      console.error("accepterMission error:", err);
+      toast.error("Erreur lors de l'acceptation de la mission");
+    }
     setActionLoading(false);
   };
 
@@ -291,24 +297,29 @@ const ChatPage = () => {
     if (!conversation || !user) return;
     setActionLoading(true);
 
-    await supabase.from("conversations").update({ statut: "fermée" }).eq("id", conversation.id);
+    try {
+      await supabase.from("conversations").update({ statut: "fermée" }).eq("id", conversation.id);
 
-    await supabase.from("messages").insert({
-      conversation_id: parseInt(id!),
-      sender_id: user.id,
-      content: t('chat.missionRefused'),
-    });
-
-    if (otherUserId) {
-      await supabase.from("notifications").insert({
-        user_id: otherUserId,
-        message: t('chat.missionRefusedNotif'),
-        conversation_id: conversation.id,
-        lu: false,
+      await supabase.from("messages").insert({
+        conversation_id: parseInt(id!),
+        sender_id: user.id,
+        content: t('chat.missionRefused'),
       });
-    }
 
-    fetchConversation();
+      if (otherUserId) {
+        await supabase.from("notifications").insert({
+          user_id: otherUserId,
+          message: t('chat.missionRefusedNotif'),
+          conversation_id: conversation.id,
+          lu: false,
+        });
+      }
+
+      fetchConversation();
+    } catch (err) {
+      console.error("refuserMission error:", err);
+      toast.error("Erreur lors du refus de la mission");
+    }
     setActionLoading(false);
   };
 
@@ -489,14 +500,19 @@ const ChatPage = () => {
 
   const envoyerAdresse = async () => {
     if (!adresse.trim() || !user || !id) return;
-    const label = isDemandeOwner ? t('chat.sendAddressDemandeur') : t('chat.sendAddress');
-    await supabase.from("messages").insert({
-      conversation_id: parseInt(id),
-      sender_id: user.id,
-      content: `📍 ${label} :\n${adresse}\n${ville}`,
-    });
-    setAdresseEnvoyee(true);
-    setShowAdresseBox(false);
+    try {
+      const label = isDemandeOwner ? t('chat.sendAddressDemandeur') : t('chat.sendAddress');
+      await supabase.from("messages").insert({
+        conversation_id: parseInt(id),
+        sender_id: user.id,
+        content: `📍 ${label} :\n${adresse}\n${ville}`,
+      });
+      setAdresseEnvoyee(true);
+      setShowAdresseBox(false);
+    } catch (err) {
+      console.error("envoyerAdresse error:", err);
+      toast.error("Erreur lors de l'envoi de l'adresse");
+    }
   };
 
   const sendMessage = async () => {
@@ -506,20 +522,26 @@ const ChatPage = () => {
     const now = Date.now();
     if (now - lastSentRef.current < 1000) return;
     lastSentRef.current = now;
-    await supabase.from("messages").insert({
-      conversation_id: parseInt(id),
-      sender_id: user.id,
-      content: trimmed,
-    });
-    if (otherUserId) {
-      await supabase.from("notifications").insert({
-        user_id: otherUserId,
-        message: `${user.email?.split("@")[0] || "Quelqu'un"}: ${trimmed.slice(0, 80)}${trimmed.length > 80 ? "..." : ""}`,
+    try {
+      const { error: msgErr } = await supabase.from("messages").insert({
         conversation_id: parseInt(id),
-        lu: false,
+        sender_id: user.id,
+        content: trimmed,
       });
+      if (msgErr) throw msgErr;
+      if (otherUserId) {
+        await supabase.from("notifications").insert({
+          user_id: otherUserId,
+          message: `${user.email?.split("@")[0] || "Quelqu'un"}: ${trimmed.slice(0, 80)}${trimmed.length > 80 ? "..." : ""}`,
+          conversation_id: parseInt(id),
+          lu: false,
+        });
+      }
+      setText("");
+    } catch (err) {
+      console.error("sendMessage error:", err);
+      toast.error("Erreur lors de l'envoi du message");
     }
-    setText("");
   };
 
   const sendPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {

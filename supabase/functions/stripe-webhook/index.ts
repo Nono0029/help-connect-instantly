@@ -36,9 +36,18 @@ serve(async (req) => {
     return new Response("Invalid signature", { status: 400, headers: corsHeaders });
   }
 
+  let processingError = false;
+
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+
+      // Verify payment was actually completed
+      if (session.payment_status !== "paid") {
+        console.warn("checkout.session.completed but payment_status is:", session.payment_status);
+        return new Response("ok", { status: 200 });
+      }
+
       const missionId = session.metadata?.mission_id;
       const helperId = session.metadata?.helper_id;
       const conversationId = session.metadata?.conversation_id;
@@ -55,19 +64,28 @@ serve(async (req) => {
 
       // Handle mission payment
       if (missionId) {
-        await supabase.from("payments").update({ statut: "pay\u00e9", stripe_payment_intent: session.payment_intent as string }).eq("stripe_session_id", session.id);
-        await supabase.from("missions").update({ statut: "en_cours" }).eq("id", parseInt(missionId));
+        const parsedMissionId = parseInt(missionId, 10);
+        if (isNaN(parsedMissionId)) {
+          console.error("Invalid mission_id in metadata:", missionId);
+          return new Response("ok", { status: 200 });
+        }
+
+        await supabase.from("payments").update({ statut: "payé", stripe_payment_intent: session.payment_intent as string }).eq("stripe_session_id", session.id);
+        await supabase.from("missions").update({ statut: "en_cours" }).eq("id", parsedMissionId);
 
         if (conversationId) {
-          await supabase.from("conversations").update({ statut: "en_cours" }).eq("id", parseInt(conversationId));
+          const parsedConvId = parseInt(conversationId, 10);
+          if (!isNaN(parsedConvId)) {
+            await supabase.from("conversations").update({ statut: "en_cours" }).eq("id", parsedConvId);
+          }
 
           // Idempotency: check if notification already exists before inserting
-          if (helperId) {
+          if (helperId && !isNaN(parsedConvId)) {
             const { data: existing } = await supabase
               .from("notifications")
               .select("id")
               .eq("user_id", helperId)
-              .eq("conversation_id", parseInt(conversationId))
+              .eq("conversation_id", parsedConvId)
               .eq("message", "\uD83D\uDCB0 Paiement re\u00e7u ! L'argent est s\u00e9curis\u00e9 sur Stripe jusqu'\u00e0 la fin de la mission.")
               .maybeSingle();
 
@@ -75,7 +93,7 @@ serve(async (req) => {
               await supabase.from("notifications").insert({
                 user_id: helperId,
                 message: "\uD83D\uDCB0 Paiement re\u00e7u ! L'argent est s\u00e9curis\u00e9 sur Stripe jusqu'\u00e0 la fin de la mission.",
-                conversation_id: parseInt(conversationId),
+                conversation_id: parsedConvId,
                 lu: false,
               });
             }
@@ -86,7 +104,7 @@ serve(async (req) => {
 
     if (event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
-      await supabase.from("payments").update({ statut: "expir\u00e9" }).eq("stripe_session_id", session.id);
+      await supabase.from("payments").update({ statut: "expiré" }).eq("stripe_session_id", session.id);
     }
 
     if (event.type === "charge.refunded") {
@@ -96,13 +114,18 @@ serve(async (req) => {
       if (paymentIntent) {
         await supabase
           .from("payments")
-          .update({ statut: "rembours\u00e9", refunded_at: new Date().toISOString() })
+          .update({ statut: "remboursé", refunded_at: new Date().toISOString() })
           .eq("stripe_payment_intent", paymentIntent);
       }
     }
   } catch (err) {
     console.error("Webhook processing error:", err);
-    // Still return 200 to prevent Stripe from retrying indefinitely
+    processingError = true;
+  }
+
+  // Return 500 on processing errors so Stripe retries; 200 on success
+  if (processingError) {
+    return new Response("processing error", { status: 500 });
   }
 
   return new Response("ok", { status: 200 });

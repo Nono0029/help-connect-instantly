@@ -169,7 +169,31 @@
     "errorPhoto": "Erreur lors de l'envoi de la photo",
     "errorSignal": "Erreur lors du signalement",
     "signalSent": "Signalement envoyé. Nous allons vérifier la situation.",
-    "systemProblem": "🚩 Un problème a été signalé sur cette mission."
+    "systemProblem": "🚩 Un problème a été signalé sur cette mission.",
+    "confirmNo": "Non",
+    "confirmYes": "Oui, tout est bon !",
+    "missionAcceptedNotif": "✅ Mission acceptée par l'helper !",
+    "missionConfirmed": "🌱 {name} a confirmé la mission",
+    "missionFinishedMsg": "🎉 Mission terminée ! Merci à tous les deux.",
+    "missionFinishedNotif": "🎉 Mission terminée ! Les deux parties ont confirmé.",
+    "missionFinishedThanks": "🎉 Mission terminée ! Merci pour ton aide.",
+    "missionRefusedNotif": "❌ La mission a été refusée.",
+    "paymentError": "Erreur de paiement",
+    "paymentErrorDesc": "Le paiement a échoué. Vérifie tes informations de paiement.",
+    "photoSendError": "Erreur lors de l'envoi de la photo",
+    "problemReported": "🚩 Un problème a été signalé.",
+    "reportBadBehavior": "Comportement inapproprié",
+    "reportDescLabel": "Description (optionnelle)",
+    "reportDescPlaceholder": "Explique ce qui s'est passé...",
+    "reportError": "Erreur lors du signalement",
+    "reportPhotosLabel": "Preuves (photos, optionnel)",
+    "reportReasonLabel": "Raison du signalement",
+    "reportSelectReason": "Sélectionne une raison...",
+    "reportSent": "Signalement envoyé.",
+    "reviewDone": "✅ Avis envoyé",
+    "reviewSubtitle": "Ton avis aide la communauté",
+    "someone": "Quelqu'un",
+    "uploadError": "Erreur lors de l'upload"
   },
   "requests": {
     "title": "Mes demandes",
@@ -301,7 +325,8 @@
     "bioPlaceholder": "Parle-nous de toi...",
     "skills": "Compétences",
     "skillsPlaceholder": "Tape une compétence et appuie sur Entrée",
-    "predefinedSkills": "Suggestions"
+    "predefinedSkills": "Suggestions",
+    "error": "Erreur lors de la sauvegarde"
   },
   "demandeDetail": {
     "notFound": "Demande introuvable",
@@ -332,7 +357,8 @@
     "bankDetails": "Banque",
     "withdrawFunds": "Demander un retrait",
     "withdrawSuccess": "💰 Demande de retrait de {amount}€ enregistrée !",
-    "withdrawError": "Erreur lors du retrait"
+    "withdrawError": "Erreur lors du retrait",
+    "cancel": "Annuler"
   },
   "paymentSetup": {
     "title": "Paiements",
@@ -392,7 +418,8 @@
     "q5": "Est-ce que l'identité est vérifiée ?",
     "a5": "Oui, nous proposons la vérification d'identité via une pièce d'identité officielle. Les membres vérifiés affichent un badge bleu. Bien que la vérification ne soit pas obligatoire, elle est fortement recommandée pour la confiance entre membres.",
     "q6": "Que faire en cas de litige ?",
-    "a6": "En cas de désaccord, contacte d'abord l'autre membre via la messagerie pour trouver une solution. Si aucun accord n'est trouvé, écris-nous à askoo.contact@gmail.com. Nous analysons chaque situation et prenons une décision dans les 48h."
+    "a6": "En cas de désaccord, contacte d'abord l'autre membre via la messagerie pour trouver une solution. Si aucun accord n'est trouvé, écris-nous à askoo.contact@gmail.com. Nous analysons chaque situation et prenons une décision dans les 48h.",
+    "noResults": "Aucun résultat trouvé"
   },
   "becomePro": {
     "title": "Devenir prestataire",
