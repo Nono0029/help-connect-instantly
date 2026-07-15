@@ -86,7 +86,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
               <div className="px-4 pt-3 pb-2 shrink-0">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input ref={inputRef} type="text" placeholder={t('cityPicker.placeholder')}
+                  <input ref={inputRef} type="text" placeholder="Rechercher une ville..."
                     value={query} onChange={e => setQuery(e.target.value)}
                     className="w-full h-11 pl-10 pr-4 rounded-xl bg-secondary border-none text-sm outline-none text-foreground placeholder:text-muted-foreground" />
                   {query && <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"><X className="w-4 h-4" /></button>}
