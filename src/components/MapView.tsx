@@ -21,14 +21,13 @@ interface Props {
   lng: number;
   userLat?: number;
   userLng?: number;
-  radiusKm?: number | null;
 }
 
-const MapView = ({ demandes, ville, lat, lng, userLat, userLng, radiusKm }: Props) => {
+const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersLayerRef = useRef<any>(null);
-  const circleRef = useRef<any>(null);
+  const userMarkerRef = useRef<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,7 +86,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng, radiusKm }: Prop
         iconSize: [16, 16],
         iconAnchor: [8, 8],
       });
-      L.marker(centerCoords, { icon: userIcon }).addTo(map);
+      userMarkerRef.current = L.marker(centerCoords, { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
 
       markersLayerRef.current = L.layerGroup().addTo(map);
 
@@ -120,19 +119,9 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng, radiusKm }: Prop
     // Recentre la carte en douceur sur la nouvelle ville / position à chaque changement
     map.flyTo([centerLat, centerLng], map.getZoom() < 10 ? 12 : map.getZoom(), { duration: 0.8 });
 
-    // Cercle affichant visuellement le rayon de recherche choisi
-    if (circleRef.current) {
-      map.removeLayer(circleRef.current);
-      circleRef.current = null;
-    }
-    if (radiusKm) {
-      circleRef.current = L.circle([centerLat, centerLng], {
-        radius: radiusKm * 1000,
-        color: "#3D7A54",
-        weight: 1.5,
-        fillColor: "#3D7A54",
-        fillOpacity: 0.08,
-      }).addTo(map);
+    // Déplace le point bleu à la vraie position actuelle au lieu de le laisser figé
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setLatLng([centerLat, centerLng]);
     }
 
     const demandesAvecCoords = demandes.filter(d => d.lat && d.lng);
@@ -180,7 +169,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng, radiusKm }: Prop
     });
 
     markersLayerRef.current.addLayer(mcg);
-  }, [demandes, lat, lng, userLat, userLng, radiusKm]);
+  }, [demandes, lat, lng, userLat, userLng]);
 
   return (
     <div className="mx-4 mt-3 rounded-2xl overflow-hidden border border-border relative z-0 h-52">
