@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDistance } from "@/lib/utils";
 
@@ -21,14 +21,16 @@ interface Props {
   lng: number;
   userLat?: number;
   userLng?: number;
+  onLocate?: (lat: number, lng: number) => void;
 }
 
-const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
+const MapView = ({ demandes, ville, lat, lng, userLat, userLng, onLocate }: Props) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersLayerRef = useRef<any>(null);
   const userMarkerRef = useRef<any>(null);
   const navigate = useNavigate();
+  const [locating, setLocating] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -172,9 +174,59 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng }: Props) => {
     markersLayerRef.current.addLayer(mcg);
   }, [demandes, lat, lng, userLat, userLng]);
 
+  const handleLocate = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const map = mapInstanceRef.current;
+        if (map) {
+          map.flyTo([latitude, longitude], Math.max(map.getZoom(), 14), { duration: 0.8 });
+          if (userMarkerRef.current) {
+            userMarkerRef.current.setLatLng([latitude, longitude]);
+            if (!map.hasLayer(userMarkerRef.current)) {
+              userMarkerRef.current.addTo(map);
+            }
+          }
+        }
+        onLocate?.(latitude, longitude);
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+
   return (
     <div className="mx-4 mt-3 rounded-2xl overflow-hidden border border-border relative z-0 h-52">
       <div ref={mapRef} className="w-full h-full" />
+      <button
+        onClick={handleLocate}
+        aria-label="Ma position"
+        className="absolute top-2 right-2 z-[1000] flex items-center justify-center w-9 h-9 rounded-full transition-transform active:scale-90"
+        style={{
+          background: "linear-gradient(135deg, rgba(34,197,94,0.65), rgba(234,179,8,0.55))",
+          backdropFilter: "blur(16px) saturate(1.6)",
+          WebkitBackdropFilter: "blur(16px) saturate(1.6)",
+          border: "1px solid rgba(255,255,255,0.25)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.15)",
+        }}
+      >
+        {locating ? (
+          <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+          </svg>
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <line x1="12" y1="2" x2="12" y2="6" />
+            <line x1="12" y1="18" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="6" y2="12" />
+            <line x1="18" y1="12" x2="22" y2="12" />
+          </svg>
+        )}
+      </button>
     </div>
   );
 };

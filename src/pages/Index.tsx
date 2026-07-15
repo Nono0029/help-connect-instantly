@@ -565,6 +565,7 @@ const Index = () => {
           lng={villeCoords[1]}
           userLat={userCoords?.[0]}
           userLng={userCoords?.[1]}
+          onLocate={(lat, lng) => setUserCoords([lat, lng])}
         />
       )}
 
