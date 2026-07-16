@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Camera as CapCamera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/lib/supabase";
 
@@ -37,7 +36,9 @@ export function useCameraUpload({ userId, folder = "demandes", maxPhotos = 5 }: 
   };
 
   const takePhoto = async () => {
+    if (!userId) return false;
     try {
+      const { Camera: CapCamera, CameraResultType, CameraSource } = await import("@capacitor/camera");
       const isNative = Capacitor.isNativePlatform();
       const image = await CapCamera.getPhoto({
         quality: 80,
