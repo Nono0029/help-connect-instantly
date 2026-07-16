@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 
 const BoostProfilePage = () => {
   const navigate = useNavigate();
@@ -52,6 +55,23 @@ const BoostProfilePage = () => {
     refreshBoostAfterPayment();
   }, [user, searchParams, t]);
 
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const listener = App.addListener('appStateChange', async ({ isActive }) => {
+      if (isActive && user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("boost_until")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (data?.boost_until && new Date(data.boost_until) > new Date()) {
+          setBoostUntil(data.boost_until);
+        }
+      }
+    });
+    return () => { listener.then(l => l.remove()); };
+  }, [user?.id]);
+
   const isBoostActive = boostUntil && new Date(boostUntil) > new Date();
 
   const handleActivate = async () => {
@@ -67,10 +87,8 @@ const BoostProfilePage = () => {
         throw new Error(error?.message || "Erreur de paiement");
       }
 
-      const isStandalonePwa = (window.navigator as any).standalone === true
-        || window.matchMedia('(display-mode: standalone)').matches;
-      if (isStandalonePwa) {
-        window.open(data.url, '_blank');
+      if (Capacitor.isNativePlatform()) {
+        await Browser.open({ url: data.url });
       } else {
         window.location.href = data.url;
       }

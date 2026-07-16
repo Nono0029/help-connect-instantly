@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "@/context/LanguageContext";
 import { isUrgentActive } from "@/lib/urgentFee";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 import {
   ArrowLeft,
   Send,
@@ -415,10 +418,18 @@ const ChatPage = () => {
         .maybeSingle();
       if (p) setPayment(p);
 
-      const isStandalonePwa = (window.navigator as any).standalone === true
-        || window.matchMedia('(display-mode: standalone)').matches;
-      if (isStandalonePwa) {
-        window.open(data.url, '_blank');
+      if (Capacitor.isNativePlatform()) {
+        await Browser.open({ url: data.url });
+        Browser.addListener('browserFinished', async () => {
+          const { data: refreshed } = await supabase
+            .from("payments")
+            .select("*")
+            .eq("mission_id", mission.id)
+            .order("id", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (refreshed) setPayment(refreshed);
+        });
       } else {
         window.location.href = data.url;
       }
@@ -700,6 +711,23 @@ const ChatPage = () => {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const listener = App.addListener('appStateChange', async ({ isActive }) => {
+      if (isActive && mission) {
+        const { data: p } = await supabase
+          .from("payments")
+          .select("*")
+          .eq("mission_id", mission.id)
+          .order("id", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (p) setPayment(p);
+      }
+    });
+    return () => { listener.then(l => l.remove()); };
+  }, [mission?.id]);
 
   useEffect(() => {
     if (messages.length >= 5 && !adresseEnvoyee && !adresseDismissed && mission?.statut === "en_cours" && isDemandeOwner) {
