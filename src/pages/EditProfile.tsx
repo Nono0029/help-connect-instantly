@@ -93,7 +93,7 @@ const EditProfile = () => {
 
       if (data) {
         setAvis(data);
-        const total = data.reduce((acc, item) => acc + item.note, 0);
+        const total = data.reduce((acc, item) => acc + (item.note ?? 0), 0);
         setMoyenne(data.length > 0 ? total / data.length : 0);
       }
     };

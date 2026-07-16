@@ -63,44 +63,47 @@ const DemandeDetail = () => {
     if (!user || !demande) return;
     setCreating(true);
 
-    // Vérifier si une conversation existe déjà
-    const { data: existing } = await supabase
-      .from("conversations")
-      .select("id")
-      .eq("demande_id", demande.id)
-      .eq("helper_id", user.id)
-      .maybeSingle();
+    try {
+      const { data: existing } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("demande_id", demande.id)
+        .eq("helper_id", user.id)
+        .maybeSingle();
 
-    if (existing) {
-      navigate(`/chat/${existing.id}`);
-      return;
+      if (existing) {
+        navigate(`/chat/${existing.id}`);
+        return;
+      }
+
+      const { data: newConv, error } = await supabase
+        .from("conversations")
+        .insert([{
+          demande_id: demande.id,
+          helper_id: user.id,
+          demandeur_id: demande.user_id || "",
+          statut: "en_attente",
+        }])
+        .select()
+        .single();
+
+      if (newConv && demande.user_id && demande.user_id !== user.id) {
+        await supabase.from("notifications").insert({
+          user_id: demande.user_id,
+          message: `${user.email?.split("@")[0] || "Quelqu'un"} veut t'aider pour « ${demande.titre} » !`,
+          conversation_id: newConv.id,
+          lu: false,
+        });
+      }
+
+      if (newConv) navigate(`/chat/${newConv.id}`);
+      else if (error) toast.error("Erreur : " + error.message);
+    } catch (err: any) {
+      console.error("handleVouloir error:", err);
+      toast.error("Erreur lors de la création de la conversation");
+    } finally {
+      setCreating(false);
     }
-
-    // Créer une nouvelle conversation
-    const { data: newConv, error } = await supabase
-      .from("conversations")
-      .insert([{
-        demande_id: demande.id,
-        helper_id: user.id,
-        demandeur_id: demande.user_id || "",
-        statut: "en_attente",
-      }])
-      .select()
-      .single();
-
-    // Notifier le créateur de la demande
-    if (newConv && demande.user_id && demande.user_id !== user.id) {
-      await supabase.from("notifications").insert({
-        user_id: demande.user_id,
-        message: `${user.email?.split("@")[0] || "Quelqu'un"} veut t'aider pour « ${demande.titre} » !`,
-        conversation_id: newConv.id,
-        lu: false,
-      });
-    }
-
-    setCreating(false);
-    if (newConv) navigate(`/chat/${newConv.id}`);
-    else if (error) toast.error("Erreur : " + error.message);
   };
 
   if (loading) return (

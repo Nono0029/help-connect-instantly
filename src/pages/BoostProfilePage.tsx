@@ -98,6 +98,7 @@ const BoostProfilePage = () => {
       } else {
         window.location.href = data.url;
       }
+      setActivating(false);
     } catch (err: any) {
       toast.error(err?.message || "Erreur lors du paiement");
       setActivating(false);

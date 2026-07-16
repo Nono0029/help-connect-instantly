@@ -124,7 +124,7 @@ const MessagesPage = () => {
       }
     };
     fetchConvs();
-  }, [user]);
+  }, [user?.id]);
 
   const handleArchive = async (convId: number, archived: boolean) => {
     const { error } = await supabase.from("conversations").update({ archived }).eq("id", convId);

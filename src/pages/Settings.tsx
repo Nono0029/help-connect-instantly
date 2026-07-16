@@ -85,10 +85,11 @@ const Settings = () => {
   }, [user]);
 
   const toggleNotifPref = async (key: keyof typeof defaultNotifPrefs) => {
+    if (!user) return;
     const next = { ...notifPrefs, [key]: !notifPrefs[key] };
     setNotifPrefs(next);
     setNotifSaving(true);
-    await supabase.from("profiles").upsert({ id: user!.id, notif_prefs: next });
+    await supabase.from("profiles").upsert({ id: user.id, notif_prefs: next });
     setNotifSaving(false);
   };
 

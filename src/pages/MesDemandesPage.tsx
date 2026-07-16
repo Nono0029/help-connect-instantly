@@ -64,7 +64,7 @@ const MesDemandesPage = () => {
 
   useEffect(() => {
     fetchDemandes();
-  }, [user]);
+  }, [user?.id]);
 
   // 🔥 DELETE COMPLET (via fonction SQL SECURITY DEFINER)
   const handleDelete = async (id: number) => {

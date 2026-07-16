@@ -47,6 +47,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng, onLocate }: Prop
           const script = document.createElement("script");
           script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
           script.onload = () => resolve();
+          script.onerror = () => resolve();
           document.head.appendChild(script);
         });
       }
@@ -58,6 +59,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng, onLocate }: Prop
           const script = document.createElement("script");
           script.src = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js";
           script.onload = () => resolve();
+          script.onerror = () => resolve();
           document.head.appendChild(script);
         });
         const clusterCss = document.createElement("link");

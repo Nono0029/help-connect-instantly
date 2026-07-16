@@ -71,6 +71,7 @@ const MonPortefeuille = () => {
         if (errData?.error === "no_bank_details") {
           toast.error(t('wallet.configureBankFirst'));
           setShowWithdraw(false);
+          setWithdrawLoading(false);
           return;
         }
         throw new Error(error.message);

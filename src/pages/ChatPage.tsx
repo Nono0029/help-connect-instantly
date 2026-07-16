@@ -331,62 +331,68 @@ const ChatPage = () => {
       return;
     }
 
-    const updates: any = {};
-    if (user.id === mission.helper_id) updates.helper_confirme = true;
-    if (user.id === mission.demandeur_id) updates.demandeur_confirme = true;
+    try {
+      const updates: any = {};
+      if (user.id === mission.helper_id) updates.helper_confirme = true;
+      if (user.id === mission.demandeur_id) updates.demandeur_confirme = true;
 
-    await supabase.from("missions").update(updates).eq("id", mission.id);
+      const { error: updateErr } = await supabase.from("missions").update(updates).eq("id", mission.id);
+      if (updateErr) throw updateErr;
 
-    const helper = updates.helper_confirme ?? mission.helper_confirme;
-    const demandeur = updates.demandeur_confirme ?? mission.demandeur_confirme;
+      const helper = updates.helper_confirme ?? mission.helper_confirme;
+      const demandeur = updates.demandeur_confirme ?? mission.demandeur_confirme;
 
-    if (helper && demandeur) {
-      await supabase.from("missions").update({ statut: "terminee" }).eq("id", mission.id);
-      await supabase.from("conversations").update({ statut: "terminee" }).eq("id", conversation?.id);
+      if (helper && demandeur) {
+        const { error: termErr } = await supabase.from("missions").update({ statut: "terminee" }).eq("id", mission.id);
+        if (termErr) throw termErr;
+        await supabase.from("conversations").update({ statut: "terminee" }).eq("id", conversation?.id);
 
-      // Libérer le paiement vers le helper
-      const { error: releaseErr } = await supabase.functions.invoke("release-payment", {
-        body: { mission_id: mission.id },
-      });
-      if (releaseErr) {
-        console.error("release-payment error:", releaseErr);
+        const { error: releaseErr } = await supabase.functions.invoke("release-payment", {
+          body: { mission_id: mission.id },
+        });
+        if (releaseErr) {
+          console.error("release-payment error:", releaseErr);
+          await supabase.from("notifications").insert({
+            user_id: mission.helper_id,
+            message: t('chat.paymentReleaseError'),
+            conversation_id: parseInt(id!),
+            lu: false,
+          });
+        }
+
+        await supabase.from("messages").insert({
+          conversation_id: parseInt(id!),
+          sender_id: user.id,
+          content: t('chat.missionFinishedMsg'),
+        });
+
+        if (otherUserId) {
+          await supabase.from("notifications").insert([{
+            user_id: otherUserId,
+            message: t('chat.missionFinishedNotif'),
+            conversation_id: parseInt(id!),
+            lu: false,
+          }, {
+            user_id: user.id,
+            message: t('chat.missionFinishedThanks'),
+            conversation_id: parseInt(id!),
+            lu: false,
+          }]);
+        }
+      } else if (otherUserId) {
         await supabase.from("notifications").insert({
-          user_id: mission.helper_id,
-          message: t('chat.paymentReleaseError'),
+          user_id: otherUserId,
+          message: t('chat.missionConfirmed', { name: user.email?.split("@")[0] || t('chat.someone') }),
           conversation_id: parseInt(id!),
           lu: false,
         });
       }
 
-      await supabase.from("messages").insert({
-        conversation_id: parseInt(id!),
-        sender_id: user.id,
-        content: t('chat.missionFinishedMsg'),
-      });
-
-      if (otherUserId) {
-        await supabase.from("notifications").insert([{
-          user_id: otherUserId,
-          message: t('chat.missionFinishedNotif'),
-          conversation_id: parseInt(id!),
-          lu: false,
-        }, {
-          user_id: user.id,
-          message: t('chat.missionFinishedThanks'),
-          conversation_id: parseInt(id!),
-          lu: false,
-        }]);
-      }
-    } else if (otherUserId) {
-      await supabase.from("notifications").insert({
-        user_id: otherUserId,
-        message: t('chat.missionConfirmed', { name: user.email?.split("@")[0] || t('chat.someone') }),
-        conversation_id: parseInt(id!),
-        lu: false,
-      });
+      fetchMission(conversation);
+    } catch (err) {
+      console.error("confirmerMission error:", err);
+      toast.error("Erreur lors de la confirmation");
     }
-
-    fetchMission(conversation);
   };
 
   const handlePayment = async () => {
@@ -439,20 +445,26 @@ const ChatPage = () => {
 
   const envoyerAvis = async () => {
     if (!mission || !user) return;
-    const cibleId = user.id === mission.helper_id ? mission.demandeur_id : mission.helper_id;
+    try {
+      const cibleId = user.id === mission.helper_id ? mission.demandeur_id : mission.helper_id;
 
-    await supabase.from("avis").insert({
-      mission_id: mission.id,
-      auteur_id: user.id,
-      cible_id: cibleId,
-      note,
-      commentaire,
-    });
+      const { error } = await supabase.from("avis").insert({
+        mission_id: mission.id,
+        auteur_id: user.id,
+        cible_id: cibleId,
+        note,
+        commentaire,
+      });
+      if (error) throw error;
 
-    setShowAvis(false);
-    setAvisDonne(true);
-    setCommentaire("");
-    setNote(5);
+      setShowAvis(false);
+      setAvisDonne(true);
+      setCommentaire("");
+      setNote(5);
+    } catch (err) {
+      console.error("envoyerAvis error:", err);
+      toast.error("Erreur lors de l'envoi de l'avis");
+    }
   };
 
   const uploadSignalPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
