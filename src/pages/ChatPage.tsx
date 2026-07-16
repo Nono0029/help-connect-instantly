@@ -2,9 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "@/context/LanguageContext";
 import { isUrgentActive } from "@/lib/urgentFee";
-import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
-import { App } from "@capacitor/app";
 import {
   ArrowLeft,
   Send,
@@ -419,17 +417,8 @@ const ChatPage = () => {
       if (p) setPayment(p);
 
       if (Capacitor.isNativePlatform()) {
+        const { Browser } = await import("@capacitor/browser");
         await Browser.open({ url: data.url });
-        Browser.addListener('browserFinished', async () => {
-          const { data: refreshed } = await supabase
-            .from("payments")
-            .select("*")
-            .eq("mission_id", mission.id)
-            .order("id", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          if (refreshed) setPayment(refreshed);
-        });
       } else {
         window.location.href = data.url;
       }
@@ -714,19 +703,26 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    const listener = App.addListener('appStateChange', async ({ isActive }) => {
-      if (isActive && mission) {
-        const { data: p } = await supabase
-          .from("payments")
-          .select("*")
-          .eq("mission_id", mission.id)
-          .order("id", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (p) setPayment(p);
-      }
-    });
-    return () => { listener.then(l => l.remove()); };
+    let removeListener: (() => void) | undefined;
+    (async () => {
+      try {
+        const { App } = await import("@capacitor/app");
+        const listener = await App.addListener('appStateChange', async ({ isActive }) => {
+          if (isActive && mission) {
+            const { data: p } = await supabase
+              .from("payments")
+              .select("*")
+              .eq("mission_id", mission.id)
+              .order("id", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (p) setPayment(p);
+          }
+        });
+        removeListener = () => listener.remove();
+      } catch {}
+    })();
+    return () => { removeListener?.(); };
   }, [mission?.id]);
 
   useEffect(() => {

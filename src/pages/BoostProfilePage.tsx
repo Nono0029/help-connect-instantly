@@ -6,9 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
-import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
-import { App } from "@capacitor/app";
 
 const BoostProfilePage = () => {
   const navigate = useNavigate();
@@ -57,19 +55,26 @@ const BoostProfilePage = () => {
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    const listener = App.addListener('appStateChange', async ({ isActive }) => {
-      if (isActive && user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("boost_until")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (data?.boost_until && new Date(data.boost_until) > new Date()) {
-          setBoostUntil(data.boost_until);
-        }
-      }
-    });
-    return () => { listener.then(l => l.remove()); };
+    let removeListener: (() => void) | undefined;
+    (async () => {
+      try {
+        const { App } = await import("@capacitor/app");
+        const listener = await App.addListener('appStateChange', async ({ isActive }) => {
+          if (isActive && user) {
+            const { data } = await supabase
+              .from("profiles")
+              .select("boost_until")
+              .eq("id", user.id)
+              .maybeSingle();
+            if (data?.boost_until && new Date(data.boost_until) > new Date()) {
+              setBoostUntil(data.boost_until);
+            }
+          }
+        });
+        removeListener = () => listener.remove();
+      } catch {}
+    })();
+    return () => { removeListener?.(); };
   }, [user?.id]);
 
   const isBoostActive = boostUntil && new Date(boostUntil) > new Date();
@@ -88,6 +93,7 @@ const BoostProfilePage = () => {
       }
 
       if (Capacitor.isNativePlatform()) {
+        const { Browser } = await import("@capacitor/browser");
         await Browser.open({ url: data.url });
       } else {
         window.location.href = data.url;
