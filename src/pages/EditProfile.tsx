@@ -139,12 +139,20 @@ const EditProfile = () => {
 
   // ---------------- SAVE PROFILE ----------------
   const handleSave = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.error("Session expirée. Veuillez vous reconnecter.");
+      return;
+    }
+
+    if (!pseudo.trim()) {
+      toast.error("Le pseudo est obligatoire.");
+      return;
+    }
 
     setLoading(true);
 
     const updates: Record<string, any> = { id: user.id };
-    if (pseudo) updates.pseudo = pseudo;
+    updates.pseudo = pseudo.trim();
     if (ville) updates.ville = ville;
     if (adresse) updates.adresse = adresse;
     if (avatarUrl) updates.avatar_url = avatarUrl;
@@ -156,8 +164,8 @@ const EditProfile = () => {
     setLoading(false);
 
     if (error) {
-      toast.error(t('editProfile.error') + error.message);
-      console.error(error);
+      console.error("Profile save error:", error);
+      toast.error("Erreur: " + error.message);
       return;
     }
 
