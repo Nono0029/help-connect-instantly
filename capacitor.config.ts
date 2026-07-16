@@ -7,6 +7,7 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorUpdater: {
       apiKey: 'b26f2657-1fee-4d3b-82a8-e4ce3d9bcc76',
+      defaultChannel: 'production',
     },
   },
 };
