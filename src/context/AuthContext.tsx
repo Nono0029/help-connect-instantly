@@ -62,15 +62,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authProfile, setAuthProfile] = useState<AuthProfile | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await ensureProfile(session.user);
-        setAuthProfile(await fetchAuthProfile(session.user.id));
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!mounted) return;
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await ensureProfile(session.user);
+          if (mounted) setAuthProfile(await fetchAuthProfile(session.user.id));
+        }
+      } catch (err) {
+        console.error("Auth init error:", err);
+      } finally {
+        if (mounted) setLoading(false);
       }
-      setLoading(false);
-    });
+    };
+
+    initAuth();
+
+    const safetyTimeout = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 5000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
@@ -83,7 +98,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string) => {
