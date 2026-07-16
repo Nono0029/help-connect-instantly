@@ -10,6 +10,7 @@ import CityPicker from "@/components/CityPicker";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
 import { getTotalEuros, isBoostActive } from "@/lib/urgentFee";
+import { useCameraUpload } from "@/hooks/useCameraUpload";
 
 const typesAide = [
   { id: "menage", label: "🧹 Ménage / Nettoyage", desc: "Cleaning, ranging, organisation..." },
@@ -70,7 +71,6 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
   const [selectedType, setSelectedType] = useState("");
-  const [photos, setPhotos] = useState<string[]>([]);
   const [prix, setPrix] = useState("");
   const [gratuit, setGratuit] = useState(false);
   const [duree, setDuree] = useState("");
@@ -83,6 +83,10 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   const fileRef = useRef<HTMLInputElement>(null);
 
   const isEdit = !!demandeToEdit;
+
+  const { photos, uploading: uploadingPhoto, handleFileInput, takePhoto, removePhoto, resetPhotos, setPhotos } = useCameraUpload({
+    userId: user?.id || "",
+  });
 
   useEffect(() => {
     if (!user) return;
@@ -101,32 +105,10 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
       setUrgent(demandeToEdit.urgent || false);
     } else {
       setTitre(""); setDescription(""); setSelectedType("");
-      setPhotos([]); setPrix(""); setGratuit(false);
+      resetPhotos(); setPrix(""); setGratuit(false);
       setDuree(""); setUrgent(false); setVilleForm("");
     }
   }, [demandeToEdit, open]);
-
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-
-  const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || !user) return;
-    setUploadingPhoto(true);
-    for (const file of Array.from(files)) {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `demandes/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("demande-photos")
-        .upload(filePath, file);
-      if (uploadError) {
-        console.error(uploadError);
-        continue;
-      }
-      const { data: urlData } = supabase.storage.from("demande-photos").getPublicUrl(filePath);
-      setPhotos(prev => [...prev, urlData.publicUrl].slice(0, 5));
-    }
-    setUploadingPhoto(false);
-  };
 
   const handleSubmit = async () => {
   if (!user || !titre || !selectedType || !villeForm) return;
@@ -241,19 +223,29 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                     {t('postForm.photos')} <span className="text-muted-foreground font-normal">{t('postForm.photosOptional')}</span>
                   </label>
                   <div className="flex gap-2 overflow-x-auto pb-1">
-                    <button onClick={() => fileRef.current?.click()} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
-                      {uploadingPhoto ? (
-                        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Camera className="w-5 h-5" />
-                      )}
-                      <span className="text-[10px] font-medium">{uploadingPhoto ? t('postForm.uploading') : t('postForm.add')}</span>
-                    </button>
-                    <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhoto} />
+                    <div className="flex gap-2">
+                      <button onClick={takePhoto} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
+                        {uploadingPhoto ? (
+                          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Camera className="w-5 h-5" />
+                        )}
+                        <span className="text-[10px] font-medium">{uploadingPhoto ? t('postForm.uploading') : t('postForm.camera')}</span>
+                      </button>
+                      <button onClick={() => fileRef.current?.click()} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
+                        {uploadingPhoto ? (
+                          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Image className="w-5 h-5" />
+                        )}
+                        <span className="text-[10px] font-medium">{uploadingPhoto ? t('postForm.uploading') : t('postForm.gallery')}</span>
+                      </button>
+                    </div>
+                    <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileInput} />
                     {photos.map((src, i) => (
                       <div key={i} className="relative shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-border">
                         <img src={src} alt="" className="w-full h-full object-cover" />
-                        <button onClick={() => setPhotos(p => p.filter((_, j) => j !== i))} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-foreground/70 text-background flex items-center justify-center">
+                        <button onClick={() => removePhoto(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-foreground/70 text-background flex items-center justify-center">
                           <X className="w-3 h-3" />
                         </button>
                       </div>

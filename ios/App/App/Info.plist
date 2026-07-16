@@ -45,7 +45,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Askoo a besoin d'accéder à votre caméra pour prendre des photos</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Askoo a besoin d'accéder à vos photos pour les ajouter à vos demandes</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Askoo a besoin de sauvegarder des photos dans votre galerie</string>
 </dict>
 </plist>

@@ -26,7 +26,7 @@ const BottomNav = () => {
 
   return (
     <nav className="bottom-nav-glass fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
-      <div className="flex items-center justify-around px-2 py-1 max-w-lg mx-auto">
+      <div className="grid grid-cols-5 items-center px-2 py-2 max-w-lg mx-auto">
         {navItems.map((item) => {
           const isActive =
             item.path === "/"
@@ -39,7 +39,7 @@ const BottomNav = () => {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 whileTap={{ scale: 0.88 }}
-                className="flex flex-col items-center gap-0.5 px-3 py-1.5 -mt-5"
+                className="flex flex-col items-center justify-center -mt-5"
               >
                 <div className="w-[52px] h-[52px] rounded-full btn-magic flex items-center justify-center">
                   <item.icon className="w-5 h-5 text-white" />
@@ -57,7 +57,7 @@ const BottomNav = () => {
               onClick={() => navigate(item.path)}
               whileTap={{ scale: 0.82 }}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 min-w-[48px] min-h-[48px] justify-center",
+                "flex flex-col items-center gap-0.5 py-2 rounded-2xl transition-all duration-200 justify-center",
                 isActive ? "bg-primary/10" : "hover:bg-primary/5"
               )}
             >
