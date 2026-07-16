@@ -575,14 +575,19 @@ const ChatPage = () => {
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  const typingSendRef = useRef<any>(null);
+
   const handleTyping = () => {
-    if (!typingTimeoutRef.current) {
-      supabase.channel(`typing-${id}`).send({
-        type: "broadcast",
-        event: "typing",
-        payload: { userId: user?.id },
-      });
+    if (!typingSendRef.current) {
+      typingSendRef.current = supabase.channel(`typing-send-${id}`);
+      typingSendRef.current.subscribe();
     }
+
+    typingSendRef.current.send({
+      type: "broadcast",
+      event: "typing",
+      payload: { userId: user?.id },
+    });
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
@@ -680,14 +685,18 @@ const ChatPage = () => {
       supabase.removeChannel(presenceChannel);
       supabase.removeChannel(typingChannel);
       supabase.removeChannel(paymentChannel);
+      if (typingSendRef.current) {
+        supabase.removeChannel(typingSendRef.current);
+        typingSendRef.current = null;
+      }
       clearInterval(visibilityInterval);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [id, user]);
 
   useEffect(() => {
-    if (conversation) fetchMission(conversation);
-  }, [conversation]);
+    if (conversation?.id) fetchMission(conversation);
+  }, [conversation?.id]);
 
   useEffect(() => {
     if (messages.find(m => m.content.includes("📍"))) {
