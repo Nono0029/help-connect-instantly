@@ -26,7 +26,7 @@ const BottomNav = () => {
 
   return (
     <nav className="bottom-nav-glass fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
-      <div className="grid grid-cols-5 items-center px-1 py-0.5 max-w-lg mx-auto">
+      <div className="grid grid-cols-5 items-center px-2 py-1 max-w-lg mx-auto">
         {navItems.map((item) => {
           const isActive =
             item.path === "/"
@@ -39,12 +39,12 @@ const BottomNav = () => {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 whileTap={{ scale: 0.88 }}
-                className="flex flex-col items-center justify-center -mt-2"
+                className="flex flex-col items-center justify-center -mt-3"
               >
-                <div className="w-[40px] h-[40px] rounded-full btn-magic flex items-center justify-center">
-                  <item.icon className="w-4 h-4 text-white" />
+                <div className="w-[44px] h-[44px] rounded-full btn-magic flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-[8px] font-semibold text-muted-foreground mt-0">
+                <span className="text-[9px] font-semibold text-muted-foreground mt-0.5">
                   {item.label}
                 </span>
               </motion.button>
@@ -57,16 +57,16 @@ const BottomNav = () => {
               onClick={() => navigate(item.path)}
               whileTap={{ scale: 0.82 }}
               className={cn(
-                "flex flex-col items-center gap-0 py-1 rounded-xl transition-all duration-200 justify-center",
+                "flex flex-col items-center gap-0 py-1.5 rounded-2xl transition-all duration-200 justify-center",
                 isActive ? "bg-primary/10" : "hover:bg-primary/5"
               )}
             >
               <item.icon className={cn(
-                "w-[18px] h-[18px] transition-colors duration-200",
+                "w-5 h-5 transition-colors duration-200",
                 isActive ? "text-primary" : "text-muted-foreground/70"
               )} />
               <span className={cn(
-                "text-[8px] font-semibold transition-colors duration-200 leading-none",
+                "text-[9px] font-semibold transition-colors duration-200",
                 isActive ? "text-primary" : "text-muted-foreground/60"
               )}>
                 {item.label}

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
+import { Capacitor } from "@capacitor/core";
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -101,11 +102,44 @@ const EditProfile = () => {
   }, [user]);
 
   // ---------------- UPLOAD AVATAR ----------------
-  const uploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  const uploadAvatar = async (e?: React.ChangeEvent<HTMLInputElement>) => {
+    let file: File | undefined;
 
-    setUploading(true);
+    if (!user) {
+      toast.error("Session expirée. Reconnectez-vous.");
+      return;
+    }
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
+        const image = await Camera.getPhoto({
+          quality: 80,
+          allowEditing: true,
+          resultType: CameraResultType.Base64,
+          source: CameraSource.Prompt,
+          width: 400,
+          height: 400,
+        });
+        if (!image.base64String) return;
+        setUploading(true);
+        const byteCharacters = atob(image.base64String);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        file = new File([byteArray], `avatar_${Date.now()}.jpg`, { type: "image/jpeg" });
+      } catch (err) {
+        console.error("Camera error:", err);
+        setUploading(false);
+        return;
+      }
+    } else {
+      file = e?.target.files?.[0];
+      if (!file) return;
+      setUploading(true);
+    }
 
     try {
       const fileExt = file.name.split(".").pop();
@@ -124,14 +158,17 @@ const EditProfile = () => {
       const publicUrl = urlData.publicUrl;
       setAvatarUrl(publicUrl);
 
-      await supabase.from("profiles").upsert({
+      const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id,
         avatar_url: publicUrl,
       });
 
+      if (profileError) throw profileError;
+
       toast.success(t('editProfile.avatarUpdated'));
     } catch (err: any) {
-      toast.error(t('editProfile.error') + err.message);
+      console.error("Avatar upload error:", err);
+      toast.error(t('editProfile.error') + (err.message || "Erreur inconnue"));
     }
 
     setUploading(false);
@@ -139,38 +176,45 @@ const EditProfile = () => {
 
   // ---------------- SAVE PROFILE ----------------
   const handleSave = async () => {
-    if (!user) {
-      toast.error("Session expirée. Veuillez vous reconnecter.");
-      return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Session expirée. Reconnectez-vous.");
+        return;
+      }
+
+      if (!pseudo.trim()) {
+        toast.error("Le pseudo est obligatoire.");
+        return;
+      }
+
+      setLoading(true);
+
+      const updates: Record<string, any> = { id: user.id };
+      updates.pseudo = pseudo.trim();
+      if (ville) updates.ville = ville;
+      if (adresse) updates.adresse = adresse;
+      if (avatarUrl) updates.avatar_url = avatarUrl;
+      updates.bio = bio;
+      updates.skills = skills;
+
+      const { data, error } = await supabase.from("profiles").upsert(updates).select();
+
+      setLoading(false);
+
+      if (error) {
+        console.error("Profile save error:", error);
+        toast.error("Erreur: " + error.message);
+        return;
+      }
+
+      toast.success(t('editProfile.profileUpdated'));
+      navigate("/settings");
+    } catch (err: any) {
+      setLoading(false);
+      console.error("Profile save exception:", err);
+      toast.error("Erreur: " + (err.message || "Erreur inconnue"));
     }
-
-    if (!pseudo.trim()) {
-      toast.error("Le pseudo est obligatoire.");
-      return;
-    }
-
-    setLoading(true);
-
-    const updates: Record<string, any> = { id: user.id };
-    updates.pseudo = pseudo.trim();
-    if (ville) updates.ville = ville;
-    if (adresse) updates.adresse = adresse;
-    if (avatarUrl) updates.avatar_url = avatarUrl;
-    updates.bio = bio;
-    updates.skills = skills;
-
-    const { error } = await supabase.from("profiles").upsert(updates);
-
-    setLoading(false);
-
-    if (error) {
-      console.error("Profile save error:", error);
-      toast.error("Erreur: " + error.message);
-      return;
-    }
-
-    toast.success(t('editProfile.profileUpdated'));
-    navigate("/settings");
   };
 
   return (
@@ -216,7 +260,13 @@ const EditProfile = () => {
             </div>
 
             <button
-              onClick={() => fileRef.current?.click()}
+              onClick={() => {
+                if (Capacitor.isNativePlatform()) {
+                  uploadAvatar();
+                } else {
+                  fileRef.current?.click();
+                }
+              }}
               disabled={uploading}
               className="absolute bottom-1 right-1 w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
             >

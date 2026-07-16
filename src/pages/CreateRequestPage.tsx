@@ -11,6 +11,7 @@ import { useTranslation } from "@/context/LanguageContext";
 import { getTotalEuros, isBoostActive } from "@/lib/urgentFee";
 import CityPicker from "@/components/CityPicker";
 import { useCameraUpload } from "@/hooks/useCameraUpload";
+import { Capacitor } from "@capacitor/core";
 
 const typesAide = [
   { id: "menage", label: "Ménage / Nettoyage", emoji: "🧹" },
@@ -63,7 +64,7 @@ const CreateRequestPage = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [isBoosted, setIsBoosted] = useState(false);
 
-  const { photos, uploading: uploadingPhoto, handleFileInput, takePhoto, removePhoto, setPhotos } = useCameraUpload({
+  const { photos, uploading: uploadingPhoto, handleFileInput, takePhoto, openNativePicker, removePhoto, setPhotos } = useCameraUpload({
     userId: user?.id || "",
   });
 
@@ -135,7 +136,13 @@ const CreateRequestPage = () => {
                 )}
                 <span className="text-[10px] font-medium">{uploadingPhoto ? t('createRequest.uploading') : t('createRequest.camera')}</span>
               </button>
-              <button onClick={() => fileRef.current?.click()} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
+              <button onClick={() => {
+                if (Capacitor.isNativePlatform()) {
+                  openNativePicker();
+                } else {
+                  fileRef.current?.click();
+                }
+              }} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
                 {uploadingPhoto ? (
                   <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 ) : (

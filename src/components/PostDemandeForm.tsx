@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
 import { getTotalEuros, isBoostActive } from "@/lib/urgentFee";
 import { useCameraUpload } from "@/hooks/useCameraUpload";
+import { Capacitor } from "@capacitor/core";
 
 const typesAide = [
   { id: "menage", label: "🧹 Ménage / Nettoyage", desc: "Cleaning, ranging, organisation..." },
@@ -84,7 +85,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
 
   const isEdit = !!demandeToEdit;
 
-  const { photos, uploading: uploadingPhoto, handleFileInput, takePhoto, removePhoto, resetPhotos, setPhotos } = useCameraUpload({
+  const { photos, uploading: uploadingPhoto, handleFileInput, takePhoto, openNativePicker, removePhoto, resetPhotos, setPhotos } = useCameraUpload({
     userId: user?.id || "",
   });
 
@@ -232,7 +233,13 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                         )}
                         <span className="text-[10px] font-medium">{uploadingPhoto ? t('postForm.uploading') : t('postForm.camera')}</span>
                       </button>
-                      <button onClick={() => fileRef.current?.click()} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
+                      <button onClick={() => {
+                        if (Capacitor.isNativePlatform()) {
+                          openNativePicker();
+                        } else {
+                          fileRef.current?.click();
+                        }
+                      }} disabled={uploadingPhoto} className="shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
                         {uploadingPhoto ? (
                           <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                         ) : (
