@@ -69,7 +69,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (!mounted) return;
         setSession(session);
-        setUser(session?.user ?? null);
+        setUser(prev => {
+          const next = session?.user ?? null;
+          if (prev?.id === next?.id) return prev;
+          return next;
+        });
         if (session?.user) {
           await ensureProfile(session.user);
           if (mounted) setAuthProfile(await fetchAuthProfile(session.user.id));
@@ -85,12 +89,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const safetyTimeout = setTimeout(() => {
       if (mounted) setLoading(false);
-    }, 5000);
+    }, 3000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return;
       setSession(session);
-      setUser(session?.user ?? null);
+      setUser(prev => {
+        const next = session?.user ?? null;
+        if (prev?.id === next?.id) return prev;
+        return next;
+      });
+      setLoading(false);
       if (session?.user) {
         await ensureProfile(session.user);
         if (mounted) setAuthProfile(await fetchAuthProfile(session.user.id));

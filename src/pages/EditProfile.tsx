@@ -114,7 +114,7 @@ const EditProfile = () => {
       try {
         const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
         const image = await Camera.getPhoto({
-          quality: 80,
+          quality: 50,
           allowEditing: true,
           resultType: CameraResultType.Base64,
           source: CameraSource.Prompt,
