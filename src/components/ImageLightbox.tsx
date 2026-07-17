@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -11,11 +11,18 @@ interface Props {
 }
 
 const ImageLightbox = ({ images, index, onClose, onPrev, onNext }: Props) => {
+  const onCloseRef = useRef(onClose);
+  const onPrevRef = useRef(onPrev);
+  const onNextRef = useRef(onNext);
+  onCloseRef.current = onClose;
+  onPrevRef.current = onPrev;
+  onNextRef.current = onNext;
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft" && onPrev) onPrev();
-      if (e.key === "ArrowRight" && onNext) onNext();
+      if (e.key === "Escape") onCloseRef.current();
+      if (e.key === "ArrowLeft" && onPrevRef.current) onPrevRef.current();
+      if (e.key === "ArrowRight" && onNextRef.current) onNextRef.current();
     };
     document.addEventListener("keydown", handleKey);
     document.body.style.overflow = "hidden";
@@ -23,7 +30,7 @@ const ImageLightbox = ({ images, index, onClose, onPrev, onNext }: Props) => {
       document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "";
     };
-  }, [onClose, onPrev, onNext]);
+  }, []);
 
   return (
     <motion.div

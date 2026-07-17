@@ -149,102 +149,118 @@ const ChatPage = () => {
 
   const fetchMessages = async () => {
     if (!id) return;
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", parseInt(id))
-      .order("created_at", { ascending: true });
-    setMessages(data || []);
+    try {
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", parseInt(id))
+        .order("created_at", { ascending: true });
+      setMessages(data || []);
+    } catch (err) {
+      console.error("fetchMessages error:", err);
+    }
   };
 
   const fetchConversation = async () => {
     if (!id) return;
-    const { data: conv } = await supabase
-      .from("conversations")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (!conv) return;
-
-    const { data: demande } = await supabase
-      .from("demandes")
-      .select("titre, user_id")
-      .eq("id", conv.demande_id)
-      .single();
-
-    setConversation({ ...conv, demande });
-    conversationRef.current = { ...conv, demande };
-
-    if (user) {
-      const otherId = user.id === conv.helper_id ? conv.demandeur_id : conv.helper_id;
-      setOtherUserId(otherId);
-      otherUserIdRef.current = otherId;
-      setIsDemandeOwner(user.id === demande?.user_id);
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, pseudo, avatar_url, last_seen")
-        .eq("id", otherId)
+    try {
+      const { data: conv } = await supabase
+        .from("conversations")
+        .select("*")
+        .eq("id", id)
         .single();
-      if (profile) {
-        setOtherProfile(profile);
-        if (profile.last_seen) {
-          const diff = Date.now() - new Date(profile.last_seen).getTime();
-          setIsOnline(diff < 120000);
+
+      if (!conv) return;
+
+      const { data: demande } = await supabase
+        .from("demandes")
+        .select("titre, user_id")
+        .eq("id", conv.demande_id)
+        .single();
+
+      setConversation({ ...conv, demande });
+      conversationRef.current = { ...conv, demande };
+
+      if (user) {
+        const otherId = user.id === conv.helper_id ? conv.demandeur_id : conv.helper_id;
+        setOtherUserId(otherId);
+        otherUserIdRef.current = otherId;
+        setIsDemandeOwner(user.id === demande?.user_id);
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, pseudo, avatar_url, last_seen")
+          .eq("id", otherId)
+          .single();
+        if (profile) {
+          setOtherProfile(profile);
+          if (profile.last_seen) {
+            const diff = Date.now() - new Date(profile.last_seen).getTime();
+            setIsOnline(diff < 120000);
+          }
         }
       }
+    } catch (err) {
+      console.error("fetchConversation error:", err);
     }
   };
 
   const fetchProfile = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("profiles")
-      .select("adresse, ville")
-      .eq("id", user.id)
-      .single();
-    if (data) {
-      setAdresse(data.adresse || "");
-      setVille(data.ville || "");
+    try {
+      const { data } = await supabase
+        .from("profiles")
+        .select("adresse, ville")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        setAdresse(data.adresse || "");
+        setVille(data.ville || "");
+      }
+    } catch (err) {
+      console.error("fetchProfile error:", err);
     }
   };
 
   const fetchMission = async (conv: Conversation) => {
     if (!conv) return;
-    const { data } = await supabase
-      .from("missions")
-      .select("*, demandes(titre, prix, urgent, created_at)")
-      .eq("demande_id", conv.demande_id)
-      .maybeSingle();
-    if (!data) {
-      setMission(null);
-      missionRef.current = null;
-      setPayment(null);
-      return;
-    }
-
-    const missionData = data as Mission;
-    setMission(missionData);
-    missionRef.current = missionData;
-
-    const { data: p } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("mission_id", missionData.id)
-      .order("id", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    setPayment(p || null);
-
-    if (user) {
-      const { data: avis } = await supabase
-        .from("avis")
-        .select("id")
-        .eq("mission_id", missionData.id)
-        .eq("auteur_id", user.id)
+    try {
+      const { data } = await supabase
+        .from("missions")
+        .select("*, demandes(titre, prix, urgent, created_at)")
+        .eq("demande_id", conv.demande_id)
         .maybeSingle();
-      if (avis) setAvisDonne(true);
+      if (!data) {
+        setMission(null);
+        missionRef.current = null;
+        setPayment(null);
+        return;
+      }
+
+      const missionData = data as Mission;
+      setMission(missionData);
+      missionRef.current = missionData;
+
+      const { data: p } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("mission_id", missionData.id)
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setPayment(p || null);
+
+      if (user) {
+        const { data: avis } = await supabase
+          .from("avis")
+          .select("id")
+          .eq("mission_id", missionData.id)
+          .eq("auteur_id", user.id)
+          .maybeSingle();
+        if (avis) setAvisDonne(true);
+      }
+    } catch (err) {
+      console.error("fetchMission error:", err);
     }
   };
 
@@ -683,9 +699,8 @@ const ChatPage = () => {
         table: "payments",
       }, (payload) => {
         const p = payload.new as Payment;
-        const conv = conversationRef.current;
         const mis = missionRef.current;
-        if (conv && p?.mission_id === mis?.id) {
+        if (mis && p?.mission_id === mis.id) {
           setPayment(p);
         }
       })
@@ -711,16 +726,16 @@ const ChatPage = () => {
   }, [conversation?.id]);
 
   useEffect(() => {
-    if (messages.find(m => m.content.includes("📍"))) {
+    if (messages.length > 0 && messages.some(m => m.content.includes("📍"))) {
       setAdresseEnvoyee(true);
     }
-  }, [messages]);
+  }, [messages.length]);
 
   useEffect(() => {
     if (messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages.length]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -750,7 +765,7 @@ const ChatPage = () => {
     if (messages.length >= 5 && !adresseEnvoyee && !adresseDismissed && mission?.statut === "en_cours" && isDemandeOwner) {
       setShowAdresseBox(true);
     }
-  }, [messages, mission, isDemandeOwner]);
+  }, [messages.length, mission?.statut, isDemandeOwner, adresseEnvoyee, adresseDismissed]);
 
   const isMe = (senderId: string) => senderId === user?.id;
   const missionPrice = mission?.demandes?.prix

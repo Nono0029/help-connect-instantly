@@ -17,6 +17,8 @@ const BoostProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(false);
 
+  const boostParam = searchParams.get("boost");
+
   useEffect(() => {
     const fetchBoost = async () => {
       if (!user) return;
@@ -34,10 +36,9 @@ const BoostProfilePage = () => {
     fetchBoost();
   }, [user?.id]);
 
-  // Stripe's webhook is the only place that activates the boost.
   useEffect(() => {
     const refreshBoostAfterPayment = async () => {
-      if (!user || searchParams.get("boost") !== "success") return;
+      if (!user || boostParam !== "success") return;
 
       const { data, error } = await supabase
         .from("profiles")
@@ -51,7 +52,7 @@ const BoostProfilePage = () => {
       }
     };
     refreshBoostAfterPayment();
-  }, [user?.id, searchParams, t]);
+  }, [user?.id, boostParam, t]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;

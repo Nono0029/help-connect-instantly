@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
@@ -22,13 +22,13 @@ export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [prefs, setPrefs] = useState<Record<string, boolean>>({ messages: true, demandes: true, missions: true });
 
-  const loadPrefs = async () => {
+  const loadPrefs = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase.from("profiles").select("notif_prefs").eq("id", user.id).maybeSingle();
     if (data?.notif_prefs) setPrefs(data.notif_prefs);
-  };
+  }, [user?.id]);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from("notifications")
@@ -36,12 +36,12 @@ export const useNotifications = () => {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
     setNotifications(data || []);
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     loadPrefs();
     fetchNotifications();
-  }, [user?.id]);
+  }, [loadPrefs, fetchNotifications]);
 
   useEffect(() => {
     if (!user) return;
