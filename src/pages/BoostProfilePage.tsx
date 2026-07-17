@@ -32,7 +32,7 @@ const BoostProfilePage = () => {
       setLoading(false);
     };
     fetchBoost();
-  }, [user]);
+  }, [user?.id]);
 
   // Stripe's webhook is the only place that activates the boost.
   useEffect(() => {
@@ -51,7 +51,7 @@ const BoostProfilePage = () => {
       }
     };
     refreshBoostAfterPayment();
-  }, [user, searchParams, t]);
+  }, [user?.id, searchParams, t]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;

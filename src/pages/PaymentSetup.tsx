@@ -30,7 +30,7 @@ const PaymentSetup = () => {
       }
       setLoading(false);
     })();
-  }, [user]);
+  }, [user?.id]);
 
   const handleSave = async () => {
     if (!user) return;

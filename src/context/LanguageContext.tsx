@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import fr from '../i18n/fr.json';
 import en from '../i18n/en.json';
 
@@ -59,8 +59,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return value;
   }, [language]);
 
+  const value = useMemo(() => ({ language, setLanguage, t }), [language, setLanguage, t]);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

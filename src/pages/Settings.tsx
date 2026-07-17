@@ -82,7 +82,7 @@ const Settings = () => {
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user?.id]);
 
   const toggleNotifPref = async (key: keyof typeof defaultNotifPrefs) => {
     if (!user) return;
@@ -117,7 +117,7 @@ const Settings = () => {
     };
 
     fetchAvis();
-  }, [user]);
+  }, [user?.id]);
 
   // SAVE
   const handleSaveProfile = async () => {

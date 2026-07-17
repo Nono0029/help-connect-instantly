@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+﻿import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
@@ -106,33 +106,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) return { error: error.message };
     return { error: null };
-  };
+  }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     return { error: null };
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    user,
+    session,
+    loading,
+    isAdmin: authProfile?.is_admin ?? false,
+    isBlocked: authProfile?.blocked ?? false,
+    signUp,
+    signIn,
+    signOut,
+  }), [user, session, loading, authProfile, signUp, signIn, signOut]);
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      loading,
-      isAdmin: authProfile?.is_admin ?? false,
-      isBlocked: authProfile?.blocked ?? false,
-      signUp,
-      signIn,
-      signOut,
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

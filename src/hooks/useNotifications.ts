@@ -41,7 +41,7 @@ export const useNotifications = () => {
   useEffect(() => {
     loadPrefs();
     fetchNotifications();
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;
@@ -57,7 +57,7 @@ export const useNotifications = () => {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user?.id]);
 
   const markAsRead = async (id: number) => {
     await supabase.from("notifications").update({ lu: true }).eq("id", id);

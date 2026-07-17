@@ -73,7 +73,7 @@ const EditProfile = () => {
     };
 
     loadProfile();
-  }, [user]);
+  }, [user?.id]);
 
   // ---------------- LOAD REVIEWS ----------------
   useEffect(() => {
@@ -99,7 +99,7 @@ const EditProfile = () => {
     };
 
     loadAvis();
-  }, [user]);
+  }, [user?.id]);
 
   // ---------------- UPLOAD AVATAR ----------------
   const uploadAvatar = async (e?: React.ChangeEvent<HTMLInputElement>) => {

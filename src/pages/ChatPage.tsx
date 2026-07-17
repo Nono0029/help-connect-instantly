@@ -704,7 +704,7 @@ const ChatPage = () => {
       clearInterval(visibilityInterval);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
-  }, [id, user]);
+  }, [id, user?.id]);
 
   useEffect(() => {
     if (conversation?.id) fetchMission(conversation);

@@ -45,7 +45,7 @@ const MonPortefeuille = () => {
       setLoading(false);
     };
     fetchData();
-  }, [user]);
+  }, [user?.id]);
 
   const handleWithdraw = async () => {
     if (!user) {

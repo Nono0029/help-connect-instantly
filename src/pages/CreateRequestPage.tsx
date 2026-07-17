@@ -72,7 +72,7 @@ const CreateRequestPage = () => {
     if (!user) return;
     supabase.from("profiles").select("boost_until").eq("id", user.id).maybeSingle()
       .then(({ data }) => setIsBoosted(isBoostActive(data?.boost_until)));
-  }, [user]);
+  }, [user?.id]);
 
   const handleSubmit = async () => {
     if (!titre || !selectedType || !user) {
