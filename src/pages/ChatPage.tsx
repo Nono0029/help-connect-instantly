@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "@/context/LanguageContext";
 import { isUrgentActive } from "@/lib/urgentFee";
@@ -135,9 +135,9 @@ const ChatPage = () => {
 
   const isImgMsg = (content: string) => content.startsWith("📷:");
 
-  const allChatPhotos = messages
+  const allChatPhotos = useMemo(() => messages
     .filter(m => isImgMsg(m.content))
-    .map(m => m.content.slice(3));
+    .map(m => m.content.slice(3)), [messages]);
 
   const playNotificationSound = () => {
     try {
@@ -154,8 +154,9 @@ const ChatPage = () => {
         .from("messages")
         .select("*")
         .eq("conversation_id", parseInt(id))
-        .order("created_at", { ascending: true });
-      setMessages(data || []);
+        .order("created_at", { ascending: false })
+        .limit(200);
+      setMessages((data || []).slice().reverse());
     } catch (err) {
       console.error("fetchMessages error:", err);
     }
@@ -346,6 +347,8 @@ const ChatPage = () => {
       toast.error(t('chat.confirmMissionLocked'));
       return;
     }
+    if (actionLoading) return;
+    setActionLoading(true);
 
     try {
       const updates: any = {};
@@ -409,6 +412,7 @@ const ChatPage = () => {
       console.error("confirmerMission error:", err);
       toast.error("Erreur lors de la confirmation");
     }
+    setActionLoading(false);
   };
 
   const handlePayment = async () => {
@@ -550,13 +554,35 @@ const ChatPage = () => {
     const now = Date.now();
     if (now - lastSentRef.current < 1000) return;
     lastSentRef.current = now;
+
+    const tempId = -now;
+    setMessages(prev => [...prev, {
+      id: tempId,
+      conversation_id: parseInt(id),
+      sender_id: user.id,
+      content: trimmed,
+      created_at: new Date().toISOString(),
+    }]);
+    setText("");
+
     try {
-      const { error: msgErr } = await supabase.from("messages").insert({
-        conversation_id: parseInt(id),
-        sender_id: user.id,
-        content: trimmed,
-      });
+      const { data: inserted, error: msgErr } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: parseInt(id),
+          sender_id: user.id,
+          content: trimmed,
+        })
+        .select()
+        .single();
       if (msgErr) throw msgErr;
+      setMessages(prev => {
+        const withoutTemp = prev.filter(m => m.id !== tempId);
+        if (inserted && withoutTemp.some(m => m.id === (inserted as Message).id)) {
+          return withoutTemp;
+        }
+        return inserted ? [...withoutTemp, inserted as Message] : withoutTemp;
+      });
       if (otherUserId) {
         await supabase.from("notifications").insert({
           user_id: otherUserId,
@@ -565,10 +591,11 @@ const ChatPage = () => {
           lu: false,
         });
       }
-      setText("");
     } catch (err) {
       console.error("sendMessage error:", err);
       toast.error("Erreur lors de l'envoi du message");
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+      setText(trimmed);
     }
   };
 
@@ -619,12 +646,17 @@ const ChatPage = () => {
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
+      if (typingSendRef.current) {
+        supabase.removeChannel(typingSendRef.current);
+        typingSendRef.current = null;
+      }
       typingTimeoutRef.current = null;
     }, 2000);
   };
 
   useEffect(() => {
     if (!id || !user) return;
+    let mounted = true;
 
     fetchConversation();
     fetchMessages();
@@ -641,21 +673,16 @@ const ChatPage = () => {
         table: "messages",
         filter: `conversation_id=eq.${id}`,
       }, (payload) => {
-        fetchMessages();
-        if (payload.new && (payload.new as Message).sender_id !== user?.id) {
+        const newMsg = payload.new as Message;
+        setMessages(prev => {
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          const next = [...prev, newMsg];
+          return next.length > 200 ? next.slice(-200) : next;
+        });
+        if (payload.new && newMsg.sender_id !== user?.id) {
           playNotificationSound();
         }
       })
-      .subscribe();
-
-    const convChannel = supabase
-      .channel(`conv-${id}`)
-      .on("postgres_changes", {
-        event: "UPDATE",
-        schema: "public",
-        table: "conversations",
-        filter: `id=eq.${id}`,
-      }, () => { fetchConversation(); })
       .subscribe();
 
     const presenceChannel = supabase.channel(`presence-${id}`);
@@ -691,27 +718,11 @@ const ChatPage = () => {
       })
       .subscribe();
 
-    const paymentChannel = supabase
-      .channel(`payment-${id}`)
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "payments",
-      }, (payload) => {
-        const p = payload.new as Payment;
-        const mis = missionRef.current;
-        if (mis && p?.mission_id === mis.id) {
-          setPayment(p);
-        }
-      })
-      .subscribe();
-
     return () => {
+      mounted = false;
       supabase.removeChannel(msgChannel);
-      supabase.removeChannel(convChannel);
       supabase.removeChannel(presenceChannel);
       supabase.removeChannel(typingChannel);
-      supabase.removeChannel(paymentChannel);
       if (typingSendRef.current) {
         supabase.removeChannel(typingSendRef.current);
         typingSendRef.current = null;
@@ -1032,12 +1043,14 @@ const ChatPage = () => {
                 </button>
                 <button
                   onClick={async () => {
+                    if (actionLoading) return;
                     setShowConfirmMission(false);
                     await confirmerMission();
                   }}
-                  className="flex-1 h-12 rounded-2xl bg-accent text-accent-foreground font-bold"
+                  disabled={actionLoading}
+                  className="flex-1 h-12 rounded-2xl bg-accent text-accent-foreground font-bold disabled:opacity-60"
                 >
-                  {t('chat.confirmYes')}
+                  {actionLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : t('chat.confirmYes')}
                 </button>
               </div>
             </motion.div>

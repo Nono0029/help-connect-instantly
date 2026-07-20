@@ -4,6 +4,7 @@ import { ArrowLeft, Rocket, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { Capacitor } from "@capacitor/core";
@@ -33,7 +34,7 @@ const BoostProfilePage = () => {
       }
       setLoading(false);
     };
-    fetchBoost();
+    withTimeout(fetchBoost(), 15000, "boostProfile").catch(() => setLoading(false));
   }, [user?.id]);
 
   useEffect(() => {

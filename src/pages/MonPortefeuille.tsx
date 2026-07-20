@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Wallet, CreditCard, ArrowUpRight, ArrowDownLeft, Loader2, Plus, AlertTriangle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +45,7 @@ const MonPortefeuille = () => {
 
       setLoading(false);
     };
-    fetchData();
+    withTimeout(fetchData(), 15000, "monPortefeuille").catch(() => setLoading(false));
   }, [user?.id]);
 
   const handleWithdraw = async () => {

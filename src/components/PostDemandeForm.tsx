@@ -85,7 +85,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
 
   const isEdit = !!demandeToEdit;
 
-  const { photos, uploading: uploadingPhoto, handleFileInput, takePhoto, openNativePicker, removePhoto, resetPhotos, setPhotos } = useCameraUpload({
+  const { photos, uploading: uploadingPhoto, handleFileInput, takePhoto, openNativePicker, removePhoto, resetPhotos, setPhotos, resetBusy } = useCameraUpload({
     userId: user?.id || "",
   });
 
@@ -96,6 +96,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   }, [user?.id]);
 
   useEffect(() => {
+    resetBusy();
     if (demandeToEdit) {
       setTitre(demandeToEdit.titre || "");
       setDescription(demandeToEdit.description || "");
@@ -109,7 +110,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
       resetPhotos(); setPrix(""); setGratuit(false);
       setDuree(""); setUrgent(false); setVilleForm("");
     }
-  }, [demandeToEdit, open]);
+  }, [demandeToEdit, open, resetBusy]);
 
   const handleSubmit = async () => {
   if (!user || !titre || !selectedType || !villeForm) return;

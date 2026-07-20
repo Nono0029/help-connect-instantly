@@ -79,43 +79,7 @@ function AnimatedRoutes() {
   );
 }
 
-/** Liquid-glass background orbs — rendered once, global to all pages */
-function BackgroundOrbs() {
-  return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
-      {/* Top-left — vert émeraude principal */}
-      <div
-        className="bg-orb w-[560px] h-[560px]"
-        style={{ top: "-150px", left: "-130px", animationDuration: "11s", background: "radial-gradient(circle, rgba(34,197,94,0.32) 0%, rgba(16,185,129,0.18) 50%, transparent 70%)" }}
-      />
-      {/* Top-right — jaune doré */}
-      <div
-        className="bg-orb w-[400px] h-[400px]"
-        style={{ top: "-80px", right: "-100px", animationDuration: "14s", animationDelay: "3s", background: "radial-gradient(circle, rgba(250,204,21,0.28) 0%, rgba(253,230,138,0.16) 50%, transparent 70%)" }}
-      />
-      {/* Mid-right — vert lime */}
-      <div
-        className="bg-orb w-[380px] h-[380px]"
-        style={{ top: "38%", right: "-90px", animationDuration: "13s", animationDelay: "6s", background: "radial-gradient(circle, rgba(163,230,53,0.22) 0%, rgba(132,204,22,0.12) 50%, transparent 70%)" }}
-      />
-      {/* Center — halo doux vert */}
-      <div
-        className="bg-orb w-[500px] h-[500px]"
-        style={{ top: "30%", left: "50%", transform: "translateX(-50%)", animationDuration: "16s", animationDelay: "2s", background: "radial-gradient(circle, rgba(34,197,94,0.10) 0%, rgba(74,222,128,0.06) 50%, transparent 70%)" }}
-      />
-      {/* Bottom-left — jaune/citron */}
-      <div
-        className="bg-orb w-[420px] h-[420px]"
-        style={{ bottom: "-100px", left: "-80px", animationDuration: "12s", animationDelay: "5s", background: "radial-gradient(circle, rgba(253,224,71,0.24) 0%, rgba(250,204,21,0.14) 50%, transparent 70%)" }}
-      />
-      {/* Bottom-right — vert menthe */}
-      <div
-        className="bg-orb w-[340px] h-[340px]"
-        style={{ bottom: "-60px", right: "-60px", animationDuration: "15s", animationDelay: "9s", background: "radial-gradient(circle, rgba(52,211,153,0.26) 0%, rgba(16,185,129,0.14) 50%, transparent 70%)" }}
-      />
-    </div>
-  );
-}
+/** Removed animated background orbs — they caused GPU memory pressure on iOS WebView */
 
 export default function App() {
   return (
@@ -127,13 +91,12 @@ export default function App() {
             <Sonner />
             <BrowserRouter>
               <AuthProvider>
-                <BackgroundOrbs />
                 <ErrorBoundary>
                   <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
                     <AnimatedRoutes />
                   </Suspense>
+                  <BottomNav />
                 </ErrorBoundary>
-                <BottomNav />
               </AuthProvider>
             </BrowserRouter>
           </TooltipProvider>

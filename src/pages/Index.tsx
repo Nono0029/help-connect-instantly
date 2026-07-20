@@ -42,7 +42,8 @@ import { EmptyState } from "@/components/EmptyState";
 
 import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/context/LanguageContext";
-import { getDistance, formatTimeAgo } from "@/lib/utils";
+import { getDistance, formatTimeAgo, withTimeout } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Demande {
   id: number;
@@ -167,18 +168,21 @@ const Index = () => {
   const fetchDemandes = async () => {
     setLoading(true);
     try {
-      const { data: completedMissions } = await supabase
+      const { data: completedMissions } = await withTimeout(supabase
         .from("missions")
         .select("demande_id")
-        .eq("statut", "terminee");
+        .eq("statut", "terminee")
+        .order("created_at", { ascending: false })
+        .limit(500), 12000, "missions");
       const completedIds = completedMissions?.map(m => m.demande_id) || [];
 
-      const { data } = await supabase
+      const { data } = await withTimeout(supabase
         .from("demandes")
         .select("*")
         .order("created_at", {
           ascending: false,
-        });
+        })
+        .limit(100), 12000, "demandes");
 
       const filtered = (data || []).filter(d => !completedIds.includes(d.id));
       setDemandes(filtered);
@@ -186,10 +190,10 @@ const Index = () => {
       // Fetch boosted profiles
       const userIds = [...new Set(filtered.map(d => d.user_id).filter(Boolean))];
       if (userIds.length > 0) {
-        const { data: profiles } = await supabase
+        const { data: profiles } = await withTimeout(supabase
           .from("profiles")
           .select("id, boost_until")
-          .in("id", userIds);
+          .in("id", userIds), 12000, "profiles");
 
         const boosted = new Set<string>();
         const now = new Date();
@@ -202,16 +206,19 @@ const Index = () => {
       }
     } catch (err) {
       console.error("fetchDemandes error:", err);
+      toast.error("Connexion lente, réessaie");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    let mounted = true;
     fetchDemandes();
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
+        if (!mounted) return;
         setUserCoords([latitude, longitude]);
         try {
           const res = await fetch(
@@ -219,7 +226,7 @@ const Index = () => {
           );
           const data = await res.json();
           const cityName = data?.address?.city || data?.address?.town || data?.address?.village || data?.address?.municipality;
-          if (cityName) {
+          if (mounted && cityName) {
             setVille(cityName);
             setVilleCoords([latitude, longitude]);
           }
@@ -230,6 +237,7 @@ const Index = () => {
       () => {},
       { enableHighAccuracy: true, timeout: 10000 }
     );
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {

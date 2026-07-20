@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Flag, ShieldAlert, Check, X, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
@@ -37,7 +38,8 @@ const AdminReportsPage = () => {
     const { data, error } = await supabase
       .from("signals")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(50);
     if (error) {
       toast.error("Erreur de chargement des signalements : " + error.message);
       setLoading(false);
@@ -56,7 +58,7 @@ const AdminReportsPage = () => {
   };
 
   useEffect(() => {
-    if (!authLoading && isAdmin) fetchSignals();
+    if (!authLoading && isAdmin) withTimeout(fetchSignals(), 15000, "adminSignals").catch(() => setLoading(false));
   }, [authLoading, isAdmin]);
 
   const setStatut = async (signal: Signal, statut: "confirme" | "rejete") => {

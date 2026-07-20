@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import PostDemandeForm from "@/components/PostDemandeForm";
 import NotificationBell from "@/components/NotificationBell";
@@ -54,7 +55,8 @@ const MesDemandesPage = () => {
       .from("demandes")
       .select("*")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(200);
 
     if (error) console.error(error);
     else setDemandes(data || []);
@@ -63,7 +65,7 @@ const MesDemandesPage = () => {
   };
 
   useEffect(() => {
-    fetchDemandes();
+    withTimeout(fetchDemandes(), 15000, "mesDemandes").catch(() => setLoading(false));
   }, [user?.id]);
 
   // 🔥 DELETE COMPLET (via fonction SQL SECURITY DEFINER)

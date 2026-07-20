@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase";
+import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { Capacitor } from "@capacitor/core";
@@ -48,6 +49,7 @@ const EditProfile = () => {
 
   // ---------------- LOAD PROFILE ----------------
   useEffect(() => {
+    let mounted = true;
     const loadProfile = async () => {
       if (!user) return;
 
@@ -62,6 +64,8 @@ const EditProfile = () => {
         return;
       }
 
+      if (!mounted) return;
+
       if (data) {
         setPseudo(data.pseudo || "");
         setBio(data.bio || "");
@@ -72,11 +76,13 @@ const EditProfile = () => {
       }
     };
 
-    loadProfile();
+    withTimeout(loadProfile(), 15000, "editProfileLoad").catch(err => console.error("loadProfile timeout:", err));
+    return () => { mounted = false; };
   }, [user?.id]);
 
   // ---------------- LOAD REVIEWS ----------------
   useEffect(() => {
+    let mounted = true;
     const loadAvis = async () => {
       if (!user) return;
 
@@ -84,12 +90,15 @@ const EditProfile = () => {
         .from("avis")
         .select("*")
         .eq("cible_id", user.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(300);
 
       if (error) {
         console.error(error);
         return;
       }
+
+      if (!mounted) return;
 
       if (data) {
         setAvis(data);
@@ -98,7 +107,8 @@ const EditProfile = () => {
       }
     };
 
-    loadAvis();
+    withTimeout(loadAvis(), 15000, "editProfileAvis").catch(err => console.error("loadAvis timeout:", err));
+    return () => { mounted = false; };
   }, [user?.id]);
 
   // ---------------- UPLOAD AVATAR ----------------

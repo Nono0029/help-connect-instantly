@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import ImageLightbox from "@/components/ImageLightbox";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
-import { formatTimeAgo } from "@/lib/utils";
+import { formatTimeAgo, withTimeout } from "@/lib/utils";
 import { isUrgentActive, getTotalEuros, isBoostActive } from "@/lib/urgentFee";
 
 interface Demande {
@@ -39,22 +39,26 @@ const DemandeDetail = () => {
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   useEffect(() => {
+    let mounted = true;
     const fetch = async () => {
       const { data } = await supabase
         .from("demandes")
         .select("*")
         .eq("id", id)
         .maybeSingle();
-      if (data) setDemande(data);
-      setLoading(false);
+      if (mounted && data) setDemande(data);
+      if (mounted) setLoading(false);
     };
-    fetch();
+    withTimeout(fetch(), 15000, "demandeDetail").catch(() => setLoading(false));
+    return () => { mounted = false; };
   }, [id]);
 
   useEffect(() => {
     if (!user) return;
+    let mounted = true;
     supabase.from("profiles").select("boost_until").eq("id", user.id).maybeSingle()
-      .then(({ data }) => setIsBoosted(isBoostActive(data?.boost_until)));
+      .then(({ data }) => { if (mounted) setIsBoosted(isBoostActive(data?.boost_until)); });
+    return () => { mounted = false; };
   }, [user?.id]);
 
   const getTemps = (created_at: string) => formatTimeAgo(created_at, t);

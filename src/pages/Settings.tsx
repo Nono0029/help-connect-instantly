@@ -51,9 +51,9 @@ const Settings = () => {
 
   // PROFILE
   useEffect(() => {
+    if (!user) return;
+    let mounted = true;
     const fetchProfile = async () => {
-      if (!user) return;
-
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -64,6 +64,8 @@ const Settings = () => {
         console.error(error);
         return;
       }
+
+      if (!mounted) return;
 
       if (data) {
         setPseudo(data.pseudo || email.split("@")[0] || "");
@@ -82,6 +84,7 @@ const Settings = () => {
     };
 
     fetchProfile();
+    return () => { mounted = false; };
   }, [user?.id]);
 
   const toggleNotifPref = async (key: keyof typeof defaultNotifPrefs) => {
@@ -95,15 +98,16 @@ const Settings = () => {
 
   // AVIS
   useEffect(() => {
+    if (!user) return;
+    let mounted = true;
     const fetchAvis = async () => {
-      if (!user) return;
-
       const { data } = await supabase
         .from("avis")
         .select("note")
-        .eq("cible_id", user.id);
+        .eq("cible_id", user.id)
+        .limit(300);
 
-      if (!data) return;
+      if (!data || !mounted) return;
 
       const total = data.reduce(
         (acc, item) => acc + (item.note || 0),
@@ -117,6 +121,7 @@ const Settings = () => {
     };
 
     fetchAvis();
+    return () => { mounted = false; };
   }, [user?.id]);
 
   // SAVE
@@ -418,6 +423,11 @@ const Settings = () => {
           <LogOut className="w-4 h-4" />
           {t('settings.logout')}
         </button>
+      </div>
+
+      {/* VERSION */}
+      <div className="px-4 mt-6 mb-24 text-center">
+        <span className="text-xs text-muted-foreground/60">Askoo v1.0.22</span>
       </div>
 
     </div>

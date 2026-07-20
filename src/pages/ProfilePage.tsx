@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, T
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
+import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { isUrgentActive } from "@/lib/urgentFee";
@@ -84,6 +85,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (!id) return;
+    let mounted = true;
 
     const load = async () => {
       try {
@@ -93,15 +95,16 @@ const ProfilePage = () => {
         .eq("id", id)
         .maybeSingle();
 
-      if (userData) setProfile(userData);
+      if (mounted && userData) setProfile(userData);
 
       const { data: avisData } = await supabase
         .from("avis")
         .select("*")
         .eq("cible_id", id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-      if (avisData) {
+      if (avisData && mounted) {
         setAvis(avisData);
         const total = avisData.reduce((acc, r) => acc + r.note, 0);
         setMoyenne(avisData.length > 0 ? total / avisData.length : 0);
@@ -112,9 +115,10 @@ const ProfilePage = () => {
         .select("*")
         .or(`helper_id.eq.${id},demandeur_id.eq.${id}`)
         .eq("statut", "terminee")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(30);
 
-      if (missionsData) {
+      if (missionsData && mounted) {
         const demandeIds = [...new Set(missionsData.map(m => m.demande_id))];
         const { data: demandes } = await supabase
           .from("demandes")
@@ -136,17 +140,19 @@ const ProfilePage = () => {
         .from("demandes")
         .select("id, titre, description, categorie, urgent, gratuit, prix, created_at")
         .eq("user_id", id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(200);
 
-      if (demandesData) setDemandes(demandesData);
+      if (demandesData && mounted) setDemandes(demandesData);
       } catch (err) {
         console.error("ProfilePage load error:", err);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
-    load();
+    withTimeout(load(), 15000, "profile").catch(() => setLoading(false));
+    return () => { mounted = false; };
   }, [id]);
 
   if (loading) return (

@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { withTimeout } from "@/lib/utils";
+import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Illu } from "@/components/Illustrations";
@@ -56,20 +58,24 @@ const MessagesPage = () => {
 
   useEffect(() => {
     if (!user) return;
+    let mounted = true;
     const fetchConvs = async () => {
       try {
-        const { data: allConvs } = await supabase
+        const { data: allConvs } = await withTimeout(supabase
         .from("conversations")
         .select("*")
-        .order("created_at", { ascending: false });
+        .or(`helper_id.eq.${user.id},demandeur_id.eq.${user.id}`)
+        .order("created_at", { ascending: false })
+        .limit(30), 12000, "conversations");
 
-      if (!allConvs) { setLoading(false); return; }
+      if (!allConvs) { if (mounted) setLoading(false); return; }
 
       const demandeIds = [...new Set(allConvs.map(c => c.demande_id))];
-      const { data: demandes } = await supabase
+      const { data: demandes } = await withTimeout(supabase
         .from("demandes")
         .select("id, titre, user_id")
-        .in("id", demandeIds);
+        .in("id", demandeIds)
+        .limit(demandeIds.length), 12000, "demandes");
 
       const demandeMap: Record<number, { titre: string; user_id: string }> = {};
       (demandes || []).forEach(d => { demandeMap[d.id] = d; });
@@ -80,23 +86,19 @@ const MessagesPage = () => {
         demande_user_id: demandeMap[c.demande_id]?.user_id,
       }));
 
-      const mine = enriched.filter(c =>
-        c.helper_id === user.id ||
-        c.demandeur_id === user.id ||
-        c.demande_user_id === user.id
-      );
-
-      const unique = mine.filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i);
+      const unique = enriched.filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i);
+      if (!mounted) return;
       setConversations(unique);
 
       // Fetch last message for ALL conversations in a single query
       const convIds = unique.map(c => c.id);
       if (convIds.length > 0) {
-        const { data: allMsgs } = await supabase
+        const { data: allMsgs } = await withTimeout(supabase
           .from("messages")
           .select("conversation_id, content, created_at")
           .in("conversation_id", convIds)
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false })
+          .limit(convIds.length * 1), 12000, "messages");
 
         const lastMsgMap: Record<number, string> = {};
         (allMsgs || []).forEach(msg => {
@@ -110,20 +112,23 @@ const MessagesPage = () => {
 
       // Fetch profiles for all involved users
       const userIds = [...new Set(unique.flatMap(c => [c.helper_id, c.demandeur_id, c.demande_user_id].filter(Boolean)))];
-      const { data: profData } = await supabase
+      const { data: profData } = await withTimeout(supabase
         .from("profiles")
         .select("id, pseudo, avatar_url")
-        .in("id", userIds);
+        .in("id", userIds)
+        .limit(userIds.length), 12000, "profiles");
       const profMap: Record<string, Profile> = {};
       (profData || []).forEach(p => { profMap[p.id] = p; });
-      setProfiles(profMap);
+      if (mounted) setProfiles(profMap);
       } catch (err) {
         console.error("MessagesPage fetchConvs error:", err);
+        toast.error("Connexion lente, réessaie");
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
     fetchConvs();
+    return () => { mounted = false; };
   }, [user?.id]);
 
   const handleArchive = async (convId: number, archived: boolean) => {

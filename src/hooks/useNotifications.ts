@@ -17,6 +17,8 @@ const notifType = (msg: string): "messages" | "demandes" | "missions" => {
   return "missions";
 };
 
+const MAX_NOTIFS = 50;
+
 export const useNotifications = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -32,9 +34,10 @@ export const useNotifications = () => {
     if (!user) return;
     const { data } = await supabase
       .from("notifications")
-      .select("*")
+      .select("id, user_id, message, conversation_id, lu, created_at")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(MAX_NOTIFS);
     setNotifications(data || []);
   }, [user?.id]);
 
@@ -53,7 +56,10 @@ export const useNotifications = () => {
         table: "notifications",
         filter: `user_id=eq.${user.id}`,
       }, (payload) => {
-        setNotifications(prev => [payload.new as Notification, ...prev]);
+        setNotifications(prev => {
+          const next = [payload.new as Notification, ...prev];
+          return next.slice(0, MAX_NOTIFS);
+        });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
