@@ -10,7 +10,6 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { CapgoDebug } from "@/components/CapgoDebug";
 
 const Index = lazy(() => import("./pages/Index"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -97,7 +96,6 @@ export default function App() {
                     <AnimatedRoutes />
                   </Suspense>
                   <BottomNav />
-                  <CapgoDebug />
                 </ErrorBoundary>
               </AuthProvider>
             </BrowserRouter>
