@@ -18,6 +18,7 @@ import {
   Home,
   AlertTriangle,
   Flag,
+  Wallet,
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -117,6 +118,8 @@ const ChatPage = () => {
   const [adresseEnvoyee, setAdresseEnvoyee] = useState(false);
 
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+
+  const [walletBalance, setWalletBalance] = useState<number>(0);
 
   const [showSignal, setShowSignal] = useState(false);
   const [signalRaison, setSignalRaison] = useState("");
@@ -218,6 +221,13 @@ const ChatPage = () => {
         setAdresse(data.adresse || "");
         setVille(data.ville || "");
       }
+
+      const { data: wallet } = await supabase
+        .from("wallets")
+        .select("balance")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (wallet) setWalletBalance(wallet.balance || 0);
     } catch (err) {
       console.error("fetchProfile error:", err);
     }
@@ -420,18 +430,21 @@ const ChatPage = () => {
     setPaymentLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: { mission_id: mission.id, conversation_id: id },
+      const { data, error } = await supabase.functions.invoke("pay-mission-wallet", {
+        body: { mission_id: mission.id },
       });
 
       if (error) {
-        console.error("create-payment error:", error);
+        const errData = data as any;
+        if (errData?.error === "insufficient_balance") {
+          toast.error("Solde insuffisant — recharge ton portefeuille");
+          navigate("/topup");
+          return;
+        }
         throw new Error(error.message || error.error || t('chat.paymentError'));
       }
-      if (!data?.url) {
-        console.error("create-payment no url:", data);
-        throw new Error(t('chat.paymentError'));
-      }
+
+      toast.success(data?.message || "Paiement effectué !");
 
       const { data: p } = await supabase
         .from("payments")
@@ -442,12 +455,7 @@ const ChatPage = () => {
         .maybeSingle();
       if (p) setPayment(p);
 
-      if (Capacitor.isNativePlatform()) {
-        const { Browser } = await import("@capacitor/browser");
-        await Browser.open({ url: data.url });
-      } else {
-        window.location.href = data.url;
-      }
+      fetchMission(conversation);
     } catch (err: any) {
       console.error("Payment failed:", err);
       toast.error(err?.message || t('chat.paymentErrorDesc'));
@@ -788,6 +796,7 @@ const ChatPage = () => {
     isDemandeOwner &&
     missionHasStripePayment &&
     (!payment || payment.statut === "en_attente" || payment.statut === "expiré");
+  const hasEnoughCredits = walletBalance >= (missionPrice + 2 + (mission?.demandes?.urgent && !mission?.demandes?.boost_until ? 1 : 0));
   const isActive = conversation?.statut !== "fermée";
   const paymentDone = !missionHasStripePayment || payment?.statut === "payé" || payment?.statut === "termine";
   const canConfirmMission = user?.id === mission?.helper_id || paymentDone;
@@ -872,25 +881,39 @@ const ChatPage = () => {
               {payment?.statut === "en_attente" ? t('chat.paymentPending') : t('chat.paymentAvailable')}
             </p>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">
+          <p className="text-xs text-muted-foreground mb-1">
             {payment?.statut === "en_attente"
               ? t('chat.paymentPendingDesc')
-              : payment?.statut === "expir\u00e9"
+              : payment?.statut === "expiré"
                 ? t('chat.paymentExpiredDesc')
                 : t('chat.paymentDesc')}
           </p>
-          <button
-            onClick={handlePayment}
-            disabled={paymentLoading}
-            className="w-full h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60"
-          >
-            {paymentLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <CreditCard className="w-4 h-4" />
-            )}
-            {t('chat.payBtn')}
-          </button>
+          <div className="flex items-center gap-2 mb-3">
+            <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">Solde : <span className={`font-bold ${hasEnoughCredits ? 'text-accent' : 'text-destructive'}`}>{walletBalance.toFixed(2)}€</span></p>
+          </div>
+          {hasEnoughCredits ? (
+            <button
+              onClick={handlePayment}
+              disabled={paymentLoading}
+              className="w-full h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+            >
+              {paymentLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CreditCard className="w-4 h-4" />
+              )}
+              {t('chat.payBtn')}
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/topup")}
+              className="w-full h-11 rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 font-semibold text-sm flex items-center justify-center gap-2"
+            >
+              <Wallet className="w-4 h-4" />
+              Recharger mon portefeuille
+            </button>
+          )}
         </div>
       )}
 

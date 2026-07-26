@@ -126,6 +126,12 @@ const MonPortefeuille = () => {
           </p>
           <div className="flex gap-2 mt-4">
             <button
+              onClick={() => navigate("/topup")}
+              className="flex-1 h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> {t('wallet.topUp') || "Recharger"}
+            </button>
+            <button
               onClick={() => {
                 if (!bankReady) {
                   toast.error(t('wallet.configureBankFirst'));
@@ -134,7 +140,7 @@ const MonPortefeuille = () => {
                 setShowWithdraw(true);
               }}
               disabled={!wallet || wallet.balance <= 0}
-              className="flex-1 h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-1 h-11 rounded-2xl bg-card border border-border text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <ArrowUpRight className="w-4 h-4" /> {t('wallet.withdraw')}
             </button>

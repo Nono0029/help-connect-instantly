@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Rocket, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, Rocket, Check, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -8,6 +8,7 @@ import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { Capacitor } from "@capacitor/core";
+import { purchaseProduct, initIAP, IAP_PRODUCTS } from "@/lib/iap";
 
 const BoostProfilePage = () => {
   const navigate = useNavigate();
@@ -86,25 +87,48 @@ const BoostProfilePage = () => {
     setActivating(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("create-boost-payment", {
-        body: {},
+      if (!Capacitor.isNativePlatform()) {
+        toast.info("L'achat est disponible sur l'application mobile");
+        setActivating(false);
+        return;
+      }
+
+      await initIAP();
+      const transaction = await purchaseProduct(IAP_PRODUCTS.BOOST_MONTHLY);
+
+      if (!transaction) {
+        setActivating(false);
+        return;
+      }
+
+      const { error: verifyError } = await supabase.functions.invoke("verify-apple-receipt", {
+        body: { receipt: transaction, productId: IAP_PRODUCTS.BOOST_MONTHLY },
       });
 
-      if (error || !data?.url) {
-        throw new Error(error?.message || "Erreur de paiement");
+      if (verifyError) {
+        toast.error("Erreur de vérification du paiement");
+        setActivating(false);
+        return;
       }
 
-      if (Capacitor.isNativePlatform()) {
-        const { Browser } = await import("@capacitor/browser");
-        await Browser.open({ url: data.url });
-      } else {
-        window.location.href = data.url;
+      const { data } = await supabase
+        .from("profiles")
+        .select("boost_until")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (data?.boost_until && new Date(data.boost_until) > new Date()) {
+        setBoostUntil(data.boost_until);
+        toast.success(t('boost.activated'));
       }
-      setActivating(false);
     } catch (err: any) {
-      toast.error(err?.message || "Erreur lors du paiement");
-      setActivating(false);
+      if (err?.message?.includes("cancel")) {
+        toast.info("Paiement annulé");
+      } else {
+        toast.error("Erreur lors du paiement");
+      }
     }
+    setActivating(false);
   };
 
   const formatDate = (iso: string) => {
@@ -145,7 +169,7 @@ const BoostProfilePage = () => {
           <h3 className="text-sm font-bold text-foreground">Avantages</h3>
           {[
             "Apparaît en tête des résultats de recherche",
-            "Plus de visibilité sur tes demandes",
+            "Mises en urgent gratuites (les autres paient +1€)",
             "Badge boost sur ton profil",
             "Durée : 1 mois",
           ].map((benefit, i) => (
@@ -161,8 +185,8 @@ const BoostProfilePage = () => {
         {/* Pricing */}
         <div className="card-magic p-5 text-center space-y-3">
           <Sparkles className="w-6 h-6 text-primary mx-auto" />
-          <p className="text-lg font-black text-foreground">{t('boost.price1Month')}</p>
-          <p className="text-xs text-muted-foreground">Paiement unique — pas d'abonnement</p>
+          <p className="text-lg font-black text-foreground">10,00 € / mois</p>
+          <p className="text-xs text-muted-foreground">Renouvelable mensuellement — gère dans App Store</p>
         </div>
 
         {/* Status */}
