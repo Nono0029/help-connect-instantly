@@ -500,7 +500,12 @@ const ChatPage = () => {
       fetchMission(conversation);
     } catch (err: any) {
       console.error("Payment failed:", err);
-      toast.error(err?.message || t('chat.paymentErrorDesc'));
+      const msg = err?.message || "";
+      if (/load failed|network|internet|offline|connexion|ECONN/i.test(msg)) {
+        toast.error("Impossible de contacter le serveur de paiement. Vérifie ta connexion et réessaie.");
+      } else {
+        toast.error(msg || t("chat.paymentErrorDesc"));
+      }
     }
 
     setPaymentLoading(false);

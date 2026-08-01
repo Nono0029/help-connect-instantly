@@ -23,6 +23,7 @@ jobs:
     env:
       TEAM_ID: ${{ secrets.TEAM_ID }}
       PROVISIONING_NAME: ${{ secrets.APPLE_PROVISIONING_NAME }}
+      VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
     steps:
       - uses: actions/checkout@v4
 

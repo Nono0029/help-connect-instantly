@@ -40,6 +40,7 @@ export async function payWithApplePay(
   label: string
 ): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return false;
+  if (!PUBLISHABLE_KEY) throw new Error("Stripe n'est pas configuré (clé manquante)");
   try {
     const Stripe = await getStripe();
 
@@ -48,10 +49,7 @@ export async function payWithApplePay(
       merchantIdentifier: APPLE_MERCHANT_ID,
       countryCode: COUNTRY_CODE,
       currency: CURRENCY,
-      paymentSummaryItems: [
-        { label: label || "Mission", amount },
-        { label: "Askoo", amount },
-      ],
+      paymentSummaryItems: [{ label: label || "Mission", amount }],
     });
 
     const { paymentResult } = await Stripe.presentApplePay();
