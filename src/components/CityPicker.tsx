@@ -73,7 +73,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex flex-col"
+            className="fixed inset-0 z-[9999] bg-transparent flex flex-col"
             onClick={() => setOpen(false)}>
             <motion.div initial={{ y: "-100%" }} animate={{ y: 0 }} exit={{ y: "-100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
