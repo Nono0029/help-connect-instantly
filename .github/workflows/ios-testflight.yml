@@ -64,7 +64,6 @@ jobs:
             -archivePath "$RUNNER_TEMP/Askoo.xcarchive" \
             -allowProvisioningUpdates \
             CODE_SIGN_STYLE=Automatic \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
             DEVELOPMENT_TEAM="$TEAM_ID" \
             MARKETING_VERSION="${{ steps.versions.outputs.marketing }}" \
             CURRENT_PROJECT_VERSION="${{ steps.versions.outputs.build }}"
