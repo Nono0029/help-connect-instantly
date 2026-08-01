@@ -1,0 +1,87 @@
+name: iOS Build & TestFlight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.ts'
+      - 'ios/**'
+      - '.github/workflows/ios-testflight.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ios-build
+  cancel-in-progress: false
+
+jobs:
+  build-ios:
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      TEAM_ID: ${{ secrets.TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Prepare App Store Connect API key for signing
+        run: |
+          mkdir -p "$HOME/private_keys"
+          echo "${{ secrets.ASC_KEY_BASE64 }}" | base64 --decode > "$HOME/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8"
+          echo "APP_STORE_CONNECT_API_KEY=$HOME/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" >> "$GITHUB_ENV"
+          echo "APP_STORE_CONNECT_API_KEY_ID=${{ secrets.ASC_KEY_ID }}" >> "$GITHUB_ENV"
+          echo "APP_STORE_CONNECT_API_ISSUER_ID=${{ secrets.ASC_ISSUER_ID }}" >> "$GITHUB_ENV"
+
+      - name: Resolve versions
+        id: versions
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          BUILD=$(date -u +%Y%m%d%H%M)
+          echo "marketing=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+
+      - name: Archive app
+        run: |
+          xcodebuild archive \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/Askoo.xcarchive" \
+            -allowProvisioningUpdates \
+            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            MARKETING_VERSION="${{ steps.versions.outputs.marketing }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.versions.outputs.build }}"
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Askoo.xcarchive" \
+            -exportOptionsPlist .github/exportOptions.plist \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates
+
+      - name: Upload to TestFlight
+        run: |
+          xcrun altool --upload-app \
+            -f "$RUNNER_TEMP/export/App.ipa" \
+            -t ios \
+            --apiKey "${{ secrets.ASC_KEY_ID }}" \
+            --apiIssuer "${{ secrets.ASC_ISSUER_ID }}" \
+            --verbose

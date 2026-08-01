@@ -10,18 +10,6 @@ const APPLE_SHARED_SECRET = Deno.env.get("APPLE_SHARED_SECRET") || "";
 const APPLE_SANDBOX_URL = "https://sandbox.itunes.apple.com/verifyReceipt";
 const APPLE_PRODUCTION_URL = "https://buy.itunes.apple.com/verifyReceipt";
 
-const PRODUCT_CREDITS: Record<string, number> = {
-  "wallet_5": 5,
-  "wallet_10": 10,
-  "wallet_20": 20,
-  "wallet_50": 50,
-  "wallet_100": 100,
-  "wallet_200": 200,
-  "wallet_500": 500,
-  "wallet_1000": 1000,
-  "boost_monthly": 0,
-};
-
 const ALLOWED_ORIGINS = ["https://askoo.fr", "https://www.askoo.fr", "https://help-connect-instantly.vercel.app"];
 
 serve(async (req) => {
@@ -90,24 +78,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, type: "boost", until: until.toISOString() }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    const credits = PRODUCT_CREDITS[productId] || 0;
-    if (credits <= 0) {
-      return new Response(JSON.stringify({ error: "unknown product" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
-    }
-
-    const { error: creditError } = await supabase.rpc("credit_wallet", {
-      p_user_id: user.id,
-      p_amount: credits,
-      p_reference: `iap_${verifyResult.transactionId}`,
-      p_description: `Recharge Apple (${credits} crédits)`,
-    });
-
-    if (creditError) {
-      console.error("credit_wallet error:", creditError);
-      return new Response(JSON.stringify({ error: "failed to credit wallet" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
-    }
-
-    return new Response(JSON.stringify({ success: true, type: "wallet", credits }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ error: "unknown product — mission payments use pay-mission-iap" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
   } catch (err) {
     console.error("verify-apple-receipt error:", err);

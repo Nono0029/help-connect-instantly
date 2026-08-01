@@ -42,7 +42,7 @@ const ImageLightbox = ({ images, index, onClose, onPrev, onNext }: Props) => {
     >
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+        className="absolute top-[calc(env(safe-area-inset-top)+16px)] right-4 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
       >
         <X className="w-5 h-5" />
       </button>
@@ -71,12 +71,12 @@ const ImageLightbox = ({ images, index, onClose, onPrev, onNext }: Props) => {
         animate={{ scale: 1, opacity: 1 }}
         src={images[index]}
         alt=""
-        className="max-w-[95vw] max-h-[90vh] object-contain rounded-xl"
+        className="max-w-[95vw] max-h-[90dvh] object-contain rounded-xl"
         onClick={(e) => e.stopPropagation()}
       />
 
       {images.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+24px)] left-1/2 -translate-x-1/2 flex gap-2">
           {images.map((_, i) => (
             <div
               key={i}

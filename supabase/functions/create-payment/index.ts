@@ -18,7 +18,7 @@ const parseEuroAmount = (value: unknown) => {
 serve(async (req) => {
   const origin = req.headers.get("origin") || "";
   const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  
+
   const corsHeaders = {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -65,32 +65,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "payment already completed" }), { status: 409, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    // Reuse an open Checkout session instead of blocking the requester.
-    const { data: existingPayment } = await supabase
-      .from("payments")
-      .select("id, stripe_session_id")
-      .eq("mission_id", mission_id)
-      .eq("statut", "en_attente")
-      .order("id", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (existingPayment) {
-      try {
-        const existingSession = await stripe.checkout.sessions.retrieve(existingPayment.stripe_session_id);
-        if (existingSession.status === "open" && existingSession.url) {
-          return new Response(JSON.stringify({ url: existingSession.url }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
-        }
-      } catch (err) {
-        console.error("existing checkout lookup failed:", err);
-      }
-
-      await supabase.from("payments").update({ statut: "expiré" }).eq("id", existingPayment.id);
-    }
-
     const prix = parseEuroAmount(mission.demandes?.prix);
 
-    // Free missions (prix = 0) never go through Stripe.
     if (prix <= 0) {
       return new Response(
         JSON.stringify({ error: "free mission — no payment needed" }),
@@ -98,13 +74,11 @@ serve(async (req) => {
       );
     }
 
-    // Urgent surcharge only applies for 7 days after the request was created.
     const createdAt = mission.demandes?.created_at;
     const urgentActive = mission.demandes?.urgent === true
       && !!createdAt
       && (Date.now() - new Date(createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
 
-    // Boosted users (active boost subscription) are exempt from the +1€ urgent surcharge.
     const { data: requesterProfile } = await supabase
       .from("profiles")
       .select("boost_until")
@@ -114,74 +88,42 @@ serve(async (req) => {
       && new Date(requesterProfile.boost_until).getTime() > Date.now();
 
     const isUrgentBillable = urgentActive && !requesterBoosted;
+    const totalFees = isUrgentBillable ? 3 : 2;
+    const totalCents = Math.round((prix + totalFees) * 100);
 
-    // Lookup conversation from conversations table (conversations has demande_id, not mission_id)
     let convId = conversation_id;
     if (!convId) {
       const { data: conv } = await supabase.from("conversations").select("id").eq("demande_id", mission.demande_id).maybeSingle();
       convId = conv?.id;
     }
 
-    // Use validated origin for Stripe redirect URLs (prevent open redirect)
-    const reqOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-
-    // Build separate line items so Stripe shows each charge clearly.
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-      {
-        price_data: {
-          currency: "eur",
-          product_data: { name: mission.demandes?.titre || "Mission" },
-          unit_amount: Math.round(prix * 100),
-        },
-        quantity: 1,
-      },
-      {
-        price_data: {
-          currency: "eur",
-          product_data: { name: "Frais de service" },
-          unit_amount: 200,
-        },
-        quantity: 1,
-      },
-    ];
-
-    if (isUrgentBillable) {
-      lineItems.push({
-        price_data: {
-          currency: "eur",
-          product_data: { name: "Annonce urgente boostée" },
-          unit_amount: 100,
-        },
-        quantity: 1,
-      });
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: lineItems,
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: totalCents,
+      currency: "eur",
+      automatic_payment_methods: { enabled: true },
       metadata: {
         mission_id: mission_id.toString(),
         helper_id: mission.helper_id || "",
         payeur_id: user.id,
         conversation_id: convId?.toString() || "",
       },
-      success_url: `${reqOrigin}/chat/${convId || ""}?payment=success`,
-      cancel_url: `${reqOrigin}/chat/${convId || ""}?payment=cancel`,
     });
-
-    if (!session.url) return new Response(JSON.stringify({ error: "stripe error" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
 
     await supabase.from("payments").insert({
       mission_id,
       payeur_id: user.id,
       helper_id: mission.helper_id,
-      stripe_session_id: session.id,
+      stripe_payment_intent: paymentIntent.id,
       montant: prix,
-      frais: isUrgentBillable ? 3 : 2,
+      frais: totalFees,
       statut: "en_attente",
     });
 
-    return new Response(JSON.stringify({ url: session.url }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({
+      clientSecret: paymentIntent.client_secret,
+      amount: totalCents / 100,
+    }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+
   } catch (err) {
     console.error("create-payment error:", err);
     return new Response(JSON.stringify({ error: "internal server error" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });

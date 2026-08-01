@@ -207,7 +207,7 @@ const MonPortefeuille = () => {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-card w-full p-6 rounded-t-3xl space-y-4 max-w-lg mx-auto"
+              className="bg-card w-full p-6 pb-[calc(env(safe-area-inset-bottom)+20px)] rounded-t-3xl space-y-4 max-w-lg mx-auto"
             >
               <div className="w-12 h-1.5 bg-muted rounded-full mx-auto" />
               <h3 className="font-bold text-lg text-foreground">{t('wallet.withdrawFunds')}</h3>

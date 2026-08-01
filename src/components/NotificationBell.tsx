@@ -1,6 +1,7 @@
 import { Bell } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTranslation } from "@/context/LanguageContext";
 import { formatTimeAgo } from "@/lib/utils";
@@ -57,12 +58,20 @@ const NotificationBell = () => {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[9998]" onClick={() => setOpen(false)} />
+        <div className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm flex flex-col" onClick={() => setOpen(false)} />
       )}
 
+      <AnimatePresence>
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-xl z-[9999] overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <motion.div
+          initial={{ y: "-100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "-100%" }}
+          transition={{ type: "spring", damping: 28, stiffness: 300 }}
+          className="fixed top-0 left-0 right-0 z-[9999] max-h-[85vh] bg-card border-b border-border rounded-b-3xl shadow-2xl overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="safe-area-top flex items-center justify-between px-4 py-3 border-b border-border">
             <p className="font-semibold text-sm text-foreground">{t('notifications.title')}</p>
             {unreadCount > 0 && (
               <button
@@ -91,7 +100,7 @@ const NotificationBell = () => {
             ))}
           </div>
 
-          <div className="max-h-72 overflow-y-auto">
+          <div className="max-h-[calc(85vh-88px)] overflow-y-auto">
             {filtered.length === 0 ? (
               <div className="p-6 text-center">
                 <Bell className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
@@ -121,8 +130,9 @@ const NotificationBell = () => {
               ))
             )}
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 };

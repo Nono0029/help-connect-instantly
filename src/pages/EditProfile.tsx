@@ -228,11 +228,11 @@ const EditProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground relative transition-colors duration-300">
 
       {/* BACKGROUND BLOBS */}
-      <div className="absolute top-[-100px] left-[-100px] w-[250px] h-[250px] bg-primary/20 blur-[100px] rounded-full" />
-      <div className="absolute bottom-[-100px] right-[-100px] w-[250px] h-[250px] bg-accent/20 blur-[100px] rounded-full" />
+      <div className="fixed top-[-100px] left-[-100px] w-[250px] h-[250px] bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
+      <div className="fixed bottom-[-100px] right-[-100px] w-[250px] h-[250px] bg-accent/20 blur-[100px] rounded-full pointer-events-none" />
 
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border px-4 py-3">

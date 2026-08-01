@@ -73,16 +73,13 @@ const CityPicker = ({ ville, onChange }: Props) => {
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex flex-col justify-end"
+            className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex flex-col"
             onClick={() => setOpen(false)}>
-            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+            <motion.div initial={{ y: "-100%" }} animate={{ y: 0 }} exit={{ y: "-100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               onClick={e => e.stopPropagation()}
-              className="bg-background rounded-t-3xl flex flex-col overflow-hidden">
-              <div className="flex justify-center pt-3 pb-1 shrink-0">
-                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-              </div>
-              <div className="flex items-center justify-between px-4 pb-3 border-b border-border shrink-0">
+              className="bg-background rounded-b-3xl flex flex-col overflow-hidden max-h-[85vh]">
+              <div className="safe-area-top flex items-center justify-between px-4 pb-3 border-b border-border shrink-0">
                 <button onClick={() => setOpen(false)} className="text-muted-foreground p-1"><X className="w-5 h-5" /></button>
                 <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-primary" /> {t('cityPicker.title')}
@@ -98,7 +95,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
                   {query && <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"><X className="w-4 h-4" /></button>}
                 </div>
               </div>
-              <div className="overflow-y-auto px-4 pb-8 h-64">
+              <div className="overflow-y-auto px-4 pb-8 flex-1 min-h-40">
                 {loading && <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 text-primary animate-spin" /></div>}
                 {!loading && query.length < 2 && <p className="text-center text-sm text-muted-foreground py-8">Tapez au moins 2 lettres pour lancer la recherche</p>}
                 {!loading && query.length >= 2 && results.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">{t('cityPicker.noResults', { query })}</p>}

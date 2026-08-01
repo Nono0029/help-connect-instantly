@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "@/context/LanguageContext";
-import { isUrgentActive } from "@/lib/urgentFee";
+import { isUrgentActive, getFeesEuros, getTotalEuros } from "@/lib/urgentFee";
 import { Capacitor } from "@capacitor/core";
+import { initStripe, isApplePayAvailable, payWithApplePay } from "@/lib/stripeApplePay";
 import {
   ArrowLeft,
   Send,
@@ -233,6 +234,10 @@ const ChatPage = () => {
     }
   };
 
+  useEffect(() => {
+    initStripe();
+  }, []);
+
   const fetchMission = async (conv: Conversation) => {
     if (!conv) return;
     try {
@@ -430,21 +435,58 @@ const ChatPage = () => {
     setPaymentLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("pay-mission-wallet", {
-        body: { mission_id: mission.id },
-      });
-
-      if (error) {
-        const errData = data as any;
-        if (errData?.error === "insufficient_balance") {
-          toast.error("Solde insuffisant — recharge ton portefeuille");
-          navigate("/topup");
-          return;
-        }
-        throw new Error(error.message || error.error || t('chat.paymentError'));
+      if (!Capacitor.isNativePlatform()) {
+        toast.error("Le paiement n'est disponible que sur l'application mobile");
+        setPaymentLoading(false);
+        return;
       }
 
-      toast.success(data?.message || "Paiement effectué !");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const res = await fetch(
+        "https://tdymtslljytdihkblvwu.supabase.co/functions/v1/create-payment",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            mission_id: mission.id,
+            conversation_id: conversation?.id || parseInt(id),
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        throw new Error(
+          errBody?.error || `Erreur serveur (${res.status})`
+        );
+      }
+
+      const data = await res.json();
+      if (!data?.clientSecret) {
+        throw new Error(t("chat.paymentError"));
+      }
+
+      const total = data.amount as number;
+
+      const paid = await payWithApplePay(
+        data.clientSecret,
+        total,
+        mission.demandes?.titre || "Mission"
+      );
+
+      if (!paid) {
+        setPaymentLoading(false);
+        return;
+      }
+
+      toast.success("Paiement Apple Pay effectué !");
 
       const { data: p } = await supabase
         .from("payments")
@@ -796,7 +838,6 @@ const ChatPage = () => {
     isDemandeOwner &&
     missionHasStripePayment &&
     (!payment || payment.statut === "en_attente" || payment.statut === "expiré");
-  const hasEnoughCredits = walletBalance >= (missionPrice + 2 + (mission?.demandes?.urgent && !mission?.demandes?.boost_until ? 1 : 0));
   const isActive = conversation?.statut !== "fermée";
   const paymentDone = !missionHasStripePayment || payment?.statut === "payé" || payment?.statut === "termine";
   const canConfirmMission = user?.id === mission?.helper_id || paymentDone;
@@ -872,7 +913,7 @@ const ChatPage = () => {
         </div>
       )}
 
-      {/* PAIEMENT — show if there's a price OR if urgent is still active (2€ fees + 1€ urgent) */}
+      {/* PAIEMENT — show if there's a price */}
       {canPayMission && (
         <div className="px-4 py-3 bg-card/80 border-b border-border">
           <div className="flex items-center gap-2 mb-2">
@@ -881,39 +922,29 @@ const ChatPage = () => {
               {payment?.statut === "en_attente" ? t('chat.paymentPending') : t('chat.paymentAvailable')}
             </p>
           </div>
-          <p className="text-xs text-muted-foreground mb-1">
+          <p className="text-xs text-muted-foreground mb-3">
             {payment?.statut === "en_attente"
               ? t('chat.paymentPendingDesc')
               : payment?.statut === "expiré"
                 ? t('chat.paymentExpiredDesc')
                 : t('chat.paymentDesc')}
           </p>
-          <div className="flex items-center gap-2 mb-3">
-            <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">Solde : <span className={`font-bold ${hasEnoughCredits ? 'text-accent' : 'text-destructive'}`}>{walletBalance.toFixed(2)}€</span></p>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <span className="text-xs text-muted-foreground">Total à payer</span>
+            <span className="text-sm font-bold text-foreground">{getTotalEuros(missionPrice, isUrgentActive(mission?.demandes?.urgent, mission?.demandes?.created_at), false).toFixed(2)} €</span>
           </div>
-          {hasEnoughCredits ? (
-            <button
-              onClick={handlePayment}
-              disabled={paymentLoading}
-              className="w-full h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60"
-            >
-              {paymentLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <CreditCard className="w-4 h-4" />
-              )}
-              {t('chat.payBtn')}
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate("/topup")}
-              className="w-full h-11 rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 font-semibold text-sm flex items-center justify-center gap-2"
-            >
-              <Wallet className="w-4 h-4" />
-              Recharger mon portefeuille
-            </button>
-          )}
+          <button
+            onClick={handlePayment}
+            disabled={paymentLoading}
+            className="w-full h-12 rounded-2xl bg-black text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60 hover:bg-gray-800"
+          >
+            {paymentLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <CreditCard className="w-4 h-4" />
+            )}
+            Payer avec Apple Pay
+          </button>
         </div>
       )}
 

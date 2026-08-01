@@ -4,8 +4,8 @@ import "./index.css";
 
 import { Capacitor } from "@capacitor/core";
 if (Capacitor.isNativePlatform()) {
-  import("@capgo/capacitor-updater").then(({ CapacitorUpdater }) => {
-    CapacitorUpdater.notifyAppReady();
+  import("@otakit/capacitor-updater").then(({ OtaKit }) => {
+    OtaKit.notifyAppReady();
   });
 }
 

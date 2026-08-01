@@ -72,17 +72,18 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-5 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col items-center px-5 py-8 relative overflow-x-hidden overflow-y-auto">
       {/* Fond décoratif */}
-      <div className="absolute top-[-80px] left-[-80px] w-64 h-64 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-80px] right-[-80px] w-64 h-64 bg-accent/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed top-[-80px] left-[-80px] w-64 h-64 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed bottom-[-80px] right-[-80px] w-64 h-64 bg-accent/10 blur-[120px] rounded-full pointer-events-none" />
 
+      <div className="w-full max-w-sm m-auto">
       {/* Illustration */}
       <div className="mb-2 flex justify-center">
         <Illu name="auth" className="w-56 h-44 sm:w-72 sm:h-56" />
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
+      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-foreground tracking-tight mb-1">
             Ask<span className="text-primary">oo</span>
@@ -166,6 +167,7 @@ const AuthPage = () => {
           {t('auth.footer')}
         </p>
       </motion.div>
+      </div>
     </div>
   );
 };

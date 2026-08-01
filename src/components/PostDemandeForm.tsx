@@ -207,7 +207,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
             initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
             onClick={e => e.stopPropagation()}
-            className="absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[92vh] overflow-y-auto"
+            className="absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[92dvh] overflow-y-auto"
           >
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
@@ -376,7 +376,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                 {loading ? (isEdit ? t('postForm.editSaving') : t('postForm.createSaving')) : (isEdit ? t('postForm.editBtn') : t('postForm.createBtn'))}
               </Button>
 
-              <p className="text-center text-[11px] text-muted-foreground pb-4">
+              <p className="text-center text-[11px] text-muted-foreground pb-[calc(env(safe-area-inset-bottom)+16px)]">
                 {isEdit ? t('postForm.editHelper') : t('postForm.createHelper')}
               </p>
             </div>

@@ -5,9 +5,12 @@ const config: CapacitorConfig = {
   appName: 'askoo',
   webDir: 'dist',
   plugins: {
-    CapacitorUpdater: {
-      apiKey: 'b26f2657-1fee-4d3b-82a8-e4ce3d9bcc76',
-      defaultChannel: 'production',
+    OtaKit: {
+      appId: '0913f58f-4ccc-43b1-aee1-094ca3e984d1',
+      appReadyTimeout: 10000,
+      launchPolicy: 'apply-staged',
+      resumePolicy: 'shadow',
+      runtimePolicy: 'immediate',
     },
   },
 };
