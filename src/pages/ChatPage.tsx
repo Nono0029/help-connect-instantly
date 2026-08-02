@@ -447,25 +447,37 @@ const ChatPage = () => {
       const token = session?.access_token;
 
       const makePaymentRequest = async (): Promise<any> => {
-        const res = await fetch(
-          "https://tdymtslljytdihkblvwu.supabase.co/functions/v1/create-payment",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              mission_id: mission.id,
-              conversation_id: conversation?.id || parseInt(id),
-            }),
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        try {
+          const res = await fetch(
+            "https://tdymtslljytdihkblvwu.supabase.co/functions/v1/create-payment",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                mission_id: mission.id,
+                conversation_id: conversation?.id || parseInt(id),
+              }),
+              signal: controller.signal,
+            }
+          );
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => null);
+            throw new Error(errBody?.error || `Erreur serveur (${res.status})`);
           }
-        );
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => null);
-          throw new Error(errBody?.error || `Erreur serveur (${res.status})`);
+          return res.json();
+        } catch (err: any) {
+          if (err?.name === "AbortError") {
+            throw new Error("Le serveur de paiement ne répond pas. Réessaie.");
+          }
+          throw err;
+        } finally {
+          clearTimeout(timeout);
         }
-        return res.json();
       };
 
       let data: any;

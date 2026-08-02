@@ -34,6 +34,15 @@ export async function isApplePayAvailable(): Promise<boolean> {
   }
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(message)), ms)
+    ),
+  ]);
+}
+
 export async function payWithApplePay(
   clientSecret: string,
   amount: number,
@@ -41,6 +50,13 @@ export async function payWithApplePay(
 ): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return false;
   if (!PUBLISHABLE_KEY) throw new Error("Stripe n'est pas configuré (clé manquante)");
+
+  await initStripe();
+
+  if (!(await isApplePayAvailable())) {
+    throw new Error("Apple Pay n'est pas disponible sur cet appareil. Ajoute une carte dans Wallet et réessaie.");
+  }
+
   try {
     const Stripe = await getStripe();
 
@@ -52,7 +68,11 @@ export async function payWithApplePay(
       paymentSummaryItems: [{ label: label || "Mission", amount }],
     });
 
-    const { paymentResult } = await Stripe.presentApplePay();
+    const { paymentResult } = await withTimeout(
+      Stripe.presentApplePay(),
+      45000,
+      "La feuille Apple Pay ne s'est pas affichée. Vérifie que le marchand Apple Pay (merchant.com.askoo.app) est actif sur Stripe et qu'une carte est configurée dans Wallet."
+    );
     return paymentResult === "completed";
   } catch (err: any) {
     if (err?.message?.includes("cancel")) return false;
