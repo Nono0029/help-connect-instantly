@@ -17,7 +17,7 @@ const parseEuroAmount = (value: unknown) => {
 
 serve(async (req) => {
   const origin = req.headers.get("origin") || "";
-  const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowOrigin = origin || "*";
 
   const corsHeaders = {
     "Access-Control-Allow-Origin": allowOrigin,

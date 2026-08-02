@@ -10,7 +10,7 @@ const ALLOWED_ORIGINS = ["https://askoo.fr", "https://www.askoo.fr", "https://he
 
 serve(async (req) => {
   const origin = req.headers.get("origin") || "";
-  const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowOrigin = origin || "*";
 
   const corsHeaders = {
     "Access-Control-Allow-Origin": allowOrigin,
