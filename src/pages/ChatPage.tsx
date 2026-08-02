@@ -433,6 +433,7 @@ const ChatPage = () => {
   const handlePayment = async () => {
     if (!mission || !user) return;
     setPaymentLoading(true);
+    console.log("[pay] 1. start", mission.id);
 
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -496,6 +497,7 @@ const ChatPage = () => {
       if (!data?.clientSecret) {
         throw new Error(t("chat.paymentError"));
       }
+      console.log("[pay] 2. clientSecret received, amount", data.amount);
 
       const total = data.amount as number;
 
@@ -504,6 +506,7 @@ const ChatPage = () => {
         total,
         mission.demandes?.titre || "Mission"
       );
+      console.log("[pay] 3. payWithApplePay resolved", paid);
 
       if (!paid) {
         setPaymentLoading(false);
@@ -525,6 +528,7 @@ const ChatPage = () => {
     } catch (err: any) {
       console.error("Payment failed:", err);
       const msg = err?.message || "";
+      console.log("[pay] 4. error", msg);
       if (/load failed|network|internet|offline|connexion|ECONN/i.test(msg)) {
         toast.error(`Impossible de contacter le serveur de paiement. Vérifie ta connexion et réessaie. (${msg})`);
       } else {

@@ -9,6 +9,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
+import VersionBadge from "@/components/VersionBadge";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -98,6 +99,7 @@ export default function App() {
                     <AnimatedRoutes />
                   </Suspense>
                   <BottomNav />
+                  <VersionBadge />
                 </ErrorBoundary>
               </AuthProvider>
             </BrowserRouter>
