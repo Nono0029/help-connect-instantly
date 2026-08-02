@@ -23,16 +23,17 @@ export default function VersionBadge() {
       } catch {
         native = "?";
       }
-      let bundle = "?", builtin = "?";
+      let bundle = "?", builtin = "?", channel = "";
       try {
         const { OtaKit } = await import("@otakit/capacitor-updater");
-        const state = await OtaKit.getCurrent();
+        const state = await OtaKit.getState();
         bundle = `${state.current.version} [${state.current.id.slice(0, 8)}]`;
         builtin = state.builtinVersion || "?";
-      } catch {
-        bundle = "N/A";
+        channel = state.current.channel ? ` @${state.current.channel}` : "";
+      } catch (err: any) {
+        bundle = `err:${err?.message || err}`;
       }
-      if (!cancelled) setBadge({ native, bundle, builtin });
+      if (!cancelled) setBadge({ native, bundle: bundle + channel, builtin });
     })();
 
     return () => {
