@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "@/context/LanguageContext";
-import { isUrgentActive, getFeesEuros, getTotalEuros } from "@/lib/urgentFee";
+import { isUrgentActive, isBoostActive, getFeesEuros, getTotalEuros } from "@/lib/urgentFee";
 import { Capacitor } from "@capacitor/core";
 import { initStripe, isApplePayAvailable, payWithApplePay } from "@/lib/stripeApplePay";
 import {
@@ -105,6 +105,23 @@ const ChatPage = () => {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [payTrace, setPayTrace] = useState("");
   const [payElapsed, setPayElapsed] = useState(0);
+  const [isBoosted, setIsBoosted] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    supabase
+      .from("profiles")
+      .select("boost_until")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setIsBoosted(isBoostActive(data?.boost_until));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     if (!paymentLoading) return;
@@ -978,7 +995,7 @@ const ChatPage = () => {
           </p>
           <div className="flex items-center justify-between mb-3 px-1">
             <span className="text-xs text-muted-foreground">Total à payer</span>
-            <span className="text-sm font-bold text-foreground">{getTotalEuros(missionPrice, isUrgentActive(mission?.demandes?.urgent, mission?.demandes?.created_at), false).toFixed(2)} €</span>
+            <span className="text-sm font-bold text-foreground">{getTotalEuros(missionPrice, isUrgentActive(mission?.demandes?.urgent, mission?.demandes?.created_at), isBoosted).toFixed(2)} €</span>
           </div>
           <button
             onClick={handlePayment}
