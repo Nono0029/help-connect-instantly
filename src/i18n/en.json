@@ -265,12 +265,10 @@
     "sectionAccount": "Account",
     "viewProfile": "View my profile",
     "viewProfileDesc": "Reviews, stats and missions",
-    "wallet": "My wallet",
-    "walletDesc": "Balance, withdrawal and history",
+    "wallet": "Wallet & Payments",
+    "walletDesc": "Money earned, withdrawals and bank details",
     "security": "Security",
     "securityDesc": "Password and security",
-    "stripePayments": "Payments",
-    "stripeDesc": "Bank details and withdrawals",
     "stripeLinked": "Account linked",
     "sectionNotifications": "Notifications",
     "messages": "Messages",
@@ -381,10 +379,10 @@
     "yourRequest": "This is your request"
   },
   "wallet": {
-    "title": "My wallet",
+    "title": "Wallet & Payments",
     "availableBalance": "Available balance",
+    "earnedBalance": "Money earned by helping",
     "withdraw": "Withdraw",
-    "topUp": "Top up",
     "configureStripe": "Set up your bank details to withdraw your funds",
     "configureBank": "Add your bank details to withdraw your funds",
     "history": "Transaction history",
@@ -398,19 +396,12 @@
     "minWithdraw": "Minimum withdrawal amount: €5",
     "minimumWithdraw": "Minimum withdrawal amount: €5",
     "configureFirst": "First set up your bank details in Settings > Payments",
-    "configureBankFirst": "First set up your bank details in Settings > Payments",
+    "configureBankFirst": "First set up your bank details below",
     "bankDetails": "Bank",
     "withdrawFunds": "Request a withdrawal",
     "withdrawSuccess": "Withdrawal request of €{amount} recorded.",
     "withdrawError": "Withdrawal error",
     "cancel": "Cancel"
-  },
-  "topup": {
-    "title": "Payment",
-    "simplified": "Simplified payments",
-    "desc1": "Payments happen directly via",
-    "desc2": "in the conversation. No wallet top-up needed!",
-    "backToMessages": "Back to messages"
   },
   "paymentSetup": {
     "title": "Payments",

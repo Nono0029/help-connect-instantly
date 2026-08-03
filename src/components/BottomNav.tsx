@@ -19,7 +19,7 @@ const BottomNav = () => {
 
   const hiddenRoutes = [
     "/auth", "/chat/", "/demande/", "/boost-profile", "/edit-profile",
-    "/change-password", "/payment-setup", "/portefeuille", "/topup", "/become-pro",
+    "/change-password", "/portefeuille", "/become-pro",
     "/privacy", "/aide", "/profile/", "/inviter",
   ];
   if (hiddenRoutes.some(r => location.pathname.startsWith(r))) return null;

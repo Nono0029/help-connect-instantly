@@ -22,13 +22,11 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
-const PaymentSetup = lazy(() => import("./pages/PaymentSetup"));
 const CreateRequestPage = lazy(() => import("./pages/CreateRequestPage"));
 const AidePage = lazy(() => import("./pages/AidePage"));
 const BecomeProPage = lazy(() => import("./pages/BecomeProPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const MonPortefeuille = lazy(() => import("./pages/MonPortefeuille"));
-const TopUpPage = lazy(() => import("./pages/TopUpPage"));
 const BoostProfilePage = lazy(() => import("./pages/BoostProfilePage"));
 const AdminReportsPage = lazy(() => import("./pages/AdminReportsPage"));
 const InvitePage = lazy(() => import("./pages/InvitePage"));
@@ -64,9 +62,7 @@ function AnimatedRoutes() {
       <Route path="/messages" element={<MessagesPage />} />
       <Route path="/chat/:id" element={<ChatPage />} />
       <Route path="/profile/:id" element={<ProfilePage />} />
-      <Route path="/payment-setup" element={<PaymentSetup />} />
       <Route path="/portefeuille" element={<MonPortefeuille />} />
-      <Route path="/topup" element={<TopUpPage />} />
       <Route path="/create-request" element={<CreateRequestPage />} />
       <Route path="/aide" element={<AidePage />} />
       <Route path="/become-pro" element={<BecomeProPage />} />

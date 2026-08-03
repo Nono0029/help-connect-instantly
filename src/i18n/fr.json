@@ -265,12 +265,10 @@
     "sectionAccount": "Compte",
     "viewProfile": "Voir mon profil",
     "viewProfileDesc": "Avis, statistiques et missions",
-    "wallet": "Mon portefeuille",
-    "walletDesc": "Solde, retrait et historique",
+    "wallet": "Portefeuille & Paiements",
+    "walletDesc": "Argent gagné, retraits et coordonnées bancaires",
     "security": "Sécurité",
     "securityDesc": "Mot de passe et sécurité",
-    "stripePayments": "Paiements",
-    "stripeDesc": "Coordonnées bancaires et retraits",
     "stripeLinked": "Compte connecté",
     "sectionNotifications": "Notifications",
     "messages": "Messages",
@@ -381,10 +379,10 @@
     "yourRequest": "C'est ta demande"
   },
   "wallet": {
-    "title": "Mon portefeuille",
+    "title": "Portefeuille & Paiements",
     "availableBalance": "Solde disponible",
+    "earnedBalance": "Argent gagné en aidant",
     "withdraw": "Retirer",
-    "topUp": "Recharger",
     "configureStripe": "Configure tes coordonnées bancaires pour retirer tes fonds",
     "configureBank": "Ajoute tes coordonnées bancaires pour retirer tes fonds",
     "history": "Historique des transactions",
@@ -398,19 +396,12 @@
     "minWithdraw": "Montant minimum de retrait : 5 €",
     "minimumWithdraw": "Montant minimum de retrait : 5 €",
     "configureFirst": "Configure d'abord tes coordonnées bancaires dans Paramètres > Paiements",
-    "configureBankFirst": "Configure d'abord tes coordonnées bancaires dans Paramètres > Paiements",
+    "configureBankFirst": "Configure d'abord tes coordonnées bancaires ci-dessous",
     "bankDetails": "Banque",
     "withdrawFunds": "Demander un retrait",
     "withdrawSuccess": "Demande de retrait de {amount} € enregistrée.",
     "withdrawError": "Erreur lors du retrait",
     "cancel": "Annuler"
-  },
-  "topup": {
-    "title": "Paiement",
-    "simplified": "Paiement simplifié",
-    "desc1": "Les paiements se font directement via",
-    "desc2": "dans la conversation. Plus besoin de recharger un portefeuille !",
-    "backToMessages": "Retour aux messages"
   },
   "paymentSetup": {
     "title": "Paiements",

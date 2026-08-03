@@ -10,7 +10,6 @@ import {
   HelpCircle,
   LogOut,
   Star,
-  CreditCard,
   Wallet,
   Rocket,
   User,
@@ -182,13 +181,6 @@ const Settings = () => {
           label: t('settings.security'),
           desc: t('settings.securityDesc'),
           action: () => navigate("/change-password"),
-          toggle: false,
-        },
-        {
-          icon: CreditCard,
-          label: t('settings.stripePayments'),
-          desc: t('settings.stripeDesc'),
-          action: () => navigate("/payment-setup"),
           toggle: false,
         },
         {

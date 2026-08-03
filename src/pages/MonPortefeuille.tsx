@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Wallet, CreditCard, ArrowUpRight, ArrowDownLeft, Loader2, Plus, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Wallet, ArrowUpRight, ArrowDownLeft, Loader2, AlertTriangle, Landmark, ShieldCheck, Lock, Smartphone, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -20,6 +20,10 @@ const MonPortefeuille = () => {
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [bankReady, setBankReady] = useState(false);
+
+  const [iban, setIban] = useState("");
+  const [bankHolderName, setBankHolderName] = useState("");
+  const [savingBank, setSavingBank] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -41,12 +45,38 @@ const MonPortefeuille = () => {
         .select("iban, bank_holder_name")
         .eq("id", user.id)
         .maybeSingle();
-      setBankReady(Boolean(p?.iban && p?.bank_holder_name));
+      if (p) {
+        setIban(p.iban || "");
+        setBankHolderName(p.bank_holder_name || "");
+        setBankReady(Boolean(p.iban && p.bank_holder_name));
+      }
 
       setLoading(false);
     };
     withTimeout(fetchData(), 15000, "monPortefeuille").catch(() => setLoading(false));
   }, [user?.id]);
+
+  const handleSaveBank = async () => {
+    if (!user) return;
+    const normalizedIban = iban.replace(/\s+/g, "").toUpperCase();
+    if (!normalizedIban || !bankHolderName.trim() || normalizedIban.length < 14 || normalizedIban.length > 34) {
+      toast.error(t('paymentSetup.fillBothFields'));
+      return;
+    }
+    setSavingBank(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ iban: normalizedIban, bank_holder_name: bankHolderName.trim() })
+      .eq("id", user.id);
+    setSavingBank(false);
+    if (error) {
+      toast.error(t('paymentSetup.saveError'));
+      return;
+    }
+    setIban(normalizedIban);
+    setBankReady(true);
+    toast.success(t('paymentSetup.saveSuccess'));
+  };
 
   const handleWithdraw = async () => {
     if (!user) {
@@ -119,18 +149,12 @@ const MonPortefeuille = () => {
         <div className="card-magic bg-gradient-to-br from-cyan-500/10 to-emerald-500/10 border-cyan-500/20">
           <div className="flex items-center gap-3 mb-2">
             <Wallet className="w-6 h-6 text-accent" />
-            <p className="text-sm text-muted-foreground">{t('wallet.availableBalance')}</p>
+            <p className="text-sm text-muted-foreground">{t('wallet.earnedBalance')}</p>
           </div>
           <p className="text-4xl font-black text-foreground">
             {wallet?.balance?.toFixed(2) || "0.00"}€
           </p>
           <div className="flex gap-2 mt-4">
-            <button
-              onClick={() => navigate("/topup")}
-              className="flex-1 h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2"
-            >
-              <Plus className="w-4 h-4" /> {t('wallet.topUp')}
-            </button>
             <button
               onClick={() => {
                 if (!bankReady) {
@@ -140,15 +164,9 @@ const MonPortefeuille = () => {
                 setShowWithdraw(true);
               }}
               disabled={!wallet || wallet.balance <= 0}
-              className="flex-1 h-11 rounded-2xl bg-card border border-border text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-1 h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <ArrowUpRight className="w-4 h-4" /> {t('wallet.withdraw')}
-            </button>
-            <button
-              onClick={() => navigate("/payment-setup")}
-              className="flex-1 h-11 rounded-2xl bg-card border border-border text-sm font-semibold flex items-center justify-center gap-2"
-            >
-              <CreditCard className="w-4 h-4" /> {t('wallet.bankDetails')}
             </button>
           </div>
           {!bankReady && (
@@ -159,13 +177,118 @@ const MonPortefeuille = () => {
         </div>
       </div>
 
+      {/* Coordonnées bancaires */}
+      <div className="px-4 mt-6">
+        <div className="card-magic">
+          <div className="flex items-center gap-3 mb-4">
+            <Landmark className="w-8 h-8 text-primary" />
+            <div>
+              <h2 className="font-bold text-foreground">{t('paymentSetup.bankDetailsTitle')}</h2>
+              <p className="text-sm text-muted-foreground">{t('paymentSetup.bankDetailsDesc')}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t('paymentSetup.holderNameLabel')}</label>
+              <input
+                type="text"
+                value={bankHolderName}
+                onChange={(e) => setBankHolderName(e.target.value)}
+                placeholder={t('paymentSetup.accountHolderPlaceholder')}
+                className="w-full h-11 rounded-xl bg-secondary border-none px-3 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t('paymentSetup.ibanLabel')}</label>
+              <input
+                type="text"
+                value={iban}
+                onChange={(e) => setIban(e.target.value.toUpperCase())}
+                placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+                className="w-full h-11 rounded-xl bg-secondary border-none px-3 text-sm tracking-wide"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {t('paymentSetup.bankPrivacy')}
+            </p>
+            <button
+              onClick={handleSaveBank}
+              disabled={savingBank}
+              className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {savingBank ? <Loader2 className="w-4 h-4 animate-spin" /> : bankReady ? <CheckCircle2 className="w-4 h-4" /> : null}
+              {savingBank ? t('paymentSetup.savingButton') : t('paymentSetup.saveButton')}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Comment récupérer mon argent */}
+      <div className="px-4 mt-6">
+        <div className="card-magic">
+          <h3 className="font-bold text-foreground mb-3">{t('paymentSetup.withdrawHowTitle')}</h3>
+          <ol className="text-sm text-muted-foreground space-y-3 list-none">
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</span>
+              <span>{t('paymentSetup.withdrawStep1')}</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</span>
+              <span>{t('paymentSetup.withdrawStep2')}</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</span>
+              <span>{t('paymentSetup.withdrawStep3')}</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      {/* Paiement sécurisé */}
+      <div className="px-4 mt-6">
+        <div className="card-magic">
+          <div className="flex items-center gap-3 mb-4">
+            <ShieldCheck className="w-8 h-8 text-primary" />
+            <div>
+              <h2 className="font-bold text-foreground">{t('paymentSetup.securePayment')}</h2>
+              <p className="text-sm text-muted-foreground">{t('paymentSetup.howItWorks')}</p>
+            </div>
+          </div>
+
+          <div className="bg-muted rounded-xl p-4 space-y-3 text-sm">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-foreground">{t('paymentSetup.secure100')}</p>
+                <p className="text-muted-foreground text-xs">{t('paymentSetup.secure100Desc')}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Lock className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-foreground">{t('paymentSetup.lockedUntilEnd')}</p>
+                <p className="text-muted-foreground text-xs">{t('paymentSetup.lockedDesc')}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Smartphone className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-foreground">{t('paymentSetup.payWithCard')}</p>
+                <p className="text-muted-foreground text-xs">{t('paymentSetup.payWithCardDesc')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Historique */}
       <div className="px-4 mt-6">
         <h3 className="text-sm font-semibold text-foreground mb-3">{t('wallet.history')}</h3>
         <div className="card-magic divide-y divide-border">
           {transactions.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground text-sm">
-              <Plus className="w-8 h-8 mx-auto mb-2 opacity-40" />
+              <ArrowDownLeft className="w-8 h-8 mx-auto mb-2 opacity-40" />
               {t('wallet.noTransactions')}
             </div>
           ) : (
