@@ -22,6 +22,9 @@ import {
   AlertTriangle,
   Flag,
   Wallet,
+  Siren,
+  Phone,
+  Share2,
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -144,6 +147,10 @@ const ChatPage = () => {
   const [adresse, setAdresse] = useState("");
   const [ville, setVille] = useState("");
   const [adresseEnvoyee, setAdresseEnvoyee] = useState(false);
+
+  const [showSOS, setShowSOS] = useState(false);
+  const [sharingPosition, setSharingPosition] = useState(false);
+  const [sharingCard, setSharingCard] = useState(false);
 
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
@@ -664,6 +671,128 @@ const ChatPage = () => {
     }
   };
 
+  const partagerPosition = () => {
+    if (!navigator.geolocation) {
+      toast.error(t('chat.sosNoGps'));
+      return;
+    }
+    setSharingPosition(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          await supabase.from("messages").insert({
+            conversation_id: parseInt(id!),
+            sender_id: user.id,
+            content: `${t('chat.sosLocationShared')} https://maps.google.com/?q=${latitude.toFixed(6)},${longitude.toFixed(6)}`,
+          });
+          toast.success(t('chat.sosLocationSent'));
+        } catch (err) {
+          console.error("partagerPosition error:", err);
+          toast.error("Erreur lors de l'envoi de la position");
+        }
+        setSharingPosition(false);
+      },
+      () => {
+        toast.error(t('chat.sosNoGps'));
+        setSharingPosition(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
+  };
+
+  const generateCard = (): Promise<Blob> => new Promise((resolve) => {
+    const W = 1080;
+    const H = 1350;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, "#3D7A54");
+    grad.addColorStop(1, "#1F4030");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    ctx.beginPath();
+    ctx.arc(W * 0.85, H * 0.15, 260, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(W * 0.1, H * 0.85, 300, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 96px -apple-system, Helvetica, Arial, sans-serif";
+    ctx.fillText("Askoo", W / 2, 200);
+    ctx.font = "500 40px -apple-system, Helvetica, Arial, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.fillText(t('chat.cardTagline'), W / 2, 262);
+
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    ctx.beginPath();
+    ctx.arc(W / 2, H * 0.45, 170, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(W / 2, H * 0.45 - 30, 55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 60, H * 0.45);
+    ctx.bezierCurveTo(W / 2 - 60, H * 0.45 - 60, W / 2 - 10, H * 0.45 - 55, W / 2, H * 0.45 - 25);
+    ctx.bezierCurveTo(W / 2 + 10, H * 0.45 - 55, W / 2 + 60, H * 0.45 - 60, W / 2 + 60, H * 0.45);
+    ctx.bezierCurveTo(W / 2 + 60, H * 0.45 + 40, W / 2, H * 0.45 + 80, W / 2, H * 0.45 + 85);
+    ctx.bezierCurveTo(W / 2, H * 0.45 + 80, W / 2 - 60, H * 0.45 + 40, W / 2 - 60, H * 0.45);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 76px -apple-system, Helvetica, Arial, sans-serif";
+    const cardLine = user?.id === mission?.helper_id ? t('chat.cardHelped') : t('chat.cardWasHelped');
+    const line2 = t('chat.cardToday');
+    ctx.fillText(cardLine, W / 2, H * 0.68);
+    ctx.fillText(line2, W / 2, H * 0.76);
+
+    ctx.font = "600 52px -apple-system, Helvetica, Arial, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fillText(`@${otherProfile?.pseudo || user?.email?.split("@")[0] || "voisin"}`, W / 2, H * 0.84);
+
+    ctx.font = "500 40px -apple-system, Helvetica, Arial, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.fillText("askoo.fr", W / 2, H - 100);
+
+    canvas.toBlob((blob) => {
+      resolve(blob || new Blob());
+    }, "image/png");
+  });
+
+  const partagerCarte = async () => {
+    setSharingCard(true);
+    try {
+      const blob = await generateCard();
+      const file = new File([blob], "askoo-aide.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: t('chat.cardTitle'),
+          text: t('chat.cardShareText'),
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "askoo-aide.png";
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success(t('chat.cardDownloaded'));
+      }
+    } catch (err) {
+      console.error("partagerCarte error:", err);
+    }
+    setSharingCard(false);
+  };
+
   const sendMessage = async () => {
     const trimmed = text.trim();
     if (!trimmed || !user || !id) return;
@@ -933,6 +1062,16 @@ const ChatPage = () => {
           </button>
         )}
 
+        {mission?.statut === "en_cours" && (
+          <button
+            onClick={() => setShowSOS(true)}
+            className="w-10 h-10 rounded-full bg-card border border-destructive/30 flex items-center justify-center shrink-0 shadow-card hover:bg-destructive hover:border-destructive transition-all"
+            title={t('chat.sosTitle')}
+          >
+            <Siren className="w-4 h-4 text-destructive" />
+          </button>
+        )}
+
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center gap-2">
             <p
@@ -1187,13 +1326,21 @@ const ChatPage = () => {
 
       {/* AVIS */}
       {mission?.statut === "terminee" && !showAvis && !avisDonne && (
-        <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
+        <div className="fixed bottom-24 left-0 right-0 px-4 z-30 space-y-2">
           <button onClick={() => setShowAvis(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">{t('chat.leaveReview')}</button>
+          <button onClick={partagerCarte} disabled={sharingCard} className="w-full py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+            {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+            {t('chat.shareCard')}
+          </button>
         </div>
       )}
       {mission?.statut === "terminee" && avisDonne && (
-        <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
+        <div className="fixed bottom-24 left-0 right-0 px-4 z-30 space-y-2">
           <div className="w-full py-3 rounded-[24px] bg-muted border border-border text-center text-sm text-muted-foreground font-medium">{t('chat.reviewDone')}</div>
+          <button onClick={partagerCarte} disabled={sharingCard} className="w-full py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+            {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+            {t('chat.shareCard')}
+          </button>
         </div>
       )}
 
@@ -1305,6 +1452,63 @@ const ChatPage = () => {
                 >
                   {signalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Flag className="w-4 h-4" />}
                   {t('chat.reportBtn')}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* SOS */}
+      <AnimatePresence>
+        {showSOS && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end z-50"
+            onClick={() => setShowSOS(false)}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card w-full p-6 pb-[calc(env(safe-area-inset-bottom)+20px)] rounded-t-3xl space-y-4 max-w-lg mx-auto"
+            >
+              <div className="w-12 h-1.5 bg-muted rounded-full mx-auto" />
+              <div className="flex items-center gap-3 pt-1">
+                <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                  <Siren className="w-5 h-5 text-destructive" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-foreground">{t('chat.sosTitle')}</h3>
+                  <p className="text-xs text-muted-foreground">{t('chat.sosDesc')}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {[{ n: "15", label: t('chat.sosSamu') }, { n: "17", label: t('chat.sosPolice') }, { n: "18", label: t('chat.sosPompiers') }, { n: "112", label: t('chat.sosEurope') }].map(c => (
+                  <a
+                    key={c.n}
+                    href={`tel:${c.n}`}
+                    className="flex items-center justify-center gap-2 h-14 rounded-2xl bg-destructive/10 border border-destructive/25 text-destructive font-bold"
+                  >
+                    <Phone className="w-4 h-4" /> {c.n}
+                    <span className="text-xs font-medium text-destructive/70">{c.label}</span>
+                  </a>
+                ))}
+              </div>
+
+              <div className="rounded-2xl bg-muted border border-border p-4">
+                <p className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-accent" /> {t('chat.sosLocationTitle')}
+                </p>
+                <p className="text-xs text-muted-foreground mb-3">{t('chat.sosLocationDesc')}</p>
+                <button
+                  onClick={partagerPosition}
+                  disabled={sharingPosition}
+                  className="w-full h-12 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {sharingPosition ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+                  {sharingPosition ? t('chat.sosSending') : t('chat.sosShareLocation')}
                 </button>
               </div>
             </motion.div>

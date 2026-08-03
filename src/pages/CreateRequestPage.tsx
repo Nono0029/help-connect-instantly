@@ -9,39 +9,40 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { getTotalEuros, getFeesEuros, isBoostActive } from "@/lib/urgentFee";
+import { getPriceSuggestion } from "@/lib/priceSuggestions";
 import CityPicker from "@/components/CityPicker";
 import { useCameraUpload } from "@/hooks/useCameraUpload";
 import { Capacitor } from "@capacitor/core";
 
 const typesAide = [
-  { id: "menage", label: "Ménage / Nettoyage", emoji: "🧹" },
-  { id: "demenagement", label: "Déménagement", emoji: "📦" },
-  { id: "cuisine", label: "Cuisine / Repas", emoji: "🍳" },
-  { id: "courses", label: "Courses / Achats", emoji: "🛒" },
-  { id: "portage", label: "Portage / Livraison", emoji: "📮" },
-  { id: "physique", label: "Aide physique", emoji: "💪" },
-  { id: "bricolage", label: "Bricolage", emoji: "🔧" },
-  { id: "jardin", label: "Jardin / Plantes", emoji: "🌱" },
-  { id: "admin", label: "Administratif", emoji: "📋" },
-  { id: "compta", label: "Comptabilité", emoji: "💰" },
-  { id: "juridique", label: "Juridique", emoji: "⚖️" },
-  { id: "tech", label: "Tech / Informatique", emoji: "💻" },
-  { id: "photo", label: "Photo / Vidéo", emoji: "📸" },
-  { id: "design", label: "Design / Créatif", emoji: "🎨" },
-  { id: "cours", label: "Cours / Tutorat", emoji: "📚" },
-  { id: "langues", label: "Langues / Échange", emoji: "🌍" },
-  { id: "musique", label: "Musique / Art", emoji: "🎵" },
-  { id: "animaux", label: "Animaux", emoji: "🐶" },
-  { id: "ecoute", label: "Écoute / Social", emoji: "💬" },
-  { id: "bienetre", label: "Bien-être", emoji: "🧘" },
-  { id: "enfants", label: "Garde d'enfants", emoji: "👶" },
-  { id: "personnes agees", label: "Aide personnes âgées", emoji: "👴" },
-  { id: "transport", label: "Transport", emoji: "🚗" },
-  { id: "evenement", label: "Événement / Fête", emoji: "🎉" },
-  { id: "mode", label: "Mode / Styling", emoji: "👗" },
-  { id: "sante", label: "Santé / Bien-être", emoji: "🏥" },
-  { id: "depannage", label: "Dépannage", emoji: "🔌" },
-  { id: "autre", label: "Autre", emoji: "✨" },
+  { id: "menage", label: "Ménage / Nettoyage" },
+  { id: "demenagement", label: "Déménagement" },
+  { id: "cuisine", label: "Cuisine / Repas" },
+  { id: "courses", label: "Courses / Achats" },
+  { id: "portage", label: "Portage / Livraison" },
+  { id: "physique", label: "Aide physique" },
+  { id: "bricolage", label: "Bricolage" },
+  { id: "jardin", label: "Jardin / Plantes" },
+  { id: "admin", label: "Administratif" },
+  { id: "compta", label: "Comptabilité" },
+  { id: "juridique", label: "Juridique" },
+  { id: "tech", label: "Tech / Informatique" },
+  { id: "photo", label: "Photo / Vidéo" },
+  { id: "design", label: "Design / Créatif" },
+  { id: "cours", label: "Cours / Tutorat" },
+  { id: "langues", label: "Langues / Échange" },
+  { id: "musique", label: "Musique / Art" },
+  { id: "animaux", label: "Animaux" },
+  { id: "ecoute", label: "Écoute / Social" },
+  { id: "bienetre", label: "Bien-être" },
+  { id: "enfants", label: "Garde d'enfants" },
+  { id: "personnes agees", label: "Aide personnes âgées" },
+  { id: "transport", label: "Transport" },
+  { id: "evenement", label: "Événement / Fête" },
+  { id: "mode", label: "Mode / Styling" },
+  { id: "sante", label: "Santé / Bien-être" },
+  { id: "depannage", label: "Dépannage" },
+  { id: "autre", label: "Autre" },
 ];
 
 const durees = ["< 30 min", "1h", "2h", "Demi-journée", "Journée", "Plusieurs jours"];
@@ -189,16 +190,25 @@ const CreateRequestPage = () => {
           <label className="text-sm font-semibold text-foreground mb-2 block">{t('createRequest.helpType')}</label>
           <div className="flex flex-wrap gap-2">
             {typesAide.map(type => (
-              <button key={type.id} onClick={() => setSelectedType(type.id)}
+              <button key={type.id} onClick={() => {
+                setSelectedType(type.id);
+                const suggestion = getPriceSuggestion(type.id);
+                if (suggestion && !prix) setPrix(String(suggestion));
+              }}
                 className={`px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
                   selectedType === type.id
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"
                 }`}>
-                {type.emoji} {type.label}
+                {type.label}
               </button>
             ))}
           </div>
+          {selectedType && getPriceSuggestion(selectedType) && (
+            <p className="text-xs text-accent font-medium mt-2 pl-1">
+              {t('createRequest.priceHint', { amount: String(getPriceSuggestion(selectedType)) })}
+            </p>
+          )}
         </div>
 
         <div>

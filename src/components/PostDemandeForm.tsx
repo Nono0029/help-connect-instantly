@@ -10,6 +10,7 @@ import CityPicker from "@/components/CityPicker";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
 import { getTotalEuros, getFeesEuros, isBoostActive } from "@/lib/urgentFee";
+import { getPriceSuggestion } from "@/lib/priceSuggestions";
 import { useCameraUpload } from "@/hooks/useCameraUpload";
 import { Capacitor } from "@capacitor/core";
 
@@ -293,7 +294,11 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                 <label className="text-sm font-semibold text-foreground mb-2 block">{t('postForm.helpType')}</label>
                 <div className="flex flex-wrap gap-2">
                   {typesAide.map(type => (
-                    <button key={type.id} onClick={() => setSelectedType(type.id)}
+                    <button key={type.id} onClick={() => {
+                      setSelectedType(type.id);
+                      const suggestion = getPriceSuggestion(type.id);
+                      if (suggestion && !prix) setPrix(String(suggestion));
+                    }}
                       className={`px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
                         selectedType === type.id
                           ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
@@ -303,7 +308,14 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                     </button>
                   ))}
                 </div>
-                {selectedType && <p className="text-xs text-muted-foreground mt-2 pl-1">{typesAide.find(t => t.id === selectedType)?.desc}</p>}
+                {selectedType && (
+                  <p className="text-xs text-muted-foreground mt-2 pl-1">
+                    {typesAide.find(t => t.id === selectedType)?.desc}
+                    {getPriceSuggestion(selectedType) && (
+                      <span className="text-accent font-medium"> · {t('postForm.priceHint', { amount: String(getPriceSuggestion(selectedType)) })}</span>
+                    )}
+                  </p>
+                )}
               </div>
 
               <div>

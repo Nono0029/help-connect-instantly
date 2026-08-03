@@ -26,6 +26,13 @@ const ensureProfile = async (user: User) => {
         pseudo: user.email?.split("@")[0] || user.id.slice(0, 8),
       });
     }
+    if (user.email_confirmed_at) {
+      await supabase
+        .from("profiles")
+        .update({ email_verifie: true })
+        .eq("id", user.id)
+        .is("email_verifie", false);
+    }
   } catch {}
 };
 

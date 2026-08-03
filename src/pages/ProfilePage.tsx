@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2, BadgeCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2, BadgeCheck, Sprout, HandHeart, HeartHandshake, Building2, Crown, Trophy, Award, CalendarCheck, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
@@ -13,8 +13,9 @@ interface Profile {
   id: string;
   pseudo: string;
   bio: string;
-  ville: string;
-  avatar_url: string;
+  ville?: string;
+  avatar_url?: string;
+  email_verifie?: boolean;
   skills?: string[];
   stripe_onboarding?: boolean;
   last_seen?: string;
@@ -62,6 +63,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [helperCount, setHelperCount] = useState(0);
   const [demandeurCount, setDemandeurCount] = useState(0);
+  const [monthMissions, setMonthMissions] = useState(0);
   const [demandes, setDemandes] = useState<Demande[]>([]);
   const [contacting, setContacting] = useState(false);
 
@@ -145,6 +147,15 @@ const ProfilePage = () => {
         .limit(200);
 
       if (demandesData && mounted) setDemandes(demandesData);
+
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      const { count: monthCount } = await supabase
+        .from("missions")
+        .select("id", { count: "exact", head: true })
+        .eq("helper_id", id)
+        .eq("statut", "terminee")
+        .gte("created_at", monthStart);
+      if (mounted) setMonthMissions(monthCount || 0);
       } catch (err) {
         console.error("ProfilePage load error:", err);
       } finally {
@@ -198,6 +209,22 @@ const ProfilePage = () => {
     </div>
   );
 
+  const level = (() => {
+    if (helperCount >= 25) return { icon: Crown, label: t('profile.level5') };
+    if (helperCount >= 10) return { icon: Building2, label: t('profile.level4') };
+    if (helperCount >= 5) return { icon: HeartHandshake, label: t('profile.level3') };
+    if (helperCount >= 1) return { icon: HandHeart, label: t('profile.level2') };
+    return { icon: Sprout, label: t('profile.level1') };
+  })();
+
+  const earnedBadges = [
+    profile.email_verifie && { key: "verified", icon: BadgeCheck, label: t('profile.badgeVerified'), desc: t('profile.identityVerifiedDesc') },
+    helperCount >= 1 && { key: "first", icon: HeartHandshake, label: t('profile.badgeFirst'), desc: t('profile.badgeFirstDesc') },
+    helperCount >= 10 && { key: "ten", icon: Trophy, label: t('profile.badgeTen'), desc: t('profile.badgeTenDesc') },
+    helperCount >= 25 && { key: "twentyfive", icon: Award, label: t('profile.badgeTwentyFive'), desc: t('profile.badgeTwentyFiveDesc') },
+    monthMissions >= 3 && { key: "month", icon: CalendarCheck, label: t('profile.badgeMonth'), desc: t('profile.badgeMonthDesc') },
+  ].filter(Boolean) as { key: string; icon: LucideIcon; label: string; desc: string }[];
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* HEADER */}
@@ -223,6 +250,12 @@ const ProfilePage = () => {
 
           <h2 className="text-xl font-bold text-foreground mt-4 flex items-center justify-center gap-2">
             {profile.pseudo || t('profile.anonymous')}
+            {profile.email_verifie && (
+              <Badge className="rounded-full text-[10px] gap-1 bg-accent/15 text-accent hover:bg-accent/15" title={t('profile.identityVerifiedDesc')}>
+                <BadgeCheck className="w-3 h-3" />
+                {t('profile.identityVerified')}
+              </Badge>
+            )}
             {profile.stripe_onboarding && (
               <span title={t('profile.verified')} className="w-5 h-5 rounded-full bg-accent/15 flex items-center justify-center">
                 <CheckCircle2 className="w-4 h-4 text-accent" />
@@ -310,7 +343,36 @@ const ProfilePage = () => {
               </div>
             )}
           </div>
+
+          {/* NIVEAU */}
+          {helperCount > 0 && (
+            <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-primary/5 border border-primary/15 px-4 py-2.5">
+              <level.icon className="w-5 h-5 text-primary shrink-0" />
+              <div className="text-left">
+                <p className="text-sm font-bold text-foreground leading-tight">{level.label}</p>
+                <p className="text-[11px] text-muted-foreground leading-tight">{t('profile.levelHint')}</p>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* BADGES */}
+        {earnedBadges.length > 0 && (
+          <div>
+            <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+              <Medal className="w-4 h-4 text-accent" />
+              {t('profile.badges')}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {earnedBadges.map(b => (
+                <div key={b.key} className="flex items-center gap-2 rounded-xl bg-card border border-border px-3 py-2" title={b.desc}>
+                  <b.icon className="w-4 h-4 text-accent shrink-0" />
+                  <span className="text-xs font-medium">{b.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* STATS */}
         <div className="grid grid-cols-2 gap-3">

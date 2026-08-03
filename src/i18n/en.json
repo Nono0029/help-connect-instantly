@@ -192,7 +192,28 @@
     "reviewDone": "Review sent",
     "reviewSubtitle": "Your review helps the community",
     "someone": "Someone",
-    "uploadError": "Upload error"
+    "uploadError": "Upload error",
+    "sosTitle": "Emergency",
+    "sosDesc": "In case of danger, call emergency services",
+    "sosSamu": "Medical",
+    "sosPolice": "Police",
+    "sosPompiers": "Fire",
+    "sosEurope": "Europe",
+    "sosLocationTitle": "Share my location",
+    "sosLocationDesc": "Send your current location in the conversation so you can be found.",
+    "sosShareLocation": "Share my location",
+    "sosSending": "Sending…",
+    "sosLocationShared": "Location shared in an emergency:",
+    "sosLocationSent": "Location sent to the conversation",
+    "sosNoGps": "Location unavailable on this device",
+    "shareCard": "Share my card",
+    "cardTagline": "local mutual aid",
+    "cardHelped": "I helped a neighbor",
+    "cardWasHelped": "My neighbor helped me",
+    "cardToday": "today",
+    "cardTitle": "I helped a neighbor",
+    "cardShareText": "I helped a neighbor today on Askoo!",
+    "cardDownloaded": "Card downloaded"
   },
   "requests": {
     "title": "My requests",
@@ -308,7 +329,25 @@
     "online": "Online",
     "addSkill": "Add a skill",
     "recentActivity": "Recent activity",
-    "verifiedMission": "Verified mission"
+    "verifiedMission": "Verified mission",
+    "identityVerified": "Verified identity",
+    "identityVerifiedDesc": "Confirmed email — Askoo verified member",
+    "badges": "Badges",
+    "levelHint": "levels based on completed missions",
+    "level1": "New neighbor",
+    "level2": "Helping hand",
+    "level3": "Active neighbor",
+    "level4": "Neighborhood pillar",
+    "level5": "Neighborhood legend",
+    "badgeVerified": "Verified identity",
+    "badgeFirst": "1st mission",
+    "badgeFirstDesc": "First completed help",
+    "badgeTen": "10 missions",
+    "badgeTenDesc": "10 completed help",
+    "badgeTwentyFive": "25 missions",
+    "badgeTwentyFiveDesc": "25 completed help",
+    "badgeMonth": "Neighbor of the month",
+    "badgeMonthDesc": "3+ help this month"
   },
   "editProfile": {
     "title": "Edit profile",
@@ -488,7 +527,8 @@
     "fillFields": "Fill in the title and the type of help",
     "publishSuccess": "Request published!",
     "cityLabel": "City",
-    "cityRequired": "Please select your city"
+    "cityRequired": "Please select your city",
+    "priceHint": "Typical price: ~${amount}/h"
   },
   "postForm": {
     "editTitle": "Edit request",
@@ -516,7 +556,8 @@
     "editBtn": "Save changes",
     "createBtn": "Publish my request",
     "editHelper": "Your changes will be visible immediately",
-    "createHelper": "Your request will be visible to people around you"
+    "createHelper": "Your request will be visible to people around you",
+    "priceHint": "Typical price: ~${amount}/h"
   },
   "changePassword": {
     "title": "Password",

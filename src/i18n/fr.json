@@ -192,7 +192,28 @@
     "reviewDone": "Avis envoyé",
     "reviewSubtitle": "Ton avis aide la communauté",
     "someone": "Quelqu'un",
-    "uploadError": "Erreur lors de l'envoi"
+    "uploadError": "Erreur lors de l'envoi",
+    "sosTitle": "Urgence",
+    "sosDesc": "En cas de danger, appelle les secours",
+    "sosSamu": "SAMU",
+    "sosPolice": "Police",
+    "sosPompiers": "Pompiers",
+    "sosEurope": "Europe",
+    "sosLocationTitle": "Partager ma position",
+    "sosLocationDesc": "Envoie ta position actuelle dans la conversation pour qu'on puisse te retrouver.",
+    "sosShareLocation": "Partager ma position",
+    "sosSending": "Envoi…",
+    "sosLocationShared": "Position partagée en cas d'urgence :",
+    "sosLocationSent": "Position envoyée dans la conversation",
+    "sosNoGps": "Localisation indisponible sur cet appareil",
+    "shareCard": "Partager ma carte",
+    "cardTagline": "entraide de proximité",
+    "cardHelped": "J'ai aidé un voisin",
+    "cardWasHelped": "Mon voisin m'a aidé",
+    "cardToday": "aujourd'hui",
+    "cardTitle": "J'ai aidé un voisin",
+    "cardShareText": "J'ai aidé un voisin aujourd'hui sur Askoo !",
+    "cardDownloaded": "Carte téléchargée"
   },
   "requests": {
     "title": "Mes demandes",
@@ -308,7 +329,25 @@
     "online": "En ligne",
     "addSkill": "Ajouter une compétence",
     "recentActivity": "Activité récente",
-    "verifiedMission": "Mission confirmée"
+    "verifiedMission": "Mission confirmée",
+    "identityVerified": "Identité vérifiée",
+    "identityVerifiedDesc": "Email confirmé — membre vérifié Askoo",
+    "badges": "Badges",
+    "levelHint": "niveaux basés sur les missions terminées",
+    "level1": "Nouveau voisin",
+    "level2": "Main aidante",
+    "level3": "Voisin actif",
+    "level4": "Pilier du quartier",
+    "level5": "Légende du quartier",
+    "badgeVerified": "Identité vérifiée",
+    "badgeFirst": "1re mission",
+    "badgeFirstDesc": "Première aide terminée",
+    "badgeTen": "10 missions",
+    "badgeTenDesc": "10 aides terminées",
+    "badgeTwentyFive": "25 missions",
+    "badgeTwentyFiveDesc": "25 aides terminées",
+    "badgeMonth": "Voisin du mois",
+    "badgeMonthDesc": "3+ aides ce mois-ci"
   },
   "editProfile": {
     "title": "Modifier le profil",
@@ -488,7 +527,8 @@
     "fillFields": "Remplis le titre et le type d'aide",
     "publishSuccess": "Demande publiée !",
     "cityLabel": "Ville",
-    "cityRequired": "Merci de sélectionner ta ville"
+    "cityRequired": "Merci de sélectionner ta ville",
+    "priceHint": "Prix habituel : ~{amount}€/h"
   },
   "postForm": {
     "editTitle": "Modifier la demande",
@@ -516,7 +556,8 @@
     "editBtn": "Enregistrer les modifications",
     "createBtn": "Publier ma demande",
     "editHelper": "Tes modifications seront visibles immédiatement",
-    "createHelper": "Ta demande sera visible par les personnes autour de toi"
+    "createHelper": "Ta demande sera visible par les personnes autour de toi",
+    "priceHint": "Prix habituel : ~{amount}€/h"
   },
   "changePassword": {
     "title": "Mot de passe",
