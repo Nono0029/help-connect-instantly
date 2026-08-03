@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
@@ -27,6 +27,7 @@ interface Review {
   note: number;
   commentaire: string;
   created_at: string;
+  verifie?: boolean;
 }
 
 interface Mission {
@@ -426,9 +427,17 @@ const ProfilePage = () => {
                   {a.commentaire && (
                     <p className="text-sm text-foreground/80">{a.commentaire}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    {new Date(a.created_at).toLocaleDateString("fr-FR")}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <p className="text-[11px] text-muted-foreground">
+                      {new Date(a.created_at).toLocaleDateString("fr-FR")}
+                    </p>
+                    {a.verifie && (
+                      <Badge className="rounded-full text-[10px] gap-1">
+                        <BadgeCheck className="w-3 h-3" />
+                        {t('profile.verifiedMission')}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

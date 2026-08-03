@@ -590,6 +590,7 @@ const ChatPage = () => {
         cible_id: cibleId,
         note,
         commentaire,
+        verifie: mission.statut === "terminee",
       });
       if (error) throw error;
 

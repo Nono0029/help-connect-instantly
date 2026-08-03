@@ -23,7 +23,8 @@
     "footer": "By continuing, you accept the terms of use.",
     "errorExists": "This email is already in use.",
     "errorCredentials": "Incorrect email or password.",
-    "errorConfirm": "Check your inbox to confirm your account."
+    "errorConfirm": "Check your inbox to confirm your account.",
+    "refBanner": "Welcome, you were invited by a neighbor! €2 credited to your account after your first completed mission."
   },
   "home": {
     "tagline": "Let's help each other",
@@ -271,7 +272,11 @@
     "langFr": "Français",
     "langEn": "English",
     "boost": "Profile boost",
-    "boostDesc": "Appear first in results, free urgent included"
+    "boostDesc": "Appear first in results, free urgent included",
+    "invite": "Refer friends",
+    "inviteDesc": "Earn €2 per invited friend",
+    "quartier": "Unlock my neighborhood",
+    "quartierDesc": "Help unlock your city"
   },
   "profile": {
     "title": "Profile",
@@ -302,7 +307,8 @@
     "lastSeen": "Active {time}",
     "online": "Online",
     "addSkill": "Add a skill",
-    "recentActivity": "Recent activity"
+    "recentActivity": "Recent activity",
+    "verifiedMission": "Verified mission"
   },
   "editProfile": {
     "title": "Edit profile",
@@ -618,5 +624,33 @@
     "activating": "Activating...",
     "paymentCancelled": "Payment cancelled",
     "paymentError": "Payment error"
+  },
+  "invite": {
+    "title": "Refer friends",
+    "subtitle": "Invite your neighbors and you both earn",
+    "bonus": "€2 for you, €2 for your friend",
+    "how": "The bonus is credited to both wallets when your friend completes their first mission.",
+    "codeLabel": "Your referral code",
+    "share": "Share my link",
+    "shareTitle": "Join me on Askoo",
+    "shareText": "Join me on Askoo! Get €2 after your first completed mission with my code: {code}",
+    "copied": "Code copied!",
+    "copyError": "Could not copy the code",
+    "friendsJoined": "Friends signed up",
+    "friendsJoinedDesc": "They get the bonus after their first mission"
+  },
+  "quartier": {
+    "title": "Unlock my neighborhood",
+    "neighborhood": "{ville} is unlocking!",
+    "countDesc": "neighbors on Askoo",
+    "howTitle": "Invite your neighbors",
+    "howDesc": "{count} more neighbors to unlock {ville} and activate everything near you.",
+    "share": "Invite neighbors",
+    "shareTitle": "Unlock our neighborhood on Askoo",
+    "shareText": "{ville} is unlocking on Askoo! {count} neighbors already signed up. Join us, it is free.",
+    "shareUnlockedText": "{ville} is unlocked on Askoo with {count} neighbors! Join us, it is free.",
+    "copied": "Link copied!",
+    "unlocked": "Neighborhood unlocked!",
+    "unlockedDesc": "Congrats, {ville} is now full of neighbors ready to help each other."
   }
 }

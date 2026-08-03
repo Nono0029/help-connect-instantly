@@ -31,6 +31,8 @@ const MonPortefeuille = lazy(() => import("./pages/MonPortefeuille"));
 const TopUpPage = lazy(() => import("./pages/TopUpPage"));
 const BoostProfilePage = lazy(() => import("./pages/BoostProfilePage"));
 const AdminReportsPage = lazy(() => import("./pages/AdminReportsPage"));
+const InvitePage = lazy(() => import("./pages/InvitePage"));
+const NeighborhoodPage = lazy(() => import("./pages/NeighborhoodPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +73,8 @@ function AnimatedRoutes() {
       <Route path="/become-pro" element={<BecomeProPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/boost-profile" element={<BoostProfilePage />} />
+      <Route path="/inviter" element={<InvitePage />} />
+      <Route path="/quartier" element={<NeighborhoodPage />} />
       <Route path="/admin/reports" element={<AdminReportsPage />} />
     </Route>
 

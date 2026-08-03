@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Sparkles, Mail, Lock, MapPin, Home } from "lucide-react";
+import { Eye, EyeOff, Sparkles, Mail, Lock, MapPin, Home, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,6 +23,7 @@ const AuthPage = () => {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const refCode = new URLSearchParams(window.location.search).get("ref")?.trim().toUpperCase() || null;
 
   const handleSubmit = async () => {
     setError("");
@@ -65,6 +66,20 @@ const AuthPage = () => {
           adresse,
           pseudo: email.split("@")[0],
         });
+        if (refCode) {
+          const { data: referrer } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("ref_code", refCode)
+            .maybeSingle();
+          if (referrer && referrer.id !== user.id) {
+            await supabase
+              .from("profiles")
+              .update({ referred_by: referrer.id })
+              .eq("id", user.id)
+              .is("referred_by", null);
+          }
+        }
       }
     }
 
@@ -112,6 +127,18 @@ const AuthPage = () => {
             transition={{ duration: 0.15 }}
             className="space-y-3"
           >
+            {tab === "signup" && refCode && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2.5 rounded-xl bg-accent/10 border border-accent/20 px-4 py-3"
+              >
+                <Gift className="w-4 h-4 text-accent shrink-0" />
+                <p className="text-xs text-foreground font-medium">
+                  {t('auth.refBanner')}
+                </p>
+              </motion.div>
+            )}
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input type="email" placeholder={t('auth.email')} value={email} onChange={e => setEmail(e.target.value)} className="pl-10 h-12 rounded-xl bg-secondary border-none" autoComplete="email" />

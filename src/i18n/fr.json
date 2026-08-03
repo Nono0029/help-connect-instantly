@@ -23,7 +23,8 @@
     "footer": "En continuant, tu acceptes les conditions d'utilisation.",
     "errorExists": "Cet email est déjà utilisé.",
     "errorCredentials": "Email ou mot de passe incorrect.",
-    "errorConfirm": "Vérifie ta boîte mail pour confirmer ton compte."
+    "errorConfirm": "Vérifie ta boîte mail pour confirmer ton compte.",
+    "refBanner": "Bienvenue, tu as été invité par un voisin ! 2€ offerts sur ton compte à ta première mission terminée."
   },
   "home": {
     "tagline": "Aidons-nous autour de nous",
@@ -271,7 +272,11 @@
     "langFr": "Français",
     "langEn": "English",
     "boost": "Boost profil",
-    "boostDesc": "Passe en tête des résultats, urgent gratuit inclus"
+    "boostDesc": "Passe en tête des résultats, urgent gratuit inclus",
+    "invite": "Parrainer des amis",
+    "inviteDesc": "Gagne 2€ par ami invité",
+    "quartier": "Débloquer mon quartier",
+    "quartierDesc": "Fais débloquer ta ville"
   },
   "profile": {
     "title": "Profil",
@@ -302,7 +307,8 @@
     "lastSeen": "Actif {time}",
     "online": "En ligne",
     "addSkill": "Ajouter une compétence",
-    "recentActivity": "Activité récente"
+    "recentActivity": "Activité récente",
+    "verifiedMission": "Mission confirmée"
   },
   "editProfile": {
     "title": "Modifier le profil",
@@ -618,5 +624,33 @@
     "activating": "Activation...",
     "paymentCancelled": "Paiement annulé",
     "paymentError": "Erreur lors du paiement"
+  },
+  "invite": {
+    "title": "Parrainer des amis",
+    "subtitle": "Invite tes voisins et gagnez tous les deux",
+    "bonus": "2€ pour toi, 2€ pour ton ami",
+    "how": "Le bonus est crédité sur le portefeuille des deux quand votre ami termine sa première mission.",
+    "codeLabel": "Ton code de parrainage",
+    "share": "Partager mon lien",
+    "shareTitle": "Rejoins-moi sur Askoo",
+    "shareText": "Rejoins-moi sur Askoo ! 2€ offerts à ta première mission terminée avec mon code : {code}",
+    "copied": "Code copié !",
+    "copyError": "Impossible de copier le code",
+    "friendsJoined": "Amis inscrits",
+    "friendsJoinedDesc": "Ils recevront le bonus à leur première mission"
+  },
+  "quartier": {
+    "title": "Débloquer mon quartier",
+    "neighborhood": "{ville} se débloque !",
+    "countDesc": "voisins inscrits sur Askoo",
+    "howTitle": "Invite tes voisins",
+    "howDesc": "Encore {count} voisins pour débloquer {ville} et tout activer près de chez toi.",
+    "share": "Inviter des voisins",
+    "shareTitle": "Débloque notre quartier sur Askoo",
+    "shareText": "{ville} se débloque sur Askoo ! Déjà {count} voisins inscrits. Rejoins-nous, c'est gratuit.",
+    "shareUnlockedText": "{ville} est débloqué sur Askoo avec {count} voisins ! Rejoins-nous, c'est gratuit.",
+    "copied": "Lien copié !",
+    "unlocked": "Quartier débloqué !",
+    "unlockedDesc": "Félicitations, {ville} est maintenant plein de voisins prêts à s'entraider."
   }
 }
