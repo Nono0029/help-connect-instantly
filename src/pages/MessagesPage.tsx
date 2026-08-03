@@ -149,18 +149,18 @@ const MessagesPage = () => {
   };
 
   const getRole = (conv: Conversation) => {
-    if (!user) return "Conversation";
+    if (!user) return t('messages.conversation');
     if (conv.helper_id === user.id) return t('messages.youHelp');
-    if (conv.demande_user_id === user.id) return "Tu es aidé";
-    return "Conversation";
+    if (conv.demande_user_id === user.id) return t('messages.youAreHelped');
+    return t('messages.conversation');
   };
 
   const getTimeAgo = (created_at: string) => {
     const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
-    if (diff < 60) return "à l'instant";
-    if (diff < 3600) return `il y a ${Math.floor(diff / 60)}min`;
-    if (diff < 86400) return `il y a ${Math.floor(diff / 3600)}h`;
-    return `il y a ${Math.floor(diff / 86400)}j`;
+    if (diff < 60) return t('time.justNow');
+    if (diff < 3600) return t('time.minutesAgo', { n: Math.floor(diff / 60) });
+    if (diff < 86400) return t('time.hoursAgo', { n: Math.floor(diff / 3600) });
+    return t('time.daysAgo', { n: Math.floor(diff / 86400) });
   };
 
   const filtered = conversations.filter(c => showArchived ? c.archived : !c.archived);
@@ -211,7 +211,7 @@ const MessagesPage = () => {
 
             {filtered.length === 0 && (
               <EmptyState
-                icon="💬"
+                icon={MessageCircle}
                 title={showArchived ? t('messages.noArchived') : t('messages.noConversations')}
                 description={showArchived ? t('messages.archivedEmpty') : t('messages.exploreEmpty')}
               />

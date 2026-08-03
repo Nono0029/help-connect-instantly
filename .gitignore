@@ -26,3 +26,6 @@ dist-ssr
 .vercel
 .env*
 .capgo
+
+# Secrets/context local — ne jamais committer
+ASKOO_CONTEXT.md

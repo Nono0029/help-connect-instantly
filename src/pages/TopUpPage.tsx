@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, MessageCircle } from "lucide-react";
+import { useTranslation } from "@/context/LanguageContext";
 
 export default function TopUpPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -10,7 +12,7 @@ export default function TopUpPage() {
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="text-lg font-bold text-foreground">Paiement</h1>
+        <h1 className="text-lg font-bold text-foreground">{t('topup.title')}</h1>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-6">
@@ -19,10 +21,9 @@ export default function TopUpPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Paiement simplifié</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">{t('topup.simplified')}</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Les paiements se font directement via <strong>Apple Pay</strong> dans la conversation.
-            Plus besoin de recharger un portefeuille !
+            {t('topup.desc1')} <strong>Apple Pay</strong> {t('topup.desc2')}
           </p>
         </div>
 
@@ -31,7 +32,7 @@ export default function TopUpPage() {
           className="w-full max-w-xs h-12 rounded-2xl bg-accent text-white font-semibold flex items-center justify-center gap-2"
         >
           <MessageCircle className="w-5 h-5" />
-          Retour aux messages
+          {t('topup.backToMessages')}
         </button>
       </div>
     </div>

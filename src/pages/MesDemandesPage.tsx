@@ -32,6 +32,7 @@ interface Demande {
   prix?: string;
   created_at: string;
   user_id?: string;
+  archived?: boolean;
 }
 
 const MesDemandesPage = () => {
@@ -149,7 +150,7 @@ const MesDemandesPage = () => {
 
             {demandes.filter(d => showArchived ? d.archived : !d.archived).length === 0 && (
               <EmptyState
-                icon="📦"
+                icon={PackageOpen}
                 title={showArchived ? t('requests.noArchived') : t('requests.noPublished')}
                 description=""
               />

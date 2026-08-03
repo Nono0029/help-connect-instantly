@@ -1,5 +1,6 @@
 ﻿import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { ShieldX } from "lucide-react";
 
 const ProtectedRoute = () => {
   const { user, loading, isBlocked, signOut } = useAuth();
@@ -15,7 +16,9 @@ const ProtectedRoute = () => {
   if (user && isBlocked) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 text-center gap-4">
-        <div className="text-4xl">🚫</div>
+        <div className="w-16 h-16 rounded-3xl bg-destructive/10 border border-destructive/15 flex items-center justify-center">
+          <ShieldX className="w-7 h-7 text-destructive/80" />
+        </div>
         <h1 className="text-lg font-bold text-foreground">Compte suspendu</h1>
         <p className="text-sm text-muted-foreground max-w-sm">
           Ton compte a été suspendu suite à plusieurs signalements confirmés. Si tu penses qu'il s'agit d'une erreur, contacte le support.

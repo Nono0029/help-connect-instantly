@@ -14,7 +14,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 function getBrowserLanguage(): Language {
-  const browserLang = navigator.language || (navigator as { languages?: string[] }).languages?.[0] || 'fr';
+  const browserLang = navigator.language || navigator.languages?.[0] || 'fr';
   return browserLang.startsWith('en') ? 'en' : 'fr';
 }
 

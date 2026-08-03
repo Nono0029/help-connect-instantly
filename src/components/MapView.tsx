@@ -153,7 +153,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng, onLocate }: Prop
       const color = d.urgent ? "#ef4444" : "#22c55e";
 
       const icon = L.divIcon({
-        html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${d.gratuit ? "❤️" : "€"}</div>`,
+        html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${d.gratuit ? "♥" : "€"}</div>`,
         className: "",
         iconSize: [28, 28],
         iconAnchor: [14, 14],
@@ -166,7 +166,7 @@ const MapView = ({ demandes, ville, lat, lng, userLat, userLng, onLocate }: Prop
         <div style="font-family:sans-serif">
           <b style="font-size:13px">${sanitize(d.titre)}</b><br/>
           <span style="font-size:11px;color:#888">${sanitize(d.categorie)}${d.ville ? " · " + sanitize(d.ville) : ""}</span><br/>
-          <span style="font-size:11px;color:#666">📍 ${distLabel} · touche pour voir l'annonce</span>
+          <span style="font-size:11px;color:#666">${distLabel} · touche pour voir l'annonce</span>
         </div>
       `, { direction: "top", offset: [0, -14] });
       marker.on("click", () => navigate(`/demande/${d.id}`));

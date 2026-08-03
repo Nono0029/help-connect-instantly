@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Camera, Image, Euro, Clock, Sparkles } from "lucide-react";
+import { X, Camera, Image, Euro, Clock, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,34 +14,34 @@ import { useCameraUpload } from "@/hooks/useCameraUpload";
 import { Capacitor } from "@capacitor/core";
 
 const typesAide = [
-  { id: "menage", label: "🧹 Ménage / Nettoyage", desc: "Cleaning, ranging, organisation..." },
-  { id: "demenagement", label: "📦 Déménagement", desc: "Déménager, transporter des meubles..." },
-  { id: "cuisine", label: "🍳 Cuisine / Repas", desc: "Cuisiner, livrer un repas..." },
-  { id: "courses", label: "🛒 Courses / Achats", desc: "Acheter, rapporter des courses..." },
-  { id: "portage", label: "📮 Portage / Livraison", desc: "Rapporter un objet, livrer un colis..." },
-  { id: "physique", label: "💪 Aide physique", desc: "Portage, aide mobile, jardinage..." },
-  { id: "bricolage", label: "🔧 Bricolage", desc: "Réparation, montage, plomberie..." },
-  { id: "jardin", label: "🌱 Jardin / Plantes", desc: "Arrosage, tonte, entretien..." },
-  { id: "admin", label: "📋 Administratif", desc: "Démarches, papiers, formulaires..." },
-  { id: "compta", label: "💰 Comptabilité", desc: "Impôts, budget, factures..." },
-  { id: "juridique", label: "⚖️ Juridique", desc: "Conseil légal, contrats..." },
-  { id: "tech", label: "💻 Tech / Informatique", desc: "Code, site web, dépannage..." },
-  { id: "photo", label: "📸 Photo / Vidéo", desc: "Portrait, événement, montage..." },
-  { id: "design", label: "🎨 Design / Créatif", desc: "Logo, affiche, graphisme..." },
-  { id: "cours", label: "📚 Cours / Tutorat", desc: "Maths, langues, soutien scolaire..." },
-  { id: "langues", label: "🌍 Langues / Échange", desc: "Pratiquer, traduire, converser..." },
-  { id: "musique", label: "🎵 Musique / Art", desc: "Cours, accompagnement, création..." },
-  { id: "animaux", label: "🐶 Animaux", desc: "Garde, promenade, pet-sitting..." },
-  { id: "ecoute", label: "💬 Écoute / Social", desc: "Discuter, accompagner, soutien..." },
-  { id: "bienetre", label: "🧘 Bien-être", desc: "Méditation, yoga, relaxation..." },
-  { id: "enfants", label: "👶 Garde d'enfants", desc: "Garde, babysitting, aide aux devoirs..." },
-  { id: "personnes agees", label: "👴 Aide personnes âgées", desc: "Compagnie, courses, démarches..." },
-  { id: "transport", label: "🚗 Transport", desc: "Covoiturage, accompagner, déplacer..." },
-  { id: "evenement", label: "🎉 Événement / Fête", desc: "Organisation, déco, animation..." },
-  { id: "mode", label: "👗 Mode / Styling", desc: "Conseil, retouche, shopping..." },
-  { id: "sante", label: "🏥 Santé / Bien-être", desc: "Accompagnement, conseil, aide..." },
-  { id: "depannage", label: "🔌 Dépannage", desc: "Objets cassés, pannes, réparations..." },
-  { id: "autre", label: "✨ Autre", desc: "Tout ce qui ne rentre pas ailleurs" },
+  { id: "menage", label: "Ménage / Nettoyage", desc: "Cleaning, ranging, organisation..." },
+  { id: "demenagement", label: "Déménagement", desc: "Déménager, transporter des meubles..." },
+  { id: "cuisine", label: "Cuisine / Repas", desc: "Cuisiner, livrer un repas..." },
+  { id: "courses", label: "Courses / Achats", desc: "Acheter, rapporter des courses..." },
+  { id: "portage", label: "Portage / Livraison", desc: "Rapporter un objet, livrer un colis..." },
+  { id: "physique", label: "Aide physique", desc: "Portage, aide mobile, jardinage..." },
+  { id: "bricolage", label: "Bricolage", desc: "Réparation, montage, plomberie..." },
+  { id: "jardin", label: "Jardin / Plantes", desc: "Arrosage, tonte, entretien..." },
+  { id: "admin", label: "Administratif", desc: "Démarches, papiers, formulaires..." },
+  { id: "compta", label: "Comptabilité", desc: "Impôts, budget, factures..." },
+  { id: "juridique", label: "Juridique", desc: "Conseil légal, contrats..." },
+  { id: "tech", label: "Tech / Informatique", desc: "Code, site web, dépannage..." },
+  { id: "photo", label: "Photo / Vidéo", desc: "Portrait, événement, montage..." },
+  { id: "design", label: "Design / Créatif", desc: "Logo, affiche, graphisme..." },
+  { id: "cours", label: "Cours / Tutorat", desc: "Maths, langues, soutien scolaire..." },
+  { id: "langues", label: "Langues / Échange", desc: "Pratiquer, traduire, converser..." },
+  { id: "musique", label: "Musique / Art", desc: "Cours, accompagnement, création..." },
+  { id: "animaux", label: "Animaux", desc: "Garde, promenade, pet-sitting..." },
+  { id: "ecoute", label: "Écoute / Social", desc: "Discuter, accompagner, soutien..." },
+  { id: "bienetre", label: "Bien-être", desc: "Méditation, yoga, relaxation..." },
+  { id: "enfants", label: "Garde d'enfants", desc: "Garde, babysitting, aide aux devoirs..." },
+  { id: "personnes agees", label: "Aide personnes âgées", desc: "Compagnie, courses, démarches..." },
+  { id: "transport", label: "Transport", desc: "Covoiturage, accompagner, déplacer..." },
+  { id: "evenement", label: "Événement / Fête", desc: "Organisation, déco, animation..." },
+  { id: "mode", label: "Mode / Styling", desc: "Conseil, retouche, shopping..." },
+  { id: "sante", label: "Santé / Bien-être", desc: "Accompagnement, conseil, aide..." },
+  { id: "depannage", label: "Dépannage", desc: "Objets cassés, pannes, réparations..." },
+  { id: "autre", label: "Autre", desc: "Tout ce qui ne rentre pas ailleurs" },
 ];
 
 const durees = ["< 30 min", "1h", "2h", "Demi-journée", "Journée", "Plusieurs jours"];
@@ -352,7 +352,6 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                 }`}>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{t('postForm.urgent')}</span>
-                  {urgent && <span className="text-xs text-destructive/70 font-medium">⚡ {t('home.urgentExtra')}</span>}
                 </div>
                 <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${
                   urgent ? "bg-destructive justify-end" : "bg-muted-foreground/20 justify-start"
@@ -373,7 +372,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                       : "bg-secondary border-transparent"
                   }`}>
                     <span className="text-xs font-medium text-muted-foreground">
-                      {urgent && <span className="mr-1">⚡</span>}
+                      {urgent && <Zap className="inline w-3 h-3 mr-1 -mt-0.5 text-destructive" />}
                       {frais}€ de frais
                     </span>
                     <span className="text-xl font-extrabold text-foreground">{total}€</span>

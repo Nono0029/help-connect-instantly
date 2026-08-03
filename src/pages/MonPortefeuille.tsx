@@ -129,7 +129,7 @@ const MonPortefeuille = () => {
               onClick={() => navigate("/topup")}
               className="flex-1 h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2"
             >
-              <Plus className="w-4 h-4" /> {t('wallet.topUp') || "Recharger"}
+              <Plus className="w-4 h-4" /> {t('wallet.topUp')}
             </button>
             <button
               onClick={() => {

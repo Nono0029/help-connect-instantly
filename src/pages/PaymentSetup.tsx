@@ -88,7 +88,7 @@ const PaymentSetup = () => {
                   type="text"
                   value={bankHolderName}
                   onChange={(e) => setBankHolderName(e.target.value)}
-                  placeholder="Prénom Nom"
+                  placeholder={t("paymentSetup.accountHolderPlaceholder")}
                   className="w-full h-11 rounded-xl bg-secondary border-none px-3 text-sm"
                 />
               </div>

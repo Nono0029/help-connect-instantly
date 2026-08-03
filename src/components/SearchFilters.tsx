@@ -15,17 +15,16 @@ interface Props {
   onClose: () => void;
   filters: Filters;
   onApply: (filters: Filters) => void;
+  categories: { value: string; label: string }[];
 }
 
-const SearchFilters = ({ open, onClose, filters, onApply }: Props) => {
+const SearchFilters = ({ open, onClose, filters, onApply, categories }: Props) => {
   const { t } = useTranslation();
   const [type, setType] = useState(filters.type);
   const [maxDistance, setMaxDistance] = useState(filters.maxDistance);
   const [prix, setPrix] = useState(filters.prix);
 
-  const typesFiltre = [
-    t('searchFilters.all'), "🏠 Maison", "🔧 Bricolage", "🐶 Animaux", "📚 Cours", "💬 Écoute", "💻 Tech", "🌱 Jardin", "🚗 Transport"
-  ];
+  const typesFiltre = categories;
 
   const distancesFiltre = [
     { label: "< 500m", value: 0.5 },
@@ -92,15 +91,15 @@ const SearchFilters = ({ open, onClose, filters, onApply }: Props) => {
                 <div className="flex flex-wrap gap-2">
                   {typesFiltre.map(typeItem => (
                     <button
-                      key={typeItem}
-                      onClick={() => setType(typeItem)}
+                      key={typeItem.value}
+                      onClick={() => setType(typeItem.value)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                        type === typeItem
+                        type === typeItem.value
                           ? "bg-primary text-primary-foreground border-primary"
                           : "bg-secondary text-muted-foreground border-transparent"
                       }`}
                     >
-                      {typeItem}
+                      {typeItem.label}
                     </button>
                   ))}
                 </div>

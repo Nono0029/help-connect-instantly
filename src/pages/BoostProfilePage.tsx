@@ -127,9 +127,9 @@ const BoostProfilePage = () => {
       toast.success(t('boost.activated'));
     } catch (err: any) {
       if (err?.message?.includes("cancel")) {
-        toast.info("Paiement annulé");
+        toast.info(t('boost.paymentCancelled'));
       } else {
-        toast.error("Erreur lors du paiement");
+        toast.error(t('boost.paymentError'));
       }
     } finally {
       setActivating(false);
@@ -203,12 +203,12 @@ const BoostProfilePage = () => {
 
         {/* Benefits */}
         <div className="card-magic p-5 space-y-3">
-          <h3 className="text-sm font-bold text-foreground">Avantages</h3>
+          <h3 className="text-sm font-bold text-foreground">{t('boost.benefitsTitle')}</h3>
           {[
-            "Apparaît en tête des résultats de recherche",
-            "Tes demandes urgentes sont mises en avant en haut de l'accueil",
-            "Mode urgent gratuit, sans frais, autant de fois que tu veux",
-            "Badge boost sur ton profil",
+            t('boost.benefit1'),
+            t('boost.benefit2'),
+            t('boost.benefit3'),
+            t('boost.benefit4'),
           ].map((benefit, i) => (
             <div key={i} className="flex items-center gap-3">
               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -263,7 +263,7 @@ const BoostProfilePage = () => {
             ) : (
               <Rocket className="w-4 h-4 mr-2" />
             )}
-            {activating ? "Activation..." : isBoostActive ? t('boost.active', { date: formatDate(boostUntil!) }) : t('boost.subscribe')}
+            {activating ? t('boost.activating') : isBoostActive ? t('boost.active', { date: formatDate(boostUntil!) }) : t('boost.subscribe')}
           </Button>
           {!isBoostActive && Capacitor.isNativePlatform() && (
             <Button

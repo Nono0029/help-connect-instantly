@@ -190,8 +190,8 @@ const DemandeDetail = () => {
                   <span className="inline-flex items-baseline gap-2">
                     <span>{demande.prix} €</span>
                     {isUrgentActive(demande.urgent, demande.created_at) && (
-                      <span className="text-[11px] font-semibold text-destructive/80 whitespace-nowrap">
-                        ⚡ +{getFeesEuros(true, isBoosted)}€ de frais
+                      <span className="text-[11px] font-semibold text-destructive/80 whitespace-nowrap inline-flex items-center gap-0.5">
+                        <Zap className="w-3 h-3" /> +{getFeesEuros(true, isBoosted)}€ de frais
                       </span>
                     )}
                   </span>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
@@ -223,7 +223,9 @@ const ProfilePage = () => {
           <h2 className="text-xl font-bold text-foreground mt-4 flex items-center justify-center gap-2">
             {profile.pseudo || t('profile.anonymous')}
             {profile.stripe_onboarding && (
-              <span title={t('profile.verified')}>✅</span>
+              <span title={t('profile.verified')} className="w-5 h-5 rounded-full bg-accent/15 flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4 text-accent" />
+              </span>
             )}
           </h2>
 
@@ -303,7 +305,7 @@ const ProfilePage = () => {
             {(missions.length > 0 || avis.length > 0 || demandes.length > 0) && (
               <div className="flex items-center justify-center gap-1.5 text-xs text-accent font-medium">
                 <Zap className="w-3.5 h-3.5" />
-                <span>Activité récente</span>
+                <span>{t('profile.recentActivity')}</span>
               </div>
             )}
           </div>

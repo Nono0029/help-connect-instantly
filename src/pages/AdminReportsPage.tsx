@@ -91,7 +91,7 @@ const AdminReportsPage = () => {
     );
   }
 
-  const statutLabel = (s: string) => s === "ouvert" ? "🟡 Ouvert" : s === "confirme" ? "✅ Confirmé" : s === "rejete" ? "❌ Rejeté" : s;
+  const statutLabel = (s: string) => s === "ouvert" ? "Ouvert" : s === "confirme" ? "Confirmé" : s === "rejete" ? "Rejeté" : s;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -123,7 +123,7 @@ const AdminReportsPage = () => {
                 </div>
                 <p className="text-sm text-foreground">
                   <strong>{reporter?.pseudo || s.reporter_id}</strong> signale <strong>{reported?.pseudo || s.reported_id || "?"}</strong>
-                  {reported?.blocked && <span className="ml-2 text-[11px] text-destructive font-semibold">🚫 Bloqué</span>}
+                  {reported?.blocked && <span className="ml-2 text-[11px] text-destructive font-semibold">Bloqué</span>}
                 </p>
                 <p className="text-sm text-foreground font-medium">{s.raison}</p>
                 {s.description && <p className="text-sm text-muted-foreground">{s.description}</p>}

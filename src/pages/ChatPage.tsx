@@ -11,11 +11,13 @@ import {
   MapPin,
   ShieldCheck,
   Check,
+  CheckCircle2,
   X,
   Loader2,
   Image as ImageIcon,
   Lock,
   CreditCard,
+  Euro,
   Home,
   AlertTriangle,
   Flag,
@@ -994,7 +996,7 @@ const ChatPage = () => {
                 : t('chat.paymentDesc')}
           </p>
           <div className="flex items-center justify-between mb-3 px-1">
-            <span className="text-xs text-muted-foreground">Total à payer</span>
+            <span className="text-xs text-muted-foreground">{t('chat.payTotal')}</span>
             <span className="text-sm font-bold text-foreground">{getTotalEuros(missionPrice, isUrgentActive(mission?.demandes?.urgent, mission?.demandes?.created_at), isBoosted).toFixed(2)} €</span>
           </div>
           <button
@@ -1041,7 +1043,7 @@ const ChatPage = () => {
 
       {/* ILLU BANNER */}
       <div className="flex justify-center py-3 bg-gradient-to-b from-transparent via-primary/5 to-transparent">
-        <Illu name={["jardin","bricolage","cours","tech","animaux","ecoute","demenagement","nature","sports","travel","food","musique"][Number(id ?? 0) % 12]} className="w-32 h-32 opacity-40" />
+        <Illu name={(["jardin","bricolage","cours","tech","animaux","ecoute","demenagement","nature","sports","travel","food","musique"] as const)[Number(id ?? 0) % 12]} className="w-32 h-32 opacity-40" />
       </div>
 
       {/* MESSAGES */}
@@ -1151,10 +1153,10 @@ const ChatPage = () => {
               </div>
 
               <div className="bg-muted/50 rounded-2xl p-4 space-y-2 text-sm text-muted-foreground">
-                <p>✅ <strong>{t('chat.confirmDone')}</strong></p>
-                <p>🔒 <strong>{t('chat.confirmEscrow')}</strong></p>
-                <p>💰 <strong>{t('chat.confirmFees')}</strong></p>
-                <p>🛡️ <strong>{t('chat.confirmProtection')}</strong></p>
+                <p className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-accent shrink-0" /> <strong>{t('chat.confirmDone')}</strong></p>
+                <p className="flex items-center gap-2"><Lock className="w-4 h-4 text-accent shrink-0" /> <strong>{t('chat.confirmEscrow')}</strong></p>
+                <p className="flex items-center gap-2"><Euro className="w-4 h-4 text-accent shrink-0" /> <strong>{t('chat.confirmFees')}</strong></p>
+                <p className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-accent shrink-0" /> <strong>{t('chat.confirmProtection')}</strong></p>
                 <p className="text-xs text-muted-foreground/60 pt-1">{t('chat.confirmSmall')}</p>
               </div>
 
@@ -1284,8 +1286,8 @@ const ChatPage = () => {
                 )}
               </div>
 
-              <div className="bg-destructive/5 rounded-2xl p-3 text-xs text-muted-foreground">
-                ⚠️ {t('chat.reportWarning')}
+              <div className="bg-destructive/5 rounded-2xl p-3 text-xs text-muted-foreground flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-destructive/70 shrink-0" /> {t('chat.reportWarning')}
               </div>
 
               <div className="flex gap-3 pt-1">

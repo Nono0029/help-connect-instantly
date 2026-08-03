@@ -1,5 +1,6 @@
 import { Component, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -30,7 +31,9 @@ export class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) return this.props.fallback;
       return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center px-5 text-center">
-          <div className="text-6xl mb-4">😵</div>
+          <div className="w-16 h-16 rounded-3xl bg-destructive/10 border border-destructive/15 flex items-center justify-center mb-4">
+            <AlertTriangle className="w-7 h-7 text-destructive/80" />
+          </div>
           <h2 className="text-xl font-bold text-foreground mb-2">Une erreur s'est produite</h2>
           <p className="text-sm text-muted-foreground mb-6 max-w-md">
             {this.state.error?.message || "Quelque chose s'est mal passé. Réessaie ou retourne à l'accueil."}

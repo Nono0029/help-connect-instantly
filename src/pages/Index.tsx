@@ -22,6 +22,8 @@ import {
   PawPrint,
   Car,
   Star,
+  Zap,
+  Rocket,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -68,55 +70,55 @@ const Index = () => {
 
   const categoryKeys = [
     "Tout",
-    "🧹 Ménage / Nettoyage",
-    "📦 Déménagement",
-    "🍳 Cuisine / Repas",
-    "🛒 Courses / Achats",
-    "📮 Portage / Livraison",
-    "💪 Aide physique",
-    "🔧 Bricolage",
-    "🌱 Jardin / Plantes",
-    "💻 Tech / Informatique",
-    "📚 Cours / Tutorat",
-    "🐶 Animaux",
-    "💬 Écoute / Social",
-    "🚗 Transport",
-    "✨ Autre",
+    "Ménage / Nettoyage",
+    "Déménagement",
+    "Cuisine / Repas",
+    "Courses / Achats",
+    "Portage / Livraison",
+    "Aide physique",
+    "Bricolage",
+    "Jardin / Plantes",
+    "Tech / Informatique",
+    "Cours / Tutorat",
+    "Animaux",
+    "Écoute / Social",
+    "Transport",
+    "Autre",
   ];
 
   const categoryLabels: Record<string, string> = {
     "Tout": t('home.all'),
-    "🧹 Ménage / Nettoyage": t('home.menage'),
-    "📦 Déménagement": t('home.demenagement'),
-    "🍳 Cuisine / Repas": t('home.cuisine'),
-    "🛒 Courses / Achats": t('home.courses'),
-    "📮 Portage / Livraison": t('home.portage'),
-    "💪 Aide physique": t('home.physical'),
-    "🔧 Bricolage": t('home.diy'),
-    "🌱 Jardin / Plantes": t('home.garden'),
-    "💻 Tech / Informatique": t('home.tech'),
-    "📚 Cours / Tutorat": t('home.tutoring'),
-    "🐶 Animaux": t('home.animals'),
-    "💬 Écoute / Social": t('home.listening'),
-    "🚗 Transport": t('home.transport'),
-    "✨ Autre": t('home.other'),
+    "Ménage / Nettoyage": t('home.menage'),
+    "Déménagement": t('home.demenagement'),
+    "Cuisine / Repas": t('home.cuisine'),
+    "Courses / Achats": t('home.courses'),
+    "Portage / Livraison": t('home.portage'),
+    "Aide physique": t('home.physical'),
+    "Bricolage": t('home.diy'),
+    "Jardin / Plantes": t('home.garden'),
+    "Tech / Informatique": t('home.tech'),
+    "Cours / Tutorat": t('home.tutoring'),
+    "Animaux": t('home.animals'),
+    "Écoute / Social": t('home.listening'),
+    "Transport": t('home.transport'),
+    "Autre": t('home.other'),
   };
 
   const categoryIcons: Record<string, typeof Sprout> = {
-    "🧹 Ménage / Nettoyage": Sparkles,
-    "📦 Déménagement": Truck,
-    "🍳 Cuisine / Repas": UtensilsCrossed,
-    "🛒 Courses / Achats": ShoppingCart,
-    "📮 Portage / Livraison": Package,
-    "💪 Aide physique": Dumbbell,
-    "🔧 Bricolage": Hammer,
-    "🌱 Jardin / Plantes": Sprout,
-    "💻 Tech / Informatique": Laptop,
-    "📚 Cours / Tutorat": GraduationCap,
-    "🐶 Animaux": PawPrint,
-    "💬 Écoute / Social": MessageCircle,
-    "🚗 Transport": Car,
-    "✨ Autre": Star,
+    "Ménage / Nettoyage": Sparkles,
+    "Déménagement": Truck,
+    "Cuisine / Repas": UtensilsCrossed,
+    "Courses / Achats": ShoppingCart,
+    "Portage / Livraison": Package,
+    "Aide physique": Dumbbell,
+    "Bricolage": Hammer,
+    "Jardin / Plantes": Sprout,
+    "Tech / Informatique": Laptop,
+    "Cours / Tutorat": GraduationCap,
+    "Animaux": PawPrint,
+    "Écoute / Social": MessageCircle,
+    "Transport": Car,
+    "Autre": Star,
   };
 
   const [search, setSearch] = useState("");
@@ -405,7 +407,6 @@ const Index = () => {
             <div>
               <h1 className="text-[26px] font-extrabold tracking-tight text-foreground font-display leading-none">
                 Ask<span className="text-primary">oo</span>
-                <span className="ml-1 text-base">✨</span>
               </h1>
               <p className="text-[11px] text-muted-foreground mt-0.5 font-medium tracking-wide">
                 {t('home.tagline')}
@@ -548,7 +549,7 @@ const Index = () => {
             />
 
             <span className="ml-auto text-accent font-semibold">
-              {t('home.available', { count: sorted.length })} {userCoords ? t('home.nearYou') : "🌟"}
+              {t('home.available', { count: sorted.length })}{userCoords ? ` · ${t('home.nearYou')}` : ""}
             </span>
 
           </div>
@@ -618,7 +619,7 @@ const Index = () => {
 
         {!loading && sorted.length === 0 && (
           <EmptyState
-            icon="🌸"
+            icon={Search}
             title={t('home.noResults')}
             description={t('home.noResultsDesc')}
           />
@@ -657,7 +658,9 @@ const Index = () => {
                       return <CatIcon className="w-5 h-5 text-secondary-foreground" />;
                     })()}
                     {d.user_id && boostedUserIds.has(d.user_id) && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 flex items-center justify-center text-[8px]">⭐</span>
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 flex items-center justify-center text-[8px] shadow-sm">
+                        <Zap className="w-2.5 h-2.5 text-white fill-current" />
+                      </span>
                     )}
                   </div>
                   <div className="min-w-0">
@@ -674,7 +677,7 @@ const Index = () => {
                 <div className="flex items-center gap-1.5 shrink-0 ml-2">
                   {isUrgentActive(d.urgent, d.created_at) && (
                     <span className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md shadow-red-500/25 whitespace-nowrap">
-                      ⚡ {t('home.urgentBadge')}
+                      <Zap className="w-3 h-3 fill-current" /> {t('home.urgentBadge')}
                     </span>
                   )}
                   <button onClick={(e) => toggleLike(d.id, e)} className="p-1">
@@ -704,11 +707,11 @@ const Index = () => {
               {/* Footer */}
               <div className="flex items-center gap-1.5 flex-wrap mb-3">
                 <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-primary/10 text-foreground/80 truncate max-w-[130px]">
-                  {d.categorie}
+                  {categoryLabels[d.categorie] || d.categorie}
                 </span>
                 {d.user_id && boostedUserIds.has(d.user_id) && (
-                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300 whitespace-nowrap">
-                    🚀 Pro
+                  <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300 whitespace-nowrap">
+                    <Rocket className="w-3 h-3" /> {t('home.proBadge')}
                   </span>
                 )}
               </div>
@@ -743,6 +746,7 @@ const Index = () => {
         }
         filters={filters}
         onApply={setFilters}
+        categories={categoryKeys.map(cat => ({ value: cat, label: categoryLabels[cat] }))}
       />
 
       {lightbox && (

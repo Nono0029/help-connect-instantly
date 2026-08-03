@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, Camera, Image, Euro, Clock, Sparkles, ArrowLeft } from "lucide-react";
+import { X, Camera, Image, Euro, Clock, Sparkles, ArrowLeft, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -245,7 +245,6 @@ const CreateRequestPage = () => {
           }`}>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{t('createRequest.urgent')}</span>
-            {urgent && <span className="text-xs text-destructive/70 font-medium">⚡ {t('home.urgentExtra')}</span>}
           </div>
           <div className={`w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${urgent ? "bg-destructive justify-end" : "bg-muted-foreground/30"}`}>
             <div className="w-5 h-5 rounded-full bg-card shadow-sm" />
@@ -264,7 +263,7 @@ const CreateRequestPage = () => {
                 : "bg-secondary border-transparent"
             }`}>
               <span className="text-xs font-medium text-muted-foreground">
-                {urgent && <span className="mr-1">⚡</span>}
+                {urgent && <Zap className="inline w-3 h-3 mr-1 -mt-0.5 text-destructive" />}
                 {frais}€ de frais
               </span>
               <span className="text-xl font-extrabold text-foreground">{total}€</span>
