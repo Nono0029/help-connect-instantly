@@ -75,7 +75,8 @@ serve(async (req) => {
     }
 
     const createdAt = mission.demandes?.created_at;
-    const urgentActive = mission.demandes?.urgent === true
+    const urgentFlag = mission.demandes?.urgent === true || mission.demandes?.urgent === "true";
+    const urgentActive = urgentFlag
       && !!createdAt
       && (Date.now() - new Date(createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
 

@@ -22,8 +22,9 @@ export const URGENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
  * server would reject. For brand-new forms without a `created_at`
  * yet, don't call this — use the user's toggle state directly.
  */
-export function isUrgentActive(urgent: boolean | null | undefined, createdAt?: string | null): boolean {
-  if (!urgent || !createdAt) return false;
+export function isUrgentActive(urgent: boolean | string | null | undefined, createdAt?: string | null): boolean {
+  const isUrgent = urgent === true || urgent === "true";
+  if (!isUrgent || !createdAt) return false;
   const created = new Date(createdAt).getTime();
   if (Number.isNaN(created)) return false;
   return Date.now() - created < URGENT_WINDOW_MS;

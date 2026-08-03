@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
-import { getTotalEuros, isBoostActive } from "@/lib/urgentFee";
+import { getTotalEuros, getFeesEuros, isBoostActive } from "@/lib/urgentFee";
 import CityPicker from "@/components/CityPicker";
 import { useCameraUpload } from "@/hooks/useCameraUpload";
 import { Capacitor } from "@capacitor/core";
@@ -252,15 +252,25 @@ const CreateRequestPage = () => {
           </div>
         </button>
 
-        {urgent && !gratuit && prix && (
-          <div className="px-4 py-2.5 rounded-xl bg-destructive/5 border border-destructive/20 text-sm">
-            <span className="font-semibold text-destructive">
-              {isBoosted
-                ? `Total : ${prix}€ + 2€ de frais (boost actif ✨)`
-                : t('home.urgentTotal', { price: `${prix}€`, total: getTotalEuros(parseFloat(prix), true, false) })}
-            </span>
-          </div>
-        )}
+        {!gratuit && prix && (() => {
+          const montant = parseFloat(prix);
+          if (Number.isNaN(montant) || montant <= 0) return null;
+          const total = getTotalEuros(montant, urgent, isBoosted);
+          const frais = getFeesEuros(urgent, isBoosted);
+          return (
+            <div className={`flex items-center justify-between rounded-xl px-4 py-3 border ${
+              urgent
+                ? "bg-destructive/10 border-destructive/25"
+                : "bg-secondary border-transparent"
+            }`}>
+              <span className="text-xs font-medium text-muted-foreground">
+                {urgent && <span className="mr-1">⚡</span>}
+                {frais}€ de frais
+              </span>
+              <span className="text-xl font-extrabold text-foreground">{total}€</span>
+            </div>
+          );
+        })()}
 
         <Button onClick={handleSubmit} disabled={!titre || !selectedType || loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25">
           <Sparkles className="w-4 h-4 mr-2" />

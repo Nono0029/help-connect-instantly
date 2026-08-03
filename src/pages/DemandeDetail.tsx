@@ -10,7 +10,7 @@ import ImageLightbox from "@/components/ImageLightbox";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
 import { formatTimeAgo, withTimeout } from "@/lib/utils";
-import { isUrgentActive, getTotalEuros, isBoostActive } from "@/lib/urgentFee";
+import { isUrgentActive, getFeesEuros, isBoostActive } from "@/lib/urgentFee";
 
 interface Demande {
   id: number;
@@ -186,9 +186,16 @@ const DemandeDetail = () => {
             <span className={`font-bold text-base ${demande.gratuit ? "text-accent" : "text-foreground"}`}>
               {demande.gratuit
                 ? t('demandeDetail.free')
-                : isUrgentActive(demande.urgent, demande.created_at) && demande.prix
-                  ? t('home.urgentTotal', { price: `${demande.prix}€`, total: getTotalEuros(parseFloat(demande.prix), true, isBoosted) })
-                  : demande.prix
+                : (
+                  <span className="inline-flex items-baseline gap-2">
+                    <span>{demande.prix} €</span>
+                    {isUrgentActive(demande.urgent, demande.created_at) && (
+                      <span className="text-[11px] font-semibold text-destructive/80 whitespace-nowrap">
+                        ⚡ +{getFeesEuros(true, isBoosted)}€ de frais
+                      </span>
+                    )}
+                  </span>
+                )
               }
             </span>
           </div>

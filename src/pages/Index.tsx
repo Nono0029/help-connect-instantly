@@ -638,7 +638,7 @@ const Index = () => {
               }}
               onClick={() => navigate(`/demande/${d.id}`)}
               className={`card-magic cursor-pointer active:scale-[0.98] overflow-hidden ${
-                isUrgentActive(d.urgent, d.created_at) ? "border-l-[3px] !border-l-red-400 dark:!border-l-red-400" : ""
+                isUrgentActive(d.urgent, d.created_at) ? "card-urgent" : ""
               }`}
             >
               {/* Header row */}
@@ -666,8 +666,8 @@ const Index = () => {
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 ml-2">
                   {isUrgentActive(d.urgent, d.created_at) && (
-                    <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-accent text-accent-foreground whitespace-nowrap">
-                      {t('home.urgentBadge')}
+                    <span className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md shadow-red-500/25 whitespace-nowrap">
+                      ⚡ {t('home.urgentBadge')}
                     </span>
                   )}
                   <button onClick={(e) => toggleLike(d.id, e)} className="p-1">

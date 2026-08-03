@@ -257,6 +257,33 @@
   border-top-color: rgba(255, 255, 255, 0.22);
 }
 
+/* Urgent card — warm red ring + soft glow instead of a left red bar */
+.card-urgent {
+  border-color: rgba(248, 113, 113, 0.5) !important;
+  background:
+    radial-gradient(120% 90% at 50% -15%, rgba(251, 113, 133, 0.16), transparent 62%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 35%, rgba(255, 255, 255, 0) 60%),
+    rgba(255, 255, 255, 0.68);
+  box-shadow:
+    0 6px 26px rgba(248, 113, 113, 0.16),
+    0 1px 4px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -12px 24px -12px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+}
+.dark .card-urgent {
+  border-color: rgba(248, 113, 113, 0.42) !important;
+  background:
+    radial-gradient(120% 90% at 50% -15%, rgba(251, 113, 133, 0.22), transparent 62%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 35%, rgba(255, 255, 255, 0) 60%),
+    rgba(24, 36, 52, 0.68);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.55),
+    0 2px 12px rgba(248, 113, 113, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+
 /* Card flat (pages internes) */
 .card-flat {
   background: rgba(255, 255, 255, 0.85);
