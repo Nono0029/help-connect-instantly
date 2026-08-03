@@ -383,6 +383,8 @@
     "availableBalance": "Available balance",
     "earnedBalance": "Money earned by helping",
     "withdraw": "Withdraw",
+    "bankSectionTitle": "Your bank details (RIB)",
+    "bankAskedOnWithdraw": "You'll be asked for your RIB when withdrawing",
     "configureStripe": "Set up your bank details to withdraw your funds",
     "configureBank": "Add your bank details to withdraw your funds",
     "history": "Transaction history",

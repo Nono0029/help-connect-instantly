@@ -383,6 +383,8 @@
     "availableBalance": "Solde disponible",
     "earnedBalance": "Argent gagné en aidant",
     "withdraw": "Retirer",
+    "bankSectionTitle": "Tes coordonnées bancaires (RIB)",
+    "bankAskedOnWithdraw": "Ton RIB te sera demandé au moment du retrait",
     "configureStripe": "Configure tes coordonnées bancaires pour retirer tes fonds",
     "configureBank": "Ajoute tes coordonnées bancaires pour retirer tes fonds",
     "history": "Historique des transactions",

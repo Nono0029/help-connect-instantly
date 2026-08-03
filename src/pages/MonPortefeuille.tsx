@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Wallet, ArrowUpRight, ArrowDownLeft, Loader2, AlertTriangle, Landmark, ShieldCheck, Lock, Smartphone, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Wallet, ArrowUpRight, ArrowDownLeft, Loader2, AlertTriangle, Landmark, ShieldCheck, Lock, Smartphone } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -23,7 +23,6 @@ const MonPortefeuille = () => {
 
   const [iban, setIban] = useState("");
   const [bankHolderName, setBankHolderName] = useState("");
-  const [savingBank, setSavingBank] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -56,28 +55,6 @@ const MonPortefeuille = () => {
     withTimeout(fetchData(), 15000, "monPortefeuille").catch(() => setLoading(false));
   }, [user?.id]);
 
-  const handleSaveBank = async () => {
-    if (!user) return;
-    const normalizedIban = iban.replace(/\s+/g, "").toUpperCase();
-    if (!normalizedIban || !bankHolderName.trim() || normalizedIban.length < 14 || normalizedIban.length > 34) {
-      toast.error(t('paymentSetup.fillBothFields'));
-      return;
-    }
-    setSavingBank(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ iban: normalizedIban, bank_holder_name: bankHolderName.trim() })
-      .eq("id", user.id);
-    setSavingBank(false);
-    if (error) {
-      toast.error(t('paymentSetup.saveError'));
-      return;
-    }
-    setIban(normalizedIban);
-    setBankReady(true);
-    toast.success(t('paymentSetup.saveSuccess'));
-  };
-
   const handleWithdraw = async () => {
     if (!user) {
       toast.error(t('wallet.withdrawError'));
@@ -91,6 +68,23 @@ const MonPortefeuille = () => {
     if (amount < 5) {
       toast.error(t('wallet.minimumWithdraw'));
       return;
+    }
+    if (!bankReady) {
+      const normalizedIban = iban.replace(/\s+/g, "").toUpperCase();
+      if (!normalizedIban || !bankHolderName.trim() || normalizedIban.length < 14 || normalizedIban.length > 34) {
+        toast.error(t('paymentSetup.fillBothFields'));
+        return;
+      }
+      const { error: bankError } = await supabase
+        .from("profiles")
+        .update({ iban: normalizedIban, bank_holder_name: bankHolderName.trim() })
+        .eq("id", user.id);
+      if (bankError) {
+        toast.error(t('paymentSetup.saveError'));
+        return;
+      }
+      setIban(normalizedIban);
+      setBankReady(true);
     }
     setWithdrawLoading(true);
     try {
@@ -156,13 +150,7 @@ const MonPortefeuille = () => {
           </p>
           <div className="flex gap-2 mt-4">
             <button
-              onClick={() => {
-                if (!bankReady) {
-                  toast.error(t('wallet.configureBankFirst'));
-                  return;
-                }
-                setShowWithdraw(true);
-              }}
+              onClick={() => setShowWithdraw(true)}
               disabled={!wallet || wallet.balance <= 0}
               className="flex-1 h-11 rounded-2xl btn-magic font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
             >
@@ -170,57 +158,10 @@ const MonPortefeuille = () => {
             </button>
           </div>
           {!bankReady && (
-            <p className="text-xs text-destructive mt-2 flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3" /> {t('wallet.configureBank')}
+            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" /> {t('wallet.bankAskedOnWithdraw')}
             </p>
           )}
-        </div>
-      </div>
-
-      {/* Coordonnées bancaires */}
-      <div className="px-4 mt-6">
-        <div className="card-magic">
-          <div className="flex items-center gap-3 mb-4">
-            <Landmark className="w-8 h-8 text-primary" />
-            <div>
-              <h2 className="font-bold text-foreground">{t('paymentSetup.bankDetailsTitle')}</h2>
-              <p className="text-sm text-muted-foreground">{t('paymentSetup.bankDetailsDesc')}</p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t('paymentSetup.holderNameLabel')}</label>
-              <input
-                type="text"
-                value={bankHolderName}
-                onChange={(e) => setBankHolderName(e.target.value)}
-                placeholder={t('paymentSetup.accountHolderPlaceholder')}
-                className="w-full h-11 rounded-xl bg-secondary border-none px-3 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t('paymentSetup.ibanLabel')}</label>
-              <input
-                type="text"
-                value={iban}
-                onChange={(e) => setIban(e.target.value.toUpperCase())}
-                placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
-                className="w-full h-11 rounded-xl bg-secondary border-none px-3 text-sm tracking-wide"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {t('paymentSetup.bankPrivacy')}
-            </p>
-            <button
-              onClick={handleSaveBank}
-              disabled={savingBank}
-              className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              {savingBank ? <Loader2 className="w-4 h-4 animate-spin" /> : bankReady ? <CheckCircle2 className="w-4 h-4" /> : null}
-              {savingBank ? t('paymentSetup.savingButton') : t('paymentSetup.saveButton')}
-            </button>
-          </div>
         </div>
       </div>
 
@@ -340,6 +281,38 @@ const MonPortefeuille = () => {
                 <p className="text-muted-foreground">{t('wallet.availableBalance')}</p>
                 <p className="text-2xl font-bold text-foreground">{wallet?.balance?.toFixed(2) || "0.00"}€</p>
               </div>
+
+              {!bankReady && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Landmark className="w-4 h-4 text-primary" />
+                    <p className="text-sm font-semibold text-foreground">{t('wallet.bankSectionTitle')}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t('paymentSetup.holderNameLabel')}</label>
+                    <input
+                      type="text"
+                      value={bankHolderName}
+                      onChange={(e) => setBankHolderName(e.target.value)}
+                      placeholder={t('paymentSetup.accountHolderPlaceholder')}
+                      className="w-full h-11 rounded-xl bg-background border border-border px-3 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t('paymentSetup.ibanLabel')}</label>
+                    <input
+                      type="text"
+                      value={iban}
+                      onChange={(e) => setIban(e.target.value.toUpperCase())}
+                      placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+                      className="w-full h-11 rounded-xl bg-background border border-border px-3 text-sm tracking-wide"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {t('paymentSetup.bankPrivacy')}
+                  </p>
+                </div>
+              )}
 
               <input
                 type="number"
