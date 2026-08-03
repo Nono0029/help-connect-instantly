@@ -16,7 +16,6 @@ import {
   User,
   Flag,
   Gift,
-  MapPin,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -204,13 +203,6 @@ const Settings = () => {
           label: t('settings.invite'),
           desc: t('settings.inviteDesc'),
           action: () => navigate("/inviter"),
-          toggle: false,
-        },
-        {
-          icon: MapPin,
-          label: t('settings.quartier'),
-          desc: t('settings.quartierDesc'),
-          action: () => navigate("/quartier"),
           toggle: false,
         },
       ],

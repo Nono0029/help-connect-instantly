@@ -56,6 +56,15 @@ serve(async (req) => {
         await supabase.from("payments").update({ statut: "payé", stripe_payment_intent: pi.id }).eq("id", payment.id);
         await supabase.from("missions").update({ statut: "en_cours" }).eq("id", parsedMissionId);
 
+        const payeurId = pi.metadata?.payeur_id;
+        if (payeurId) {
+          await supabase
+            .from("profiles")
+            .update({ referral_fee_used: true })
+            .eq("id", payeurId)
+            .eq("referral_fee_used", false);
+        }
+
         if (conversationId) {
           const parsedConvId = parseInt(conversationId, 10);
           if (!isNaN(parsedConvId)) {

@@ -112,15 +112,17 @@ serve(async (req) => {
 
     const { data: requesterProfile } = await supabase
       .from("profiles")
-      .select("boost_until")
+      .select("boost_until, referred_by, referral_fee_used")
       .eq("id", user.id)
       .maybeSingle();
 
     const isBoosted = !!requesterProfile?.boost_until
       && new Date(requesterProfile.boost_until).getTime() > Date.now();
 
+    const referralExempt = !!requesterProfile?.referred_by && !requesterProfile?.referral_fee_used;
+
     const urgentFee = urgentActive && !isBoosted ? 1 : 0;
-    const totalFees = 2 + urgentFee;
+    const totalFees = referralExempt ? 0 : 2 + urgentFee;
     const totalCost = prix + totalFees;
 
     if (productAmount < totalCost) {
@@ -171,6 +173,14 @@ serve(async (req) => {
     }
 
     await supabase.from("missions").update({ statut: "en_cours" }).eq("id", mission_id);
+
+    if (referralExempt) {
+      await supabase
+        .from("profiles")
+        .update({ referral_fee_used: true })
+        .eq("id", user.id)
+        .eq("referral_fee_used", false);
+    }
 
     if (mission.helper_id) {
       await supabase.from("notifications").insert({

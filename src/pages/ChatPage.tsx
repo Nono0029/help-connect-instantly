@@ -25,6 +25,7 @@ import {
   Siren,
   Phone,
   Share2,
+  Gift,
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -111,17 +112,20 @@ const ChatPage = () => {
   const [payTrace, setPayTrace] = useState("");
   const [payElapsed, setPayElapsed] = useState(0);
   const [isBoosted, setIsBoosted] = useState(false);
+  const [isReferralExempt, setIsReferralExempt] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     supabase
       .from("profiles")
-      .select("boost_until")
+      .select("boost_until, referred_by, referral_fee_used")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled) setIsBoosted(isBoostActive(data?.boost_until));
+        if (cancelled) return;
+        setIsBoosted(isBoostActive(data?.boost_until));
+        setIsReferralExempt(!!data?.referred_by && !data?.referral_fee_used);
       });
     return () => {
       cancelled = true;
@@ -1137,8 +1141,13 @@ const ChatPage = () => {
           </p>
           <div className="flex items-center justify-between mb-3 px-1">
             <span className="text-xs text-muted-foreground">{t('chat.payTotal')}</span>
-            <span className="text-sm font-bold text-foreground">{getTotalEuros(missionPrice, isUrgentActive(mission?.demandes?.urgent, mission?.demandes?.created_at), isBoosted).toFixed(2)} €</span>
+            <span className="text-sm font-bold text-foreground">{getTotalEuros(missionPrice, isUrgentActive(mission?.demandes?.urgent, mission?.demandes?.created_at), isBoosted, isReferralExempt).toFixed(2)} €</span>
           </div>
+          {isReferralExempt && (
+            <p className="text-[11px] text-accent font-semibold mb-2 flex items-center gap-1">
+              <Gift className="w-3 h-3" /> {t('chat.firstRequestFree')}
+            </p>
+          )}
           <button
             onClick={handlePayment}
             disabled={paymentLoading}

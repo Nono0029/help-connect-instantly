@@ -102,6 +102,15 @@ const InvitePage = () => {
           <p className="text-sm text-muted-foreground mt-2">{t('invite.how')}</p>
         </div>
 
+        <div className="card-magic flex items-center gap-3">
+          <Users className="w-5 h-5 text-accent" />
+          <div className="flex-1">
+            <p className="text-sm font-medium">{t('invite.friendsJoined')}</p>
+            <p className="text-xs text-muted-foreground">{t('invite.friendsJoinedDesc')}</p>
+          </div>
+          <p className="text-2xl font-black text-foreground">{referredCount ?? 0}</p>
+        </div>
+
         <div className="card-magic">
           <p className="text-xs text-muted-foreground mb-2">{t('invite.codeLabel')}</p>
           <div className="flex items-center gap-2">
@@ -123,15 +132,6 @@ const InvitePage = () => {
             <Share2 className="w-4 h-4" /> {t('invite.share')}
           </button>
           <p className="text-[11px] text-muted-foreground text-center mt-2 break-all">{link}</p>
-        </div>
-
-        <div className="card-magic flex items-center gap-3">
-          <Users className="w-5 h-5 text-accent" />
-          <div className="flex-1">
-            <p className="text-sm font-medium">{t('invite.friendsJoined')}</p>
-            <p className="text-xs text-muted-foreground">{t('invite.friendsJoinedDesc')}</p>
-          </div>
-          <p className="text-2xl font-black text-foreground">{referredCount ?? 0}</p>
         </div>
       </div>
     </div>

@@ -79,6 +79,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   const [urgent, setUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isBoosted, setIsBoosted] = useState(false);
+  const [isReferralExempt, setIsReferralExempt] = useState(false);
   const [villeForm, setVilleForm] = useState("");
   const [villeLat, setVilleLat] = useState(0);
   const [villeLng, setVilleLng] = useState(0);
@@ -92,8 +93,11 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("boost_until").eq("id", user.id).maybeSingle()
-      .then(({ data }) => setIsBoosted(isBoostActive(data?.boost_until)));
+    supabase.from("profiles").select("boost_until, referred_by, referral_fee_used").eq("id", user.id).maybeSingle()
+      .then(({ data }) => {
+        setIsBoosted(isBoostActive(data?.boost_until));
+        setIsReferralExempt(!!data?.referred_by && !data?.referral_fee_used);
+      });
   }, [user?.id]);
 
   useEffect(() => {
@@ -375,8 +379,8 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
               {!gratuit && prix && (() => {
                 const montant = parseFloat(prix);
                 if (Number.isNaN(montant) || montant <= 0) return null;
-                const total = getTotalEuros(montant, urgent, isBoosted);
-                const frais = getFeesEuros(urgent, isBoosted);
+                const total = getTotalEuros(montant, urgent, isBoosted, isReferralExempt);
+                const frais = getFeesEuros(urgent, isBoosted, isReferralExempt);
                 return (
                   <div className={`flex items-center justify-between rounded-xl px-4 py-3 border ${
                     urgent
@@ -384,8 +388,8 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                       : "bg-secondary border-transparent"
                   }`}>
                     <span className="text-xs font-medium text-muted-foreground">
-                      {urgent && <Zap className="inline w-3 h-3 mr-1 -mt-0.5 text-destructive" />}
-                      {frais}€ de frais
+                      {urgent && !isReferralExempt && <Zap className="inline w-3 h-3 mr-1 -mt-0.5 text-destructive" />}
+                      {isReferralExempt ? t('postForm.feesOffered') : `${frais}€ de frais`}
                     </span>
                     <span className="text-xl font-extrabold text-foreground">{total}€</span>
                   </div>

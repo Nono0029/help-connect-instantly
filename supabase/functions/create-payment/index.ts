@@ -82,14 +82,16 @@ serve(async (req) => {
 
     const { data: requesterProfile } = await supabase
       .from("profiles")
-      .select("boost_until")
+      .select("boost_until, referred_by, referral_fee_used")
       .eq("id", user.id)
       .maybeSingle();
     const requesterBoosted = !!requesterProfile?.boost_until
       && new Date(requesterProfile.boost_until).getTime() > Date.now();
 
+    const referralExempt = !!requesterProfile?.referred_by && !requesterProfile?.referral_fee_used;
+
     const isUrgentBillable = urgentActive && !requesterBoosted;
-    const totalFees = isUrgentBillable ? 3 : 2;
+    const totalFees = referralExempt ? 0 : (isUrgentBillable ? 3 : 2);
     const totalCents = Math.round((prix + totalFees) * 100);
 
     let convId = conversation_id;

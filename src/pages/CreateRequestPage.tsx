@@ -64,6 +64,7 @@ const CreateRequestPage = () => {
   const [lng, setLng] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const [isBoosted, setIsBoosted] = useState(false);
+  const [isReferralExempt, setIsReferralExempt] = useState(false);
 
   const { photos, uploading: uploadingPhoto, handleFileInput, takePhoto, openNativePicker, removePhoto, setPhotos } = useCameraUpload({
     userId: user?.id || "",
@@ -71,8 +72,11 @@ const CreateRequestPage = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("boost_until").eq("id", user.id).maybeSingle()
-      .then(({ data }) => setIsBoosted(isBoostActive(data?.boost_until)));
+    supabase.from("profiles").select("boost_until, referred_by, referral_fee_used").eq("id", user.id).maybeSingle()
+      .then(({ data }) => {
+        setIsBoosted(isBoostActive(data?.boost_until));
+        setIsReferralExempt(!!data?.referred_by && !data?.referral_fee_used);
+      });
   }, [user?.id]);
 
   const handleSubmit = async () => {
@@ -264,8 +268,8 @@ const CreateRequestPage = () => {
         {!gratuit && prix && (() => {
           const montant = parseFloat(prix);
           if (Number.isNaN(montant) || montant <= 0) return null;
-          const total = getTotalEuros(montant, urgent, isBoosted);
-          const frais = getFeesEuros(urgent, isBoosted);
+          const total = getTotalEuros(montant, urgent, isBoosted, isReferralExempt);
+          const frais = getFeesEuros(urgent, isBoosted, isReferralExempt);
           return (
             <div className={`flex items-center justify-between rounded-xl px-4 py-3 border ${
               urgent
@@ -273,8 +277,8 @@ const CreateRequestPage = () => {
                 : "bg-secondary border-transparent"
             }`}>
               <span className="text-xs font-medium text-muted-foreground">
-                {urgent && <Zap className="inline w-3 h-3 mr-1 -mt-0.5 text-destructive" />}
-                {frais}€ de frais
+                {urgent && !isReferralExempt && <Zap className="inline w-3 h-3 mr-1 -mt-0.5 text-destructive" />}
+                {isReferralExempt ? t('createRequest.feesOffered') : `${frais}€ de frais`}
               </span>
               <span className="text-xl font-extrabold text-foreground">{total}€</span>
             </div>

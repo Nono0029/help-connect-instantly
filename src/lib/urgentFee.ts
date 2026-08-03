@@ -7,6 +7,10 @@
 //
 // Boosted users (active boost_until > now) are exempt from the +1€
 // urgent surcharge — they already pay 4.99€/month for visibility.
+//
+// Referred users (referral program): their FIRST paid request is
+// fee-free (0€ fees) — `referralExempt` mirrors the server-side check
+// on `profiles.referred_by` + `profiles.referral_fee_used`.
 
 export const BASE_FEE_EUROS = 2;
 export const URGENT_EXTRA_EUROS = 1;
@@ -41,13 +45,15 @@ export function isBoostActive(boostUntil?: string | null): boolean {
 /**
  * Total fees (in euros) added on top of the mission price.
  * Boosted users pay only the base fee — no urgent surcharge.
+ * Referral-exempt users pay 0€ on their first request.
  */
-export function getFeesEuros(urgentActive: boolean, isBoosted = false): number {
+export function getFeesEuros(urgentActive: boolean, isBoosted = false, referralExempt = false): number {
+  if (referralExempt) return 0;
   const urgentSurcharge = urgentActive && !isBoosted ? URGENT_EXTRA_EUROS : 0;
   return BASE_FEE_EUROS + urgentSurcharge;
 }
 
 /** Total amount (in euros) the requester pays: price + fees. */
-export function getTotalEuros(prix: number, urgentActive: boolean, isBoosted = false): number {
-  return prix + getFeesEuros(urgentActive, isBoosted);
+export function getTotalEuros(prix: number, urgentActive: boolean, isBoosted = false, referralExempt = false): number {
+  return prix + getFeesEuros(urgentActive, isBoosted, referralExempt);
 }
