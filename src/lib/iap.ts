@@ -1,4 +1,5 @@
 import { Capacitor } from "@capacitor/core";
+import { PURCHASE_TYPE } from "@capgo/native-purchases";
 
 export const IAP_PRODUCTS = {
   BOOST_MONTHLY: "boost_monthly",
@@ -11,6 +12,14 @@ export interface IAPProduct {
   displayName: string;
   displayPrice: string;
   description: string;
+}
+
+export interface IAPTransaction {
+  transactionId: string;
+  productId: string;
+  receipt?: string;
+  expirationDate?: string;
+  isActive?: boolean;
 }
 
 let initialized = false;
@@ -26,6 +35,7 @@ export async function initIAP(): Promise<void> {
     const NativePurchases = await getNativePurchases();
     await NativePurchases.getProducts({
       productIdentifiers: Object.values(IAP_PRODUCTS),
+      productType: PURCHASE_TYPE.SUBS,
     });
     initialized = true;
   } catch (err) {
@@ -39,6 +49,7 @@ export async function getIAPProducts(): Promise<IAPProduct[]> {
     const NativePurchases = await getNativePurchases();
     const result = await NativePurchases.getProducts({
       productIdentifiers: Object.values(IAP_PRODUCTS),
+      productType: PURCHASE_TYPE.SUBS,
     });
     return result.products.map((p) => ({
       id: p.identifier,
@@ -51,14 +62,21 @@ export async function getIAPProducts(): Promise<IAPProduct[]> {
   }
 }
 
-export async function purchaseProduct(productId: string): Promise<string | null> {
+export async function purchaseProduct(productId: string): Promise<IAPTransaction | null> {
   if (!Capacitor.isNativePlatform()) return null;
   try {
     const NativePurchases = await getNativePurchases();
     const transaction = await NativePurchases.purchaseProduct({
       productIdentifier: productId,
+      productType: PURCHASE_TYPE.SUBS,
     });
-    return transaction.receipt || transaction.transactionId || null;
+    return {
+      transactionId: transaction.transactionId,
+      productId: transaction.productIdentifier,
+      receipt: transaction.receipt,
+      expirationDate: transaction.expirationDate,
+      isActive: transaction.isActive,
+    };
   } catch (err: any) {
     if (err?.message?.includes("cancel")) return null;
     console.error("IAP purchase error:", err);
@@ -66,22 +84,52 @@ export async function purchaseProduct(productId: string): Promise<string | null>
   }
 }
 
-export async function restorePurchases(): Promise<string[]> {
+export async function restorePurchases(): Promise<IAPTransaction[]> {
   if (!Capacitor.isNativePlatform()) return [];
   try {
     const NativePurchases = await getNativePurchases();
     await NativePurchases.restorePurchases();
-    const { purchases } = await NativePurchases.getPurchases();
-    return purchases
-      .filter((p) => p.expirationDate && new Date(p.expirationDate) > new Date())
-      .map((p) => p.productIdentifier);
+    return getActivePurchases();
   } catch {
     return [];
   }
 }
 
+export async function getActivePurchases(): Promise<IAPTransaction[]> {
+  if (!Capacitor.isNativePlatform()) return [];
+  try {
+    const NativePurchases = await getNativePurchases();
+    const { purchases } = await NativePurchases.getPurchases({
+      productType: PURCHASE_TYPE.SUBS,
+      onlyCurrentEntitlements: true,
+    });
+    return purchases
+      .filter((p) => p.productIdentifier === IAP_PRODUCTS.BOOST_MONTHLY)
+      .map((p) => ({
+        transactionId: p.transactionId,
+        productId: p.productIdentifier,
+        receipt: p.receipt,
+        expirationDate: p.expirationDate,
+        isActive: p.isActive,
+      }));
+  } catch (err) {
+    console.error("getActivePurchases error:", err);
+    return [];
+  }
+}
+
+export async function manageSubscriptions(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const NativePurchases = await getNativePurchases();
+    await NativePurchases.manageSubscriptions();
+  } catch (err) {
+    console.error("manageSubscriptions error:", err);
+  }
+}
+
 export function getDefaultProducts(): IAPProduct[] {
   return [
-    { id: IAP_PRODUCTS.BOOST_MONTHLY, displayName: "Boost 1 mois", displayPrice: "9,99 €", description: "Profil en tête des résultats + urgent gratuit" },
+    { id: IAP_PRODUCTS.BOOST_MONTHLY, displayName: "Boost", displayPrice: "9,99 €", description: "Profil en tête des résultats + urgent gratuit" },
   ];
 }

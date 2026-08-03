@@ -589,11 +589,21 @@
   },
   "boost": {
     "title": "🚀 Profile boost",
-    "description": "Your profile and requests will appear first in search results for 1 month.",
+    "description": "Your profile and requests will appear first in search results. Urgent requests are featured at the top of the home feed.",
     "price1Month": "1 month: €4.99",
+    "subscribe": "Subscribe to Boost",
+    "subscribeMonthly": "{price} / month",
+    "cancelAnytime": "Renewable subscription — cancel anytime from the App Store",
+    "restore": "Restore purchase",
+    "manage": "Manage subscription",
     "activate": "Activate boost",
     "active": "Boost active until {date}",
     "inactive": "Boost inactive",
-    "activated": "Boost activated! 🚀"
+    "activated": "Boost activated! 🚀",
+    "syncError": "Unable to sync your subscription",
+    "restored": "Purchase restored",
+    "restoreError": "No subscription to restore",
+    "webOnly": "The subscription is available on the mobile app",
+    "renewable": "Renewable monthly"
   }
 }

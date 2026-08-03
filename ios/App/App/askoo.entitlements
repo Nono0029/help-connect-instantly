@@ -6,5 +6,7 @@
     <array>
         <string>merchant.com.askoo.app</string>
     </array>
+    <key>com.apple.developer.in-app-purchases</key>
+    <true/>
 </dict>
 </plist>

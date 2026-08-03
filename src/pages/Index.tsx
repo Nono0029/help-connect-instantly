@@ -333,44 +333,51 @@ const Index = () => {
       return 0;
     };
 
+    const featuredCompare = (a: Demande, b: Demande) => {
+      const aUrgent = isUrgentActive(a.urgent, a.created_at);
+      const bUrgent = isUrgentActive(b.urgent, b.created_at);
+      if (aUrgent !== bUrgent) return aUrgent ? -1 : 1;
+      return boostedCompare(a, b);
+    };
+
     switch (sortBy) {
       case "priceAsc":
         return copy.sort((a, b) => {
-          const boost = boostedCompare(a, b);
-          if (boost !== 0) return boost;
+          const featured = featuredCompare(a, b);
+          if (featured !== 0) return featured;
           const pA = a.gratuit ? 0 : (a.prix ? parseFloat(a.prix.replace(/[^0-9.]/g, "")) : 999);
           const pB = b.gratuit ? 0 : (b.prix ? parseFloat(b.prix.replace(/[^0-9.]/g, "")) : 999);
           return pA - pB;
         });
       case "priceDesc":
         return copy.sort((a, b) => {
-          const boost = boostedCompare(a, b);
-          if (boost !== 0) return boost;
+          const featured = featuredCompare(a, b);
+          if (featured !== 0) return featured;
           const pA = a.gratuit ? 0 : (a.prix ? parseFloat(a.prix.replace(/[^0-9.]/g, "")) : 0);
           const pB = b.gratuit ? 0 : (b.prix ? parseFloat(b.prix.replace(/[^0-9.]/g, "")) : 0);
           return pB - pA;
         });
       case "recent":
         return copy.sort((a, b) => {
-          const boost = boostedCompare(a, b);
-          if (boost !== 0) return boost;
+          const featured = featuredCompare(a, b);
+          if (featured !== 0) return featured;
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
       case "urgent":
         return copy.sort((a, b) => {
-          const boost = boostedCompare(a, b);
-          if (boost !== 0) return boost;
           const aUrgent = isUrgentActive(a.urgent, a.created_at);
           const bUrgent = isUrgentActive(b.urgent, b.created_at);
           if (aUrgent !== bUrgent) return aUrgent ? -1 : 1;
+          const boost = boostedCompare(a, b);
+          if (boost !== 0) return boost;
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
       case "distance":
       default:
         if (!userCoords) return filtered;
         return copy.sort((a, b) => {
-          const boost = boostedCompare(a, b);
-          if (boost !== 0) return boost;
+          const featured = featuredCompare(a, b);
+          if (featured !== 0) return featured;
           const dA = a.lat != null && a.lng != null ? getDistance(userCoords[0], userCoords[1], a.lat, a.lng) : 999;
           const dB = b.lat != null && b.lng != null ? getDistance(userCoords[0], userCoords[1], b.lat, b.lng) : 999;
           return dA - dB;

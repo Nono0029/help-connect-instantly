@@ -10,7 +10,7 @@ const APPLE_SHARED_SECRET = Deno.env.get("APPLE_SHARED_SECRET") || "";
 const APPLE_SANDBOX_URL = "https://sandbox.itunes.apple.com/verifyReceipt";
 const APPLE_PRODUCTION_URL = "https://buy.itunes.apple.com/verifyReceipt";
 
-const ALLOWED_ORIGINS = ["https://askoo.fr", "https://www.askoo.fr", "https://help-connect-instantly.vercel.app"];
+const BOOST_PRODUCT_ID = "boost_monthly";
 
 serve(async (req) => {
   const origin = req.headers.get("origin") || "";
@@ -41,44 +41,59 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "missing receipt" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    const { receipt, productId } = body;
+    const { receipt } = body;
 
     const verifyResult = await verifyAppleReceipt(receipt);
     if (!verifyResult.success) {
       return new Response(JSON.stringify({ error: "receipt verification failed", detail: verifyResult.error }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
+    const boostTx = findBoostTransaction(verifyResult.latestReceiptInfo || []);
+    const expiresDate = boostTx ? parseDate(boostTx.expires_date) : null;
+
+    if (!boostTx || !expiresDate || expiresDate.getTime() <= Date.now()) {
+      return new Response(JSON.stringify({ success: true, type: "boost", active: false }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    const originalTransactionId = boostTx.original_transaction_id;
+    const reference = `iap_sub_${originalTransactionId}`;
+
     const { data: existing } = await supabase
       .from("wallet_transactions")
       .select("id")
-      .eq("reference", `iap_${verifyResult.transactionId}`)
+      .eq("reference", reference)
       .maybeSingle();
 
-    if (existing) {
-      return new Response(JSON.stringify({ success: true, duplicate: true }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+    if (!existing) {
+      await supabase.from("wallet_transactions").insert({
+        reference,
+        user_id: user.id,
+        amount: 0,
+        type: "boost_subscription",
+        description: "Abonnement Boost (App Store)",
+      });
     }
 
-    const isBoost = productId === "boost_monthly";
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("boost_until")
+      .eq("id", user.id)
+      .maybeSingle();
 
-    if (isBoost) {
-      const now = new Date();
-      const until = new Date(now);
-      until.setMonth(until.getMonth() + 1);
+    const current = profile?.boost_until ? new Date(profile.boost_until).getTime() : 0;
+    const newUntil = expiresDate.getTime() > current ? expiresDate.toISOString() : profile?.boost_until;
 
-      const { error: boostErr } = await supabase
-        .from("profiles")
-        .update({ boost_until: until.toISOString() })
-        .eq("id", user.id);
+    const { error: boostErr } = await supabase
+      .from("profiles")
+      .update({ boost_until: newUntil })
+      .eq("id", user.id);
 
-      if (boostErr) {
-        console.error("boost update error:", boostErr);
-        return new Response(JSON.stringify({ error: "failed to activate boost" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
-      }
-
-      return new Response(JSON.stringify({ success: true, type: "boost", until: until.toISOString() }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+    if (boostErr) {
+      console.error("boost update error:", boostErr);
+      return new Response(JSON.stringify({ error: "failed to activate boost" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    return new Response(JSON.stringify({ error: "unknown product — mission payments use pay-mission-iap" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ success: true, type: "boost", active: true, until: newUntil }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
 
   } catch (err) {
     console.error("verify-apple-receipt error:", err);
@@ -86,7 +101,27 @@ serve(async (req) => {
   }
 });
 
-async function verifyAppleReceipt(receiptData: string): Promise<{ success: boolean; transactionId?: string; error?: string }> {
+function findBoostTransaction(latestReceiptInfo: any[]): any | null {
+  let best: any | null = null;
+  let bestDate = 0;
+  for (const tx of latestReceiptInfo) {
+    if (tx.product_id !== BOOST_PRODUCT_ID) continue;
+    const d = parseDate(tx.expires_date)?.getTime() || 0;
+    if (d > bestDate) {
+      bestDate = d;
+      best = tx;
+    }
+  }
+  return best;
+}
+
+function parseDate(value?: string | number): Date | null {
+  if (!value) return null;
+  const d = new Date(typeof value === "number" ? value * 1000 : value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+async function verifyAppleReceipt(receiptData: string): Promise<{ success: boolean; latestReceiptInfo?: any[]; error?: string }> {
   let result = await sendToApple(receiptData, APPLE_PRODUCTION_URL);
 
   if (result.status === 21007) {
@@ -97,12 +132,7 @@ async function verifyAppleReceipt(receiptData: string): Promise<{ success: boole
     return { success: false, error: `Apple status: ${result.status}` };
   }
 
-  const latestReceipt = result.receipt?.in_app?.[result.receipt.in_app.length - 1];
-  if (!latestReceipt) {
-    return { success: false, error: "no transactions in receipt" };
-  }
-
-  return { success: true, transactionId: latestReceipt.transaction_id };
+  return { success: true, latestReceiptInfo: result.latest_receipt_info || [] };
 }
 
 async function sendToApple(receiptData: string, url: string): Promise<any> {

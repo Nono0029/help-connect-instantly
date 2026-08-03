@@ -589,11 +589,21 @@
   },
   "boost": {
     "title": "🚀 Boost profil",
-    "description": "Ton profil et tes demandes apparaîtront en premier dans les résultats de recherche pendant 1 mois.",
+    "description": "Ton profil et tes demandes apparaîtront en premier dans les résultats de recherche. Les demandes urgentes sont mises en avant en haut de l'accueil.",
     "price1Month": "1 mois : 4,99€",
+    "subscribe": "S'abonner à Boost",
+    "subscribeMonthly": "{price} / mois",
+    "cancelAnytime": "Abonnement renouvelable — annule quand tu veux depuis l'App Store",
+    "restore": "Restaurer l'achat",
+    "manage": "Gérer l'abonnement",
     "activate": "Activer le boost",
     "active": "Boost actif jusqu'au {date}",
     "inactive": "Boost inactif",
-    "activated": "Boost activé ! 🚀"
+    "activated": "Boost activé ! 🚀",
+    "syncError": "Impossible de synchroniser ton abonnement",
+    "restored": "Achat restauré",
+    "restoreError": "Aucun abonnement à restaurer",
+    "webOnly": "L'abonnement est disponible sur l'application mobile",
+    "renewable": "Renouvelable mensuellement"
   }
 }

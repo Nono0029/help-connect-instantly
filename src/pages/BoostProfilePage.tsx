@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Rocket, Check, Sparkles, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Rocket, Check, Sparkles, Loader2, RotateCcw, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -8,53 +8,77 @@ import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { Capacitor } from "@capacitor/core";
-import { purchaseProduct, initIAP, IAP_PRODUCTS } from "@/lib/iap";
+import {
+  initIAP,
+  getIAPProducts,
+  purchaseProduct,
+  restorePurchases,
+  getActivePurchases,
+  manageSubscriptions,
+  IAP_PRODUCTS,
+  type IAPProduct,
+} from "@/lib/iap";
 
 const BoostProfilePage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { t } = useTranslation();
   const [boostUntil, setBoostUntil] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [products, setProducts] = useState<IAPProduct[]>([]);
 
-  const boostParam = searchParams.get("boost");
+  const product = products.find((p) => p.id === IAP_PRODUCTS.BOOST_MONTHLY) || null;
+
+  const refreshBoost = async (silent = false) => {
+    if (!user) return null;
+    const { data } = await supabase
+      .from("profiles")
+      .select("boost_until")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (data?.boost_until) setBoostUntil(data.boost_until);
+    if (!silent) setLoading(false);
+    return data?.boost_until ?? null;
+  };
+
+  const syncSubscription = async (silent = false) => {
+    if (!user || !Capacitor.isNativePlatform()) return;
+    try {
+      const purchases = await getActivePurchases();
+      const active = purchases.find((p) => p.productId === IAP_PRODUCTS.BOOST_MONTHLY);
+      if (!active?.receipt) return;
+      const { error } = await supabase.functions.invoke("verify-apple-receipt", {
+        body: { receipt: active.receipt },
+      });
+      if (error) throw error;
+      await refreshBoost(true);
+    } catch (err) {
+      console.error("syncSubscription error:", err);
+      if (!silent) toast.error(t('boost.syncError'));
+    }
+  };
 
   useEffect(() => {
     const fetchBoost = async () => {
-      if (!user) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("boost_until")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (data?.boost_until) {
-        setBoostUntil(data.boost_until);
+      await refreshBoost();
+      if (Capacitor.isNativePlatform()) {
+        await syncSubscription(true);
       }
-      setLoading(false);
     };
-    withTimeout(fetchBoost(), 15000, "boostProfile").catch(() => setLoading(false));
+    withTimeout(fetchBoost(), 20000, "boostProfile").catch(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   useEffect(() => {
-    const refreshBoostAfterPayment = async () => {
-      if (!user || boostParam !== "success") return;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("boost_until")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!error && data?.boost_until && new Date(data.boost_until) > new Date()) {
-        setBoostUntil(data.boost_until);
-        toast.success(t('boost.activated'));
-      }
-    };
-    refreshBoostAfterPayment();
-  }, [user?.id, boostParam, t]);
+    (async () => {
+      try {
+        const ps = await getIAPProducts();
+        setProducts(ps);
+      } catch {}
+    })();
+  }, []);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -64,71 +88,82 @@ const BoostProfilePage = () => {
         const { App } = await import("@capacitor/app");
         const listener = await App.addListener('appStateChange', async ({ isActive }) => {
           if (isActive && user) {
-            const { data } = await supabase
-              .from("profiles")
-              .select("boost_until")
-              .eq("id", user.id)
-              .maybeSingle();
-            if (data?.boost_until && new Date(data.boost_until) > new Date()) {
-              setBoostUntil(data.boost_until);
-            }
+            await syncSubscription(true);
+            await refreshBoost(true);
           }
         });
         removeListener = () => listener.remove();
       } catch {}
     })();
     return () => { removeListener?.(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const isBoostActive = boostUntil && new Date(boostUntil) > new Date();
 
-  const handleActivate = async () => {
+  const handleSubscribe = async () => {
     if (!user) return;
+    if (!Capacitor.isNativePlatform()) {
+      toast.info(t('boost.webOnly'));
+      return;
+    }
     setActivating(true);
-
     try {
-      if (!Capacitor.isNativePlatform()) {
-        toast.info("L'achat est disponible sur l'application mobile");
-        setActivating(false);
-        return;
-      }
-
       await initIAP();
       const transaction = await purchaseProduct(IAP_PRODUCTS.BOOST_MONTHLY);
 
-      if (!transaction) {
-        setActivating(false);
-        return;
-      }
+      if (!transaction) return;
 
       const { error: verifyError } = await supabase.functions.invoke("verify-apple-receipt", {
-        body: { receipt: transaction, productId: IAP_PRODUCTS.BOOST_MONTHLY },
+        body: { receipt: transaction.receipt },
       });
 
       if (verifyError) {
-        toast.error("Erreur de vérification du paiement");
-        setActivating(false);
+        toast.error(t('boost.syncError'));
         return;
       }
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("boost_until")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (data?.boost_until && new Date(data.boost_until) > new Date()) {
-        setBoostUntil(data.boost_until);
-        toast.success(t('boost.activated'));
-      }
+      await refreshBoost(true);
+      toast.success(t('boost.activated'));
     } catch (err: any) {
       if (err?.message?.includes("cancel")) {
         toast.info("Paiement annulé");
       } else {
         toast.error("Erreur lors du paiement");
       }
+    } finally {
+      setActivating(false);
     }
-    setActivating(false);
+  };
+
+  const handleRestore = async () => {
+    if (!user || !Capacitor.isNativePlatform()) return;
+    setRestoring(true);
+    try {
+      const purchases = await restorePurchases();
+      const active = purchases.find((p) => p.productId === IAP_PRODUCTS.BOOST_MONTHLY);
+      if (active?.receipt) {
+        const { error } = await supabase.functions.invoke("verify-apple-receipt", {
+          body: { receipt: active.receipt },
+        });
+        if (error) throw error;
+        await refreshBoost(true);
+        toast.success(t('boost.restored'));
+      } else {
+        toast.info(t('boost.restoreError'));
+      }
+    } catch {
+      toast.error(t('boost.syncError'));
+    } finally {
+      setRestoring(false);
+    }
+  };
+
+  const handleManage = async () => {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      await manageSubscriptions();
+    } catch {}
   };
 
   const formatDate = (iso: string) => {
@@ -138,6 +173,8 @@ const BoostProfilePage = () => {
       year: "numeric",
     });
   };
+
+  const displayPrice = product?.displayPrice || "9,99 €";
 
   return (
     <div className="min-h-screen bg-background">
@@ -169,9 +206,9 @@ const BoostProfilePage = () => {
           <h3 className="text-sm font-bold text-foreground">Avantages</h3>
           {[
             "Apparaît en tête des résultats de recherche",
-            "Mises en urgent gratuites (les autres paient +1€)",
+            "Tes demandes urgentes sont mises en avant en haut de l'accueil",
+            "Mode urgent gratuit, sans frais, autant de fois que tu veux",
             "Badge boost sur ton profil",
-            "Durée : 1 mois",
           ].map((benefit, i) => (
             <div key={i} className="flex items-center gap-3">
               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -185,17 +222,29 @@ const BoostProfilePage = () => {
         {/* Pricing */}
         <div className="card-magic p-5 text-center space-y-3">
           <Sparkles className="w-6 h-6 text-primary mx-auto" />
-          <p className="text-lg font-black text-foreground">10,00 € / mois</p>
-          <p className="text-xs text-muted-foreground">Renouvelable mensuellement — gère dans App Store</p>
+          <p className="text-lg font-black text-foreground">
+            {t('boost.subscribeMonthly', { price: displayPrice })}
+          </p>
+          <p className="text-xs text-muted-foreground">{t('boost.cancelAnytime')}</p>
         </div>
 
         {/* Status */}
         {!loading && (
           <div className={`card-magic p-4 text-center ${isBoostActive ? "bg-primary/10 border-primary/30" : ""}`}>
             {isBoostActive ? (
-              <p className="text-sm font-semibold text-primary">
-                {t('boost.active', { date: formatDate(boostUntil!) })}
-              </p>
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-primary">
+                  {t('boost.active', { date: formatDate(boostUntil!) })}
+                </p>
+                <Button
+                  onClick={handleManage}
+                  variant="outline"
+                  className="w-full h-11 rounded-xl text-sm font-semibold"
+                >
+                  <Settings2 className="w-4 h-4 mr-2" />
+                  {t('boost.manage')}
+                </Button>
+              </div>
             ) : (
               <p className="text-sm text-muted-foreground">{t('boost.inactive')}</p>
             )}
@@ -203,14 +252,35 @@ const BoostProfilePage = () => {
         )}
 
         {/* CTA */}
-        <Button
-          onClick={handleActivate}
-          disabled={activating || loading || isBoostActive}
-          className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25"
-        >
-          <Rocket className="w-4 h-4 mr-2" />
-          {activating ? "Activation..." : t('boost.activate')}
-        </Button>
+        <div className="space-y-3">
+          <Button
+            onClick={handleSubscribe}
+            disabled={activating || loading || isBoostActive}
+            className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25"
+          >
+            {activating ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Rocket className="w-4 h-4 mr-2" />
+            )}
+            {activating ? "Activation..." : isBoostActive ? t('boost.active', { date: formatDate(boostUntil!) }) : t('boost.subscribe')}
+          </Button>
+          {!isBoostActive && Capacitor.isNativePlatform() && (
+            <Button
+              onClick={handleRestore}
+              disabled={restoring}
+              variant="ghost"
+              className="w-full h-11 rounded-xl text-sm font-medium text-muted-foreground"
+            >
+              {restoring ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <RotateCcw className="w-4 h-4 mr-2" />
+              )}
+              {t('boost.restore')}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
