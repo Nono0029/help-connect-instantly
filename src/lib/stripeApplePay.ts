@@ -51,32 +51,53 @@ export async function payWithApplePay(
   if (!Capacitor.isNativePlatform()) return false;
   if (!PUBLISHABLE_KEY) throw new Error("Stripe n'est pas configuré (clé manquante)");
 
-  await initStripe();
+  const Stripe = await withTimeout(
+    getStripe(),
+    10000,
+    "Erreur étape 1/5 : le plugin Stripe ne se charge pas (10 s)."
+  );
 
-  if (!(await isApplePayAvailable())) {
-    throw new Error("Apple Pay n'est pas disponible sur cet appareil. Ajoute une carte dans Wallet et réessaie.");
-  }
+  await withTimeout(
+    Stripe.initialize({ publishableKey: PUBLISHABLE_KEY }),
+    10000,
+    "Erreur étape 2/5 : l'initialisation Stripe ne répond pas (10 s)."
+  );
 
   try {
-    const Stripe = await getStripe();
+    await withTimeout(
+      Stripe.isApplePayAvailable(),
+      10000,
+      "Erreur étape 3/5 : le contrôle Apple Pay ne répond pas (10 s)."
+    );
+  } catch (err: any) {
+    if (err?.message?.includes("Erreur étape 3/5")) throw err;
+    throw new Error(
+      "Apple Pay n'est pas disponible sur cet appareil. Ajoute une carte dans Wallet et réessaie."
+    );
+  }
 
-    await Stripe.createApplePay({
+  await withTimeout(
+    Stripe.createApplePay({
       paymentIntentClientSecret: clientSecret,
       merchantIdentifier: APPLE_MERCHANT_ID,
       countryCode: COUNTRY_CODE,
       currency: CURRENCY,
       paymentSummaryItems: [{ label: label || "Mission", amount }],
-    });
+    }),
+    10000,
+    "Erreur étape 4/5 : la demande de paiement Apple Pay ne se crée pas (10 s)."
+  );
 
-    const { paymentResult } = await withTimeout(
+  let paymentResult: string | undefined;
+  try {
+    ({ paymentResult } = await withTimeout(
       Stripe.presentApplePay(),
       45000,
-      "La feuille Apple Pay ne s'est pas affichée. Vérifie que le marchand Apple Pay (merchant.com.askoo.app) est actif sur Stripe et qu'une carte est configurée dans Wallet."
-    );
-    return paymentResult === "completed";
+      "Erreur étape 5/5 : la feuille Apple Pay ne s'est pas affichée. Vérifie que le marchand Apple Pay (merchant.com.askoo.app) est actif sur Stripe et qu'une carte est configurée dans Wallet."
+    ));
   } catch (err: any) {
-    if (err?.message?.includes("cancel")) return false;
-    console.error("Apple Pay error:", err);
+    if (/cancel/i.test(err?.message || "")) return false;
     throw err;
   }
+  return paymentResult === "completed";
 }
