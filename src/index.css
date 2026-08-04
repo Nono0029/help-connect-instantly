@@ -667,11 +667,24 @@ select:focus-visible {
 /* H = écran - safe-area-top, et rétrécit avec le clavier (dvh) */
 .chat-viewport {
   height: calc(100vh - env(safe-area-inset-top));
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
 }
 @supports (height: 100dvh) {
   .chat-viewport {
     height: calc(100dvh - env(safe-area-inset-top));
   }
+}
+/* Empêche le zoom auto iOS au focus des champs du tchat */
+.chat-viewport input,
+.chat-viewport textarea,
+.chat-viewport select {
+  font-size: 16px;
+}
+.chat-messages {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto;
 }
 
 /* ─── REDUCED MOTION ─────────────────────────────────────────────── */

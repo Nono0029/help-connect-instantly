@@ -170,6 +170,7 @@ const ChatPage = () => {
   const signalFileRef = useRef<HTMLInputElement>(null);
 
   const messagesRef = useRef<HTMLDivElement>(null);
+  const nearBottomRef = useRef(true);
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSentRef = useRef(0);
@@ -998,11 +999,45 @@ const ChatPage = () => {
     }
   }, [messages.length]);
 
+  const scrollToBottom = (smooth = false) => {
+    requestAnimationFrame(() => {
+      const el = messagesRef.current;
+      if (!el) return;
+      el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    });
+  };
+
+  const handleMessagesScroll = () => {
+    const el = messagesRef.current;
+    if (!el) return;
+    nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
+  };
+
   useEffect(() => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-    }
+    if (messages.length === 0) return;
+    if (nearBottomRef.current) scrollToBottom();
   }, [messages.length]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let removeShow: (() => void) | undefined;
+    let removeHide: (() => void) | undefined;
+    (async () => {
+      try {
+        const { Keyboard } = await import("@capacitor/keyboard");
+        removeShow = (await Keyboard.addListener("keyboardWillShow", () => {
+          setTimeout(() => scrollToBottom(), 120);
+        })).remove;
+        removeHide = (await Keyboard.addListener("keyboardWillHide", () => {
+          setTimeout(() => scrollToBottom(), 120);
+        })).remove;
+      } catch {}
+    })();
+    return () => {
+      removeShow?.();
+      removeHide?.();
+    };
+  }, []);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -1198,7 +1233,7 @@ const ChatPage = () => {
       </div>
 
       {/* MESSAGES */}
-      <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-3 pb-56">
+      <div ref={messagesRef} onScroll={handleMessagesScroll} className="chat-messages flex-1 overflow-y-auto px-4 py-5 space-y-3 pb-40">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center py-16">
             <Illu name="chat" className="w-40 h-40 opacity-60" />
@@ -1549,10 +1584,18 @@ const ChatPage = () => {
               <Home className="w-4 h-4" />
             </button>
             <input value={text} onChange={(e) => { setText(e.target.value); handleTyping(); }}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
               placeholder={t('chat.messagePlaceholder')}
               autoComplete="off"
               autoCorrect="off"
+              autoCapitalize="sentences"
+              enterKeyHint="send"
+              inputMode="text"
               className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none px-2 text-base" />
             <button onClick={sendMessage} className="w-11 h-11 rounded-2xl btn-magic flex items-center justify-center shrink-0">
               <Send className="w-4 h-4 text-foreground dark:text-white" />
