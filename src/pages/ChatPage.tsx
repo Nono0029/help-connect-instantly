@@ -1037,29 +1037,19 @@ const ChatPage = () => {
   }, [messages.length]);
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    let removeShow: (() => void) | undefined;
-    let removeHide: (() => void) | undefined;
-    (async () => {
-      try {
-        const { Keyboard, KeyboardResize } = await import("@capacitor/keyboard");
-        await Keyboard.setResizeMode({ mode: KeyboardResize.None });
-        removeShow = (await Keyboard.addListener("keyboardWillShow", (info) => {
-          setKeyboardHeight(info.keyboardHeight);
-          setTimeout(() => scrollToBottom(), 150);
-        })).remove;
-        removeHide = (await Keyboard.addListener("keyboardWillHide", () => {
-          setKeyboardHeight(0);
-          setTimeout(() => scrollToBottom(), 150);
-        })).remove;
-      } catch {}
-    })();
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const kh = Math.max(0, window.innerHeight - vv.height);
+      setKeyboardHeight(kh);
+      if (kh > 0) setTimeout(() => scrollToBottom(), 120);
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
     return () => {
-      removeShow?.();
-      removeHide?.();
-      import("@capacitor/keyboard").then(({ Keyboard, KeyboardResize }) => {
-        Keyboard.setResizeMode({ mode: KeyboardResize.Native });
-      });
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
     };
   }, []);
 
