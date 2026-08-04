@@ -396,13 +396,13 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative">
 
-      {/* HEADER */}
-      <header className="sticky top-[env(safe-area-inset-top)] z-50 bg-background border-b border-border/60">
+      {/* HEADER — top row only, stays fixed */}
+      <header className="sticky top-[env(safe-area-inset-top)] z-50 glass border-b border-border/60">
 
-        <div className="px-4 pt-4 pb-3">
+        <div className="px-4 pt-3 pb-3">
 
           {/* TOP */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between">
 
             <div>
               <h1 className="text-[26px] font-extrabold tracking-tight text-foreground font-display leading-none">
@@ -453,9 +453,14 @@ const Index = () => {
             </div>
           </div>
 
-          {/* HERO — liquid glass */}
-          <div className="mb-4 bg-card rounded-[2rem] border border-border/60 overflow-hidden relative">
-            <div className="flex items-center gap-3 px-5 pt-5 pb-4">
+        </div>
+      </header>
+
+      {/* SCROLLABLE HERO — liquid glass */}
+      <div className="px-4 pt-4 pb-0">
+
+        <div className="mb-4 hero-glass rounded-[2rem] overflow-hidden relative">
+          <div className="flex items-center gap-3 px-5 pt-5 pb-4">
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-bold tracking-widest uppercase text-primary/70 dark:text-primary/80 mb-1">
                   Entraide locale
@@ -553,28 +558,27 @@ const Index = () => {
             </span>
 
           </div>
-        </div>
 
-        {/* CATEGORIES */}
-        <div className="flex gap-2 overflow-x-auto px-4 pb-4 scrollbar-hide">
+          {/* CATEGORIES */}
+          <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
 
-          {categoryKeys.map((cat) => (
-            <button
-              key={cat}
-              onClick={() =>
-                setSelectedCat(cat)
-              }
-              className={`shrink-0 px-4 py-2 rounded-2xl text-xs font-semibold transition-all ${
-                selectedCat === cat
-                  ? "bg-primary text-white shadow-sm shadow-primary/30 border-none"
-                  : "bg-background/60 border border-border text-muted-foreground hover:bg-primary/10"
-              }`}
-            >
-              {categoryLabels[cat]}<span className="ml-1 opacity-60">({categoryCounts[cat] ?? 0})</span>
-            </button>
-          ))}
+            {categoryKeys.map((cat) => (
+              <button
+                key={cat}
+                onClick={() =>
+                  setSelectedCat(cat)
+                }
+                className={`shrink-0 px-4 py-2 rounded-2xl text-xs font-semibold transition-all ${
+                  selectedCat === cat
+                    ? "bg-primary text-white shadow-sm shadow-primary/30 border-none"
+                    : "bg-background/60 border border-border text-muted-foreground hover:bg-primary/10"
+                }`}
+              >
+                {categoryLabels[cat]}<span className="ml-1 opacity-60">({categoryCounts[cat] ?? 0})</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </header>
 
       {/* MAP */}
       {!showForm && !showFilters && (
