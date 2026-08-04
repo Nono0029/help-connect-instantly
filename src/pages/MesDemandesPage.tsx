@@ -105,7 +105,7 @@ const MesDemandesPage = () => {
     <div className="min-h-screen bg-background">
 
       {/* HEADER + 🔔 NOTIFICATIONS */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
+      <header className="sticky top-[env(safe-area-inset-top)] z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
 
           <button onClick={() => navigate("/")} className="p-1">

@@ -171,7 +171,7 @@ const MessagesPage = () => {
       <div className="fixed top-[-80px] left-[-80px] w-56 h-56 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
       <div className="fixed bottom-[-80px] right-[-80px] w-56 h-56 bg-accent/10 blur-[100px] rounded-full pointer-events-none" />
 
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border px-4 py-3">
+      <header className="sticky top-[env(safe-area-inset-top)] z-50 bg-background/80 backdrop-blur-2xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/")}

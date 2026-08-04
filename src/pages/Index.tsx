@@ -397,7 +397,7 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col relative">
 
       {/* HEADER */}
-      <header className="sticky top-0 z-50 glass border-b border-border/60">
+      <header className="sticky top-[env(safe-area-inset-top)] z-50 glass border-b border-border/60">
 
         <div className="px-4 pt-4 pb-3">
 

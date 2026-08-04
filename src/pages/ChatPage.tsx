@@ -1043,7 +1043,7 @@ const ChatPage = () => {
   const canConfirmMission = user?.id === mission?.helper_id || paymentDone;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
+    <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
 
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-pastel-soft via-background to-background dark:from-[#06131a] dark:via-[#071c24] dark:to-[#06131a]" />
       <div className="absolute top-[-120px] left-[-120px] w-[260px] h-[260px] bg-pastel-yellow/30 dark:bg-cyan-500/10 blur-[120px] rounded-full -z-10" />
@@ -1236,7 +1236,7 @@ const ChatPage = () => {
 
       {/* ADRESSE */}
       {showAdresseBox && !adresseEnvoyee && (
-        <div className="fixed bottom-28 left-4 right-4 z-40">
+        <div className="fixed bottom-32 left-4 right-4 z-40">
           <div className="rounded-[30px] bg-card/80 border border-border p-5 shadow-magic backdrop-blur-2xl">
             <div className="flex items-center gap-2 mb-3">
               <ShieldCheck className="w-5 h-5 text-accent dark:text-cyan-400" />
@@ -1259,7 +1259,7 @@ const ChatPage = () => {
 
       {/* CONFIRM */}
       {mission?.statut === "en_cours" && (
-        <div className="fixed bottom-24 left-0 right-0 px-4 z-30">
+        <div className="fixed bottom-32 left-0 right-0 px-4 z-30">
           <button
             onClick={() => canConfirmMission && setShowConfirmMission(true)}
             disabled={!canConfirmMission}
@@ -1335,7 +1335,7 @@ const ChatPage = () => {
 
       {/* AVIS */}
       {mission?.statut === "terminee" && !showAvis && !avisDonne && (
-        <div className="fixed bottom-24 left-0 right-0 px-4 z-30 space-y-2">
+        <div className="fixed bottom-32 left-0 right-0 px-4 z-30 space-y-2">
           <button onClick={() => setShowAvis(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">{t('chat.leaveReview')}</button>
           <button onClick={partagerCarte} disabled={sharingCard} className="w-full py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
             {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
@@ -1344,7 +1344,7 @@ const ChatPage = () => {
         </div>
       )}
       {mission?.statut === "terminee" && avisDonne && (
-        <div className="fixed bottom-24 left-0 right-0 px-4 z-30 space-y-2">
+        <div className="fixed bottom-32 left-0 right-0 px-4 z-30 space-y-2">
           <div className="w-full py-3 rounded-[24px] bg-muted border border-border text-center text-sm text-muted-foreground font-medium">{t('chat.reviewDone')}</div>
           <button onClick={partagerCarte} disabled={sharingCard} className="w-full py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
             {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
@@ -1527,7 +1527,7 @@ const ChatPage = () => {
 
       {/* INPUT */}
       {isActive && (
-        <div className="border-t border-border bg-card/70 backdrop-blur-2xl px-3 py-3">
+        <div className="shrink-0 border-t border-border bg-card/70 backdrop-blur-2xl px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
           <div className="flex items-center gap-2 bg-background border border-border rounded-[24px] px-2 py-2 shadow-card">
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={sendPhoto} />
             <button

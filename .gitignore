@@ -29,3 +29,4 @@ dist-ssr
 
 # Secrets/context local — ne jamais committer
 ASKOO_CONTEXT.md
+PUBLICATION_APP_STORE.md

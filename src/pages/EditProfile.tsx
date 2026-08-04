@@ -235,7 +235,7 @@ const EditProfile = () => {
       <div className="fixed bottom-[-100px] right-[-100px] w-[250px] h-[250px] bg-accent/20 blur-[100px] rounded-full pointer-events-none" />
 
       {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border px-4 py-3">
+      <header className="sticky top-[env(safe-area-inset-top)] z-50 bg-background/80 backdrop-blur-2xl border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/settings")}
