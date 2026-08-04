@@ -101,24 +101,6 @@
   @supports not (overflow-x: clip) {
     body { overflow-x: hidden; }
   }
-
-  /* Light — fond crème chaud */
-  :root body {
-    background-image:
-      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(34, 197, 94, 0.09) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 90% 100%, rgba(253, 230, 138, 0.14) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 248, 231, 0.6) 0%, transparent 80%);
-    background-attachment: fixed;
-  }
-
-  /* Dark — profond #111827-ish */
-  .dark body {
-    background-image:
-      radial-gradient(ellipse 70% 60% at 15% 5%, rgba(34, 197, 94, 0.12) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 50% at 85% 95%, rgba(253, 230, 138, 0.08) 0%, transparent 55%),
-      radial-gradient(ellipse 80% 70% at 50% 50%, rgba(17, 24, 39, 0.0) 0%, transparent 80%);
-    background-attachment: fixed;
-  }
 }
 
 /* ─── SCROLLBAR ──────────────────────────────────────────────────── */

@@ -88,9 +88,6 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-5 py-8 relative overflow-x-hidden overflow-y-auto">
-      {/* Fond décoratif */}
-      <div className="fixed top-[-80px] left-[-80px] w-64 h-64 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-[-80px] right-[-80px] w-64 h-64 bg-accent/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="w-full max-w-sm m-auto">
       {/* Illustration */}

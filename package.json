@@ -20,6 +20,7 @@
     "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.3.4",
     "@capacitor/ios": "^8.3.4",
+    "@capacitor/keyboard": "^8.0.5",
     "@capgo/native-purchases": "^8.6.4",
     "@hookform/resolvers": "^3.10.0",
     "@otakit/capacitor-updater": "^2.3.1",

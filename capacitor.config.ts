@@ -5,6 +5,10 @@ const config: CapacitorConfig = {
   appName: 'askoo',
   webDir: 'dist',
   plugins: {
+    Keyboard: {
+      resize: 'native',
+      resizeOnFullScreen: true,
+    },
     OtaKit: {
       appId: '0913f58f-4ccc-43b1-aee1-094ca3e984d1',
       appReadyTimeout: 10000,

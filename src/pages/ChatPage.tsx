@@ -1045,10 +1045,6 @@ const ChatPage = () => {
   return (
     <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
 
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-pastel-soft via-background to-background dark:from-[#06131a] dark:via-[#071c24] dark:to-[#06131a]" />
-      <div className="absolute top-[-120px] left-[-120px] w-[260px] h-[260px] bg-pastel-yellow/30 dark:bg-cyan-500/10 blur-[120px] rounded-full -z-10" />
-      <div className="absolute bottom-[-120px] right-[-120px] w-[260px] h-[260px] bg-pastel-green/30 dark:bg-emerald-500/10 blur-[120px] rounded-full -z-10" />
-
       {/* HEADER */}
       <div className="min-h-[88px] border-b border-border backdrop-blur-2xl bg-white/60 dark:bg-[#071c24]/70 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-card">
 
@@ -1549,7 +1545,9 @@ const ChatPage = () => {
             <input value={text} onChange={(e) => { setText(e.target.value); handleTyping(); }}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder={t('chat.messagePlaceholder')}
-              className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none px-2 text-sm" />
+              autoComplete="off"
+              autoCorrect="off"
+              className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none px-2 text-base" />
             <button onClick={sendMessage} className="w-11 h-11 rounded-2xl btn-magic flex items-center justify-center shrink-0">
               <Send className="w-4 h-4 text-foreground dark:text-white" />
             </button>
