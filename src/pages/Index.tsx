@@ -5,6 +5,7 @@ import {
   MapPin,
   Clock,
   Heart,
+  Home,
   Filter,
   User,
   ShoppingBag,
@@ -38,7 +39,6 @@ import CityPicker from "@/components/CityPicker";
 import MapView from "@/components/MapView";
 import NotificationBell from "@/components/NotificationBell";
 import ImageLightbox from "@/components/ImageLightbox";
-import { Illu } from "@/components/Illustrations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 
@@ -455,7 +455,7 @@ const Index = () => {
                 onClick={() =>
                   navigate("/messages")
                 }
-                className="rounded-2xl bg-accent/10 border border-accent/20 text-foreground hover:bg-accent/20 w-9 h-9"
+                className="rounded-2xl bg-primary/10 border border-primary/20 text-foreground hover:bg-primary/20 w-9 h-9"
               >
                 <MessageCircle className="w-4 h-4" />
               </Button>
@@ -496,14 +496,24 @@ const Index = () => {
                 </p>
                 <div className="flex gap-2 mt-3 flex-wrap">
                   {[t('home.tagBienveillance'), t('home.tagRapide'), t('home.tagHumain')].map((tag) => (
-                    <span key={tag} className="px-2.5 py-1 rounded-full bg-white/45 dark:bg-white/8 text-[11px] font-semibold text-foreground/80 backdrop-blur-sm border border-white/50 dark:border-white/10">
+                    <span key={tag} className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold shadow-sm shadow-primary/20">
                       {tag}
                     </span>
                   ))}
                 </div>
               </div>
               <div className="shrink-0 -mb-1">
-                <Illu name="hero" className="w-32 h-32 drop-shadow-xl" />
+                <svg viewBox="0 0 120 120" className="w-28 h-28 drop-shadow-xl" aria-hidden="true">
+                  <circle cx="60" cy="60" r="54" fill="rgba(34,197,94,0.10)" />
+                  <circle cx="60" cy="60" r="40" fill="rgba(34,197,94,0.16)" />
+                  <path
+                    d="M60 78 C 46 66, 32 56, 34 45 C 35.5 36, 45 33, 52 39 C 56 42.5, 58 46, 60 49 C 62 46, 64 42.5, 68 39 C 75 33, 84.5 36, 86 45 C 88 56, 74 66, 60 78 Z"
+                    fill="#22c55e"
+                  />
+                  <circle cx="46" cy="46" r="5" fill="#ffffff" opacity="0.85" />
+                  <circle cx="74" cy="46" r="5" fill="#ffffff" opacity="0.85" />
+                  <circle cx="60" cy="60" r="3" fill="#ffffff" opacity="0.9" />
+                </svg>
               </div>
             </div>
           </div>
@@ -540,29 +550,6 @@ const Index = () => {
             </Button>
           </div>
 
-          {/* SORT */}
-          <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
-            {[
-              { key: "distance", label: t('home.sortDistance') },
-              { key: "priceAsc", label: t('home.sortPriceAsc') },
-              { key: "priceDesc", label: t('home.sortPriceDesc') },
-              { key: "recent", label: t('home.sortRecent') },
-              { key: "urgent", label: t('home.sortUrgent') },
-            ].map((opt) => (
-              <button
-                key={opt.key}
-                onClick={() => setSortBy(opt.key)}
-                className={`shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
-                  sortBy === opt.key
-                    ? "bg-primary text-white shadow-sm shadow-primary/30 border-none"
-                    : "bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 text-muted-foreground backdrop-blur-sm hover:bg-primary/10"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
           {/* CITY */}
           <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
 
@@ -574,8 +561,10 @@ const Index = () => {
               }}
             />
 
-            <span className="ml-auto text-accent font-semibold">
-              {t('home.available', { count: sorted.length })}{userCoords ? ` · ${t('home.nearYou')}` : ""}
+            <span className="ml-auto text-foreground/70 font-semibold">
+              {sorted.length > 0
+                ? `${t('home.available', { count: sorted.length })}${userCoords ? ` · ${t('home.nearYou')}` : ""}`
+                : t('home.beFirst', { ville })}
             </span>
 
           </div>
@@ -595,7 +584,7 @@ const Index = () => {
                     : "bg-background/60 border border-border text-muted-foreground hover:bg-primary/10"
                 }`}
               >
-                {categoryLabels[cat]}<span className="ml-1 opacity-60">({categoryCounts[cat] ?? 0})</span>
+                {categoryLabels[cat]}{categoryCounts[cat] ? <span className="ml-1 opacity-60">({categoryCounts[cat]})</span> : null}
               </button>
             ))}
           </div>
@@ -643,11 +632,23 @@ const Index = () => {
         ))}
 
         {!loading && sorted.length === 0 && (
-          <EmptyState
-            icon={Search}
-            title={t('home.noResults')}
-            description={t('home.noResultsDesc')}
-          />
+          demandes.length === 0 ? (
+            <EmptyState
+              icon={Home}
+              title={t('home.beFirstTitle')}
+              description={t('home.beFirstDesc', { ville })}
+              action={{
+                label: t('home.beFirstCta'),
+                onClick: () => setShowForm(true),
+              }}
+            />
+          ) : (
+            <EmptyState
+              icon={Search}
+              title={t('home.noResults')}
+              description={t('home.noResultsDesc')}
+            />
+          )
         )}
 
         {!loading && (
@@ -788,6 +789,8 @@ const Index = () => {
         }
         filters={filters}
         onApply={setFilters}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
         categories={categoryKeys.map(cat => ({ value: cat, label: categoryLabels[cat] }))}
       />
 

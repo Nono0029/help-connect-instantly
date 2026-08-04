@@ -37,6 +37,10 @@
     "search": "Rechercher de l'aide...",
     "available": "aides disponibles",
     "nearYou": "près de toi",
+    "beFirst": "Sois le premier à proposer de l'aide",
+    "beFirstTitle": "Un peu tôt ici !",
+    "beFirstDesc": "Aucune demande pour le moment près de {ville}. Sois le premier à proposer ton aide et lance le mouvement.",
+    "beFirstCta": "Poster une demande",
     "noResults": "Aucun résultat",
     "noResultsDesc": "Modifie tes critères de recherche ou publie ta demande.",
     "urgent": "Urgent",
@@ -626,6 +630,7 @@
     "all": "Tout",
     "free": "Gratuit",
     "allPrices": "Tous les prix",
+    "sortLabel": "Trier",
     "everywhere": "Partout"
   },
   "common": {

@@ -37,6 +37,10 @@
     "search": "Search for help...",
     "available": "help requests available",
     "nearYou": "near you",
+    "beFirst": "Be the first to offer help",
+    "beFirstTitle": "A bit early here!",
+    "beFirstDesc": "No requests for the moment near {ville}. Be the first to offer your help and get things going.",
+    "beFirstCta": "Post a request",
     "noResults": "No results",
     "noResultsDesc": "Change your search criteria or publish your own request.",
     "urgent": "Urgent",
@@ -626,6 +630,7 @@
     "all": "All",
     "free": "Free",
     "allPrices": "All prices",
+    "sortLabel": "Sort by",
     "everywhere": "Everywhere"
   },
   "common": {

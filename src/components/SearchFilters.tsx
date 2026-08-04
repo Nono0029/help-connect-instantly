@@ -16,9 +16,11 @@ interface Props {
   filters: Filters;
   onApply: (filters: Filters) => void;
   categories: { value: string; label: string }[];
+  sortBy: string;
+  onSortChange: (sortBy: string) => void;
 }
 
-const SearchFilters = ({ open, onClose, filters, onApply, categories }: Props) => {
+const SearchFilters = ({ open, onClose, filters, onApply, categories, sortBy, onSortChange }: Props) => {
   const { t } = useTranslation();
   const [type, setType] = useState(filters.type);
   const [maxDistance, setMaxDistance] = useState(filters.maxDistance);
@@ -41,6 +43,14 @@ const SearchFilters = ({ open, onClose, filters, onApply, categories }: Props) =
     { label: "< 50€", value: "50" },
     { label: "< 100€", value: "100" },
     { label: t('searchFilters.allPrices'), value: "all" },
+  ];
+
+  const sortOptions = [
+    { key: "distance", label: t('home.sortDistance') },
+    { key: "priceAsc", label: t('home.sortPriceAsc') },
+    { key: "priceDesc", label: t('home.sortPriceDesc') },
+    { key: "recent", label: t('home.sortRecent') },
+    { key: "urgent", label: t('home.sortUrgent') },
   ];
 
   const handleApply = () => {
@@ -85,6 +95,26 @@ const SearchFilters = ({ open, onClose, filters, onApply, categories }: Props) =
             </div>
 
             <div className="px-4 py-5 space-y-6">
+              {/* Sort */}
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-2 block">{t('searchFilters.sortLabel')}</label>
+                <div className="flex flex-wrap gap-2">
+                  {sortOptions.map(opt => (
+                    <button
+                      key={opt.key}
+                      onClick={() => onSortChange(opt.key)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                        sortBy === opt.key
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-secondary text-muted-foreground border-transparent"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Type */}
               <div>
                 <label className="text-sm font-semibold text-foreground mb-2 block">{t('searchFilters.typeLabel')}</label>
