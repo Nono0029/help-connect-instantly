@@ -1041,24 +1041,40 @@ const ChatPage = () => {
     let removeShow: (() => void) | undefined;
     let removeDidShow: (() => void) | undefined;
     let removeHide: (() => void) | undefined;
-    let lastPluginKh = 0;
-    const apply = (kh: number) => {
-      setKeyboardHeight(kh + 44);
+    let pollTimer: ReturnType<typeof setInterval> | undefined;
+    let maxKh = 0;
+    const stopPoll = () => {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = undefined;
+    };
+    const apply = (raw: number) => {
+      maxKh = Math.max(maxKh, raw);
+      setKeyboardHeight(maxKh + 60);
       setTimeout(() => scrollToBottom(), 150);
+    };
+    const measure = () => {
+      const vv = window.visualViewport;
+      if (vv) apply(Math.max(0, window.innerHeight - vv.height));
+    };
+    const startPoll = () => {
+      stopPoll();
+      pollTimer = setInterval(measure, 100);
+      setTimeout(stopPoll, 2000);
     };
     (async () => {
       try {
         const { Keyboard } = await import("@capacitor/keyboard");
         removeShow = (await Keyboard.addListener("keyboardWillShow", (info) => {
-          lastPluginKh = Math.max(lastPluginKh, info.keyboardHeight);
-          apply(lastPluginKh);
+          apply(info.keyboardHeight);
+          startPoll();
         })).remove;
         removeDidShow = (await Keyboard.addListener("keyboardDidShow", (info) => {
-          lastPluginKh = Math.max(lastPluginKh, info.keyboardHeight);
-          apply(lastPluginKh);
+          apply(info.keyboardHeight);
+          startPoll();
         })).remove;
         removeHide = (await Keyboard.addListener("keyboardWillHide", () => {
-          lastPluginKh = 0;
+          stopPoll();
+          maxKh = 0;
           setKeyboardHeight(0);
           setTimeout(() => scrollToBottom(), 150);
         })).remove;
@@ -1066,11 +1082,7 @@ const ChatPage = () => {
     })();
     const vv = window.visualViewport;
     const update = () => {
-      const kh = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
-      if (kh > lastPluginKh + 44) {
-        lastPluginKh = kh;
-        apply(kh);
-      }
+      if (vv) measure();
     };
     vv?.addEventListener("resize", update);
     vv?.addEventListener("scroll", update);
@@ -1078,6 +1090,7 @@ const ChatPage = () => {
       removeShow?.();
       removeDidShow?.();
       removeHide?.();
+      stopPoll();
       vv?.removeEventListener("resize", update);
       vv?.removeEventListener("scroll", update);
     };
