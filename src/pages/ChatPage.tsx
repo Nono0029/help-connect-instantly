@@ -1043,16 +1043,18 @@ const ChatPage = () => {
     let removeHide: (() => void) | undefined;
     let pollTimer: ReturnType<typeof setInterval> | undefined;
     let maxKh = 0;
+    let pluginHeard = false;
     const stopPoll = () => {
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = undefined;
     };
     const apply = (raw: number) => {
       maxKh = Math.max(maxKh, raw);
-      setKeyboardHeight(maxKh + 12);
+      setKeyboardHeight(maxKh);
       setTimeout(() => scrollToBottom(), 150);
     };
     const measure = () => {
+      if (pluginHeard) return;
       const vv = window.visualViewport;
       if (vv) apply(Math.max(0, window.innerHeight - vv.height));
     };
@@ -1065,10 +1067,12 @@ const ChatPage = () => {
       try {
         const { Keyboard } = await import("@capacitor/keyboard");
         removeShow = (await Keyboard.addListener("keyboardWillShow", (info) => {
+          pluginHeard = true;
           apply(info.keyboardHeight);
           startPoll();
         })).remove;
         removeDidShow = (await Keyboard.addListener("keyboardDidShow", (info) => {
+          pluginHeard = true;
           apply(info.keyboardHeight);
           startPoll();
         })).remove;
