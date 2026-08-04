@@ -1039,15 +1039,23 @@ const ChatPage = () => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     let removeShow: (() => void) | undefined;
+    let removeDidShow: (() => void) | undefined;
     let removeHide: (() => void) | undefined;
     let lastPluginKh = 0;
+    const apply = (kh: number) => {
+      setKeyboardHeight(kh + 44);
+      setTimeout(() => scrollToBottom(), 150);
+    };
     (async () => {
       try {
         const { Keyboard } = await import("@capacitor/keyboard");
         removeShow = (await Keyboard.addListener("keyboardWillShow", (info) => {
-          lastPluginKh = info.keyboardHeight;
-          setKeyboardHeight(lastPluginKh + 12);
-          setTimeout(() => scrollToBottom(), 150);
+          lastPluginKh = Math.max(lastPluginKh, info.keyboardHeight);
+          apply(lastPluginKh);
+        })).remove;
+        removeDidShow = (await Keyboard.addListener("keyboardDidShow", (info) => {
+          lastPluginKh = Math.max(lastPluginKh, info.keyboardHeight);
+          apply(lastPluginKh);
         })).remove;
         removeHide = (await Keyboard.addListener("keyboardWillHide", () => {
           lastPluginKh = 0;
@@ -1059,15 +1067,16 @@ const ChatPage = () => {
     const vv = window.visualViewport;
     const update = () => {
       const kh = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
-      if (kh > lastPluginKh + 12) {
-        setKeyboardHeight(kh + 12);
-        setTimeout(() => scrollToBottom(), 120);
+      if (kh > lastPluginKh + 44) {
+        lastPluginKh = kh;
+        apply(kh);
       }
     };
     vv?.addEventListener("resize", update);
     vv?.addEventListener("scroll", update);
     return () => {
       removeShow?.();
+      removeDidShow?.();
       removeHide?.();
       vv?.removeEventListener("resize", update);
       vv?.removeEventListener("scroll", update);
@@ -1121,6 +1130,10 @@ const ChatPage = () => {
   return (
     <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300"
       style={{ paddingBottom: keyboardHeight }}>
+
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-pastel-soft via-background to-background dark:from-[#0d1d33] dark:via-[#0a1628] dark:to-[#0a1628]" />
+      <div className="absolute top-[-120px] left-[-120px] w-[260px] h-[260px] bg-pastel-yellow/30 dark:bg-yellow-500/15 blur-[120px] rounded-full -z-10" />
+      <div className="absolute bottom-[-120px] right-[-120px] w-[260px] h-[260px] bg-pastel-green/30 dark:bg-emerald-500/15 blur-[120px] rounded-full -z-10" />
 
       {/* HEADER */}
       <div className="min-h-[88px] border-b border-border backdrop-blur-2xl bg-white/60 dark:bg-[#071c24]/70 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-card">

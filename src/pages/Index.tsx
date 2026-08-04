@@ -41,6 +41,7 @@ import NotificationBell from "@/components/NotificationBell";
 import ImageLightbox from "@/components/ImageLightbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
+import { Illu } from "@/components/Illustrations";
 
 import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/context/LanguageContext";
@@ -496,24 +497,14 @@ const Index = () => {
                 </p>
                 <div className="flex gap-2 mt-3 flex-wrap">
                   {[t('home.tagBienveillance'), t('home.tagRapide'), t('home.tagHumain')].map((tag) => (
-                    <span key={tag} className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold shadow-sm shadow-primary/20">
+                    <span key={tag} className="px-2.5 py-1 rounded-full bg-white/45 dark:bg-white/8 text-[11px] font-semibold text-foreground/80 backdrop-blur-sm border border-white/50 dark:border-white/10">
                       {tag}
                     </span>
                   ))}
                 </div>
               </div>
               <div className="shrink-0 -mb-1">
-                <svg viewBox="0 0 120 120" className="w-28 h-28 drop-shadow-xl" aria-hidden="true">
-                  <circle cx="60" cy="60" r="54" fill="rgba(34,197,94,0.10)" />
-                  <circle cx="60" cy="60" r="40" fill="rgba(34,197,94,0.16)" />
-                  <path
-                    d="M60 78 C 46 66, 32 56, 34 45 C 35.5 36, 45 33, 52 39 C 56 42.5, 58 46, 60 49 C 62 46, 64 42.5, 68 39 C 75 33, 84.5 36, 86 45 C 88 56, 74 66, 60 78 Z"
-                    fill="#22c55e"
-                  />
-                  <circle cx="46" cy="46" r="5" fill="#ffffff" opacity="0.85" />
-                  <circle cx="74" cy="46" r="5" fill="#ffffff" opacity="0.85" />
-                  <circle cx="60" cy="60" r="3" fill="#ffffff" opacity="0.9" />
-                </svg>
+                <Illu name="hero" className="w-32 h-32 drop-shadow-xl" />
               </div>
             </div>
           </div>
