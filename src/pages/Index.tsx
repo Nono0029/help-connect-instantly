@@ -396,8 +396,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative">
 
-      {/* HEADER — top row only, stays fixed */}
-      <header className="sticky top-[env(safe-area-inset-top)] z-50 bg-background border-b border-border/60">
+      {/* HEADER — top row only, stays fixed, glass so content shows through */}
+      <header className="sticky top-[env(safe-area-inset-top)] z-50 topbar-glass">
 
         <div className="px-4 pt-3 pb-3">
 
