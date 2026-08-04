@@ -33,6 +33,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Illu } from "@/components/Illustrations";
 import ImageLightbox from "@/components/ImageLightbox";
+import SuccessCelebration from "@/components/SuccessCelebration";
 import { toast } from "sonner";
 
 interface Message {
@@ -145,6 +146,7 @@ const ChatPage = () => {
   const [avisDonne, setAvisDonne] = useState(false);
   const [note, setNote] = useState(5);
   const [commentaire, setCommentaire] = useState("");
+  const [celebrate, setCelebrate] = useState<{ title: string; subtitle?: string } | null>(null);
 
   const [showAdresseBox, setShowAdresseBox] = useState(false);
   const [adresseDismissed, setAdresseDismissed] = useState(false);
@@ -438,6 +440,8 @@ const ChatPage = () => {
           content: t('chat.missionFinishedMsg'),
         });
 
+        setCelebrate({ title: t('chat.missionDoneTitle'), subtitle: t('chat.missionDoneSubtitle') });
+
         if (otherUserId) {
           await supabase.from("notifications").insert([{
             user_id: otherUserId,
@@ -557,6 +561,7 @@ const ChatPage = () => {
       }
 
       toast.success("Paiement Apple Pay effectué !");
+      setCelebrate({ title: t('chat.paymentSuccessTitle'), subtitle: t('chat.paymentSuccessSubtitle') });
 
       const { data: p } = await supabase
         .from("payments")
@@ -609,6 +614,7 @@ const ChatPage = () => {
       setAvisDonne(true);
       setCommentaire("");
       setNote(5);
+      setCelebrate({ title: t('chat.reviewPublishedTitle'), subtitle: t('chat.reviewPublishedSubtitle') });
     } catch (err) {
       console.error("envoyerAvis error:", err);
       toast.error("Erreur lors de l'envoi de l'avis");
@@ -1564,6 +1570,13 @@ const ChatPage = () => {
           onNext={lightbox.index < lightbox.images.length - 1 ? () => setLightbox(prev => prev ? { ...prev, index: prev.index + 1 } : null) : undefined}
         />
       )}
+
+      <SuccessCelebration
+        open={!!celebrate}
+        title={celebrate?.title}
+        subtitle={celebrate?.subtitle}
+        onClose={() => setCelebrate(null)}
+      />
     </div>
   );
 };

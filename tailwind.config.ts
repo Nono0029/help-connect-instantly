@@ -25,13 +25,13 @@ export default {
     extend: {
       fontFamily: {
         sans: [
-          "DM Sans",
+          "Poppins",
           "-apple-system",
           "BlinkMacSystemFont",
           "sans-serif",
         ],
         display: [
-          "Plus Jakarta Sans",
+          "Poppins",
           "-apple-system",
           "BlinkMacSystemFont",
           "sans-serif",

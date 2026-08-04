@@ -39,10 +39,10 @@ const BottomNav = () => {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 whileTap={{ scale: 0.88 }}
-                className="flex flex-col items-center justify-center -mt-3"
+                className="flex flex-col items-center justify-center -mt-4"
               >
-                <div className="w-[44px] h-[44px] rounded-full btn-magic flex items-center justify-center">
-                  <item.icon className="w-5 h-5 text-white" />
+                <div className="w-[50px] h-[50px] rounded-full btn-magic flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                  <item.icon className="w-6 h-6 text-white" strokeWidth={2.5} />
                 </div>
                 <span className="text-[9px] font-semibold text-muted-foreground mt-0.5">
                   {item.label}
@@ -58,16 +58,16 @@ const BottomNav = () => {
               whileTap={{ scale: 0.82 }}
               className={cn(
                 "flex flex-col items-center gap-0 py-1.5 rounded-2xl transition-all duration-200 justify-center",
-                isActive ? "bg-primary/10" : "hover:bg-primary/5"
+                isActive ? "bg-primary text-primary-foreground" : "hover:bg-primary/5"
               )}
             >
               <item.icon className={cn(
                 "w-5 h-5 transition-colors duration-200",
-                isActive ? "text-primary" : "text-muted-foreground/70"
+                isActive ? "text-primary-foreground" : "text-muted-foreground/70"
               )} />
               <span className={cn(
                 "text-[9px] font-semibold transition-colors duration-200",
-                isActive ? "text-primary" : "text-muted-foreground/60"
+                isActive ? "text-primary-foreground" : "text-muted-foreground/60"
               )}>
                 {item.label}
               </span>

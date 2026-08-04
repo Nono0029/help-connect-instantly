@@ -159,6 +159,7 @@ const Index = () => {
   >([]);
 
   const [boostedUserIds, setBoostedUserIds] = useState<Set<string>>(new Set());
+  const [authorRatings, setAuthorRatings] = useState<Record<string, number>>({});
 
   const [loading, setLoading] = useState(true);
 
@@ -205,6 +206,26 @@ const Index = () => {
           }
         });
         setBoostedUserIds(boosted);
+
+        // Trust — average rating per author (Airbnb style)
+        const { data: avisData } = await withTimeout(supabase
+          .from("avis")
+          .select("cible_id, note")
+          .in("cible_id", userIds)
+          .limit(1000), 12000, "avis");
+        const ratings: Record<string, number> = {};
+        (avisData || []).forEach(a => {
+          if (!ratings[a.cible_id]) {
+            ratings[a.cible_id] = { sum: 0, count: 0 } as any;
+          }
+          (ratings as any)[a.cible_id].sum += a.note;
+          (ratings as any)[a.cible_id].count += 1;
+        });
+        const ratingMap: Record<string, number> = {};
+        Object.keys(ratings).forEach(id => {
+          ratingMap[id] = Math.round((((ratings as any)[id].sum) / ((ratings as any)[id].count)) * 10) / 10;
+        });
+        setAuthorRatings(ratingMap);
       }
     } catch (err) {
       console.error("fetchDemandes error:", err);
@@ -465,7 +486,7 @@ const Index = () => {
                 <p className="text-[11px] font-bold tracking-widest uppercase text-primary/70 dark:text-primary/80 mb-1">
                   Entraide locale
                 </p>
-                <h2 className="text-[22px] font-extrabold text-foreground leading-[1.15] font-display">
+                <h2 className="text-[28px] font-extrabold text-foreground leading-[1.12] font-display tracking-tight">
                   {t('home.heroTitle')}
                   <br />
                   <span className="text-primary">{t('home.heroSubtitle')}</span>
@@ -651,8 +672,28 @@ const Index = () => {
               onClick={() => navigate(`/demande/${d.id}`)}
               className={`card-magic cursor-pointer active:scale-[0.98] overflow-hidden ${
                 isUrgentActive(d.urgent, d.created_at) ? "card-urgent" : ""
-              }`}
+              } ${i < 2 ? "shadow-emerald-500/10" : ""}`}
             >
+              {/* Photo dominant — Airbnb style, in front at top */}
+              {d.photos && d.photos.length > 0 && (
+                <div
+                  className="relative w-full overflow-hidden rounded-[24px] mb-4 -mt-1 cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); setLightbox({ images: d.photos!, index: 0 }); }}
+                >
+                  <img
+                    src={d.photos[0]}
+                    alt=""
+                    loading="lazy"
+                    className="w-full aspect-[16/9] object-cover hover:opacity-95 transition-opacity"
+                  />
+                  {d.photos.length > 1 && (
+                    <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/55 text-white text-[10px] font-semibold backdrop-blur-sm">
+                      {d.photos.length} photos
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Header row */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -668,7 +709,15 @@ const Index = () => {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-foreground truncate">{d.auteur}</p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className="text-[13px] font-bold text-foreground truncate">{d.auteur}</p>
+                      {d.user_id && authorRatings[d.user_id] && (
+                        <span className="flex items-center gap-0.5 shrink-0 text-[11px] font-bold text-foreground/80">
+                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          {authorRatings[d.user_id]}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
                       <MapPin className="w-3 h-3 shrink-0" />
                       <span className="truncate">{d.ville || ville}</span>
@@ -694,23 +743,12 @@ const Index = () => {
               <h3 className="font-extrabold text-foreground text-[15px] leading-snug mb-1.5">{d.titre}</h3>
               <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed mb-3">{d.description}</p>
 
-              {d.photos && d.photos.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 mb-1 scrollbar-hide" onClick={e => e.stopPropagation()}>
-                  {d.photos.map((src, i) => (
-                    <img key={i} src={src} alt="" loading="lazy"
-                      onClick={() => setLightbox({ images: d.photos!, index: i })}
-                      className="shrink-0 w-20 h-20 rounded-xl object-cover border border-border/50 cursor-pointer hover:opacity-80 transition-opacity"
-                    />
-                  ))}
-                </div>
-              )}
-
               {/* Divider */}
               <div className="h-px bg-border/40 mb-3" />
 
               {/* Footer */}
               <div className="flex items-center gap-1.5 flex-wrap mb-3">
-                <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-primary/10 text-foreground/80 truncate max-w-[130px]">
+                <span className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-primary text-primary-foreground truncate max-w-[130px]">
                   {categoryLabels[d.categorie] || d.categorie}
                 </span>
                 {d.user_id && boostedUserIds.has(d.user_id) && (
@@ -723,7 +761,7 @@ const Index = () => {
                 onClick={(e) => { e.stopPropagation(); navigate(`/demande/${d.id}`); }}
                 className="btn-magic w-full text-[14px] py-3 rounded-2xl"
               >
-                {t('home.respond')} · {d.gratuit ? t('home.free') : `${d.prix} €`}
+                {t('home.respond')} · <span className="font-extrabold">{d.gratuit ? t('home.free') : `${d.prix} €`}</span>
               </button>
             </motion.div>
 

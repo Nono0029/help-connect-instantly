@@ -29,6 +29,7 @@ interface Review {
   commentaire: string;
   created_at: string;
   verifie?: boolean;
+  photo?: string;
 }
 
 interface Mission {
@@ -317,15 +318,17 @@ const ProfilePage = () => {
             </Button>
           )}
 
-          <div className="flex items-center justify-center gap-1 mt-4">
-            <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-            <span className="text-lg font-bold text-foreground">{moyenne.toFixed(1)}</span>
-            <span className="text-xs text-muted-foreground">({avis.length} {t('profile.reviews')})</span>
-          </div>
-
-          <div className="flex items-center justify-center gap-1 mt-1">
-            <Medal className="w-4 h-4 text-accent" />
-            <span className="text-sm text-muted-foreground">{missions.length} {missions.length > 1 ? t('profile.missions') : t('profile.mission')} {missions.length > 1 ? t('profile.completedPlural') : t('profile.completed')}</span>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <span className="flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1.5">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-base font-extrabold text-foreground">{moyenne.toFixed(1)}</span>
+              <span className="text-xs text-muted-foreground">({avis.length} {t('profile.reviews')})</span>
+            </span>
+            <span className="flex items-center gap-1.5 rounded-full bg-accent/10 border border-accent/20 px-3.5 py-1.5">
+              <Medal className="w-4 h-4 text-accent" />
+              <span className="text-base font-extrabold text-foreground">{missions.length}</span>
+              <span className="text-xs text-muted-foreground">{missions.length > 1 ? t('profile.missions') : t('profile.mission')}</span>
+            </span>
           </div>
 
           {/* TRUST SIGNALS */}
@@ -478,18 +481,21 @@ const ProfilePage = () => {
               {t('profile.receivedReviews')}
             </h3>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               {avis.slice(0, 10).map(a => (
-                <div key={a.id} className="bg-card border border-border rounded-2xl p-4">
+                <div key={a.id} className="bg-card border border-border rounded-[24px] p-5">
+                  {a.photo && (
+                    <img src={a.photo} alt="" loading="lazy" className="w-full rounded-[18px] object-cover mb-3 max-h-64" />
+                  )}
                   <div className="flex items-center gap-1 mb-2">
                     {Array.from({ length: a.note }).map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
                   {a.commentaire && (
-                    <p className="text-sm text-foreground/80">{a.commentaire}</p>
+                    <p className="text-[15px] text-foreground/90 leading-relaxed">{a.commentaire}</p>
                   )}
-                  <div className="flex items-center gap-2 mt-1.5">
+                  <div className="flex items-center gap-2 mt-2">
                     <p className="text-[11px] text-muted-foreground">
                       {new Date(a.created_at).toLocaleDateString("fr-FR")}
                     </p>
