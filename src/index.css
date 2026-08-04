@@ -147,19 +147,19 @@
     inset 0 -1px 6px rgba(0, 0, 0, 0.25);
 }
 
-/* Sticky top bar — glass look but MUST NOT set position (would kill sticky) */
+/* Sticky top bar — solid white, MUST NOT set position (would kill sticky) */
 .topbar-glass {
   background:
-    linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 45%),
-    rgba(255, 255, 255, 0.62);
+    linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 45%),
+    rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(18px) saturate(1.7) brightness(1.03);
   -webkit-backdrop-filter: blur(18px) saturate(1.7) brightness(1.03);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 .dark .topbar-glass {
   background:
-    linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 45%),
-    rgba(17, 24, 39, 0.62);
+    linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 45%),
+    rgba(17, 24, 39, 0.96);
   border-bottom-color: rgba(255, 255, 255, 0.07);
 }
 

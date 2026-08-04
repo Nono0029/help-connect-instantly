@@ -396,10 +396,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative">
 
-      {/* HEADER — top row only, stays fixed, glass so content shows through */}
-      <header className="sticky top-[env(safe-area-inset-top)] z-50 topbar-glass">
+      {/* HEADER — top row only, fixed, white, covers the whole top (no gap above) */}
+      <header className="sticky top-0 z-50 topbar-glass -mt-[env(safe-area-inset-top)]">
 
-        <div className="px-4 pt-3 pb-3">
+        <div className="px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-3">
 
           {/* TOP */}
           <div className="flex items-center justify-between">
