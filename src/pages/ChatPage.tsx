@@ -1049,7 +1049,7 @@ const ChatPage = () => {
     };
     const apply = (raw: number) => {
       maxKh = Math.max(maxKh, raw);
-      setKeyboardHeight(maxKh + 60);
+      setKeyboardHeight(maxKh + 12);
       setTimeout(() => scrollToBottom(), 150);
     };
     const measure = () => {
@@ -1142,6 +1142,11 @@ const ChatPage = () => {
 
   return (
     <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
+
+      {/* DESSIN DE FOND — décoratif, ne bloque rien */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" aria-hidden="true">
+        <Illu name={(["jardin","bricolage","cours","tech","animaux","ecoute","demenagement","nature","sports","travel","food","musique"] as const)[Number(id ?? 0) % 12]} className="w-64 h-64 opacity-[0.18]" />
+      </div>
 
       {/* HEADER */}
       <div className="min-h-[88px] border-b border-border backdrop-blur-2xl bg-white/60 dark:bg-[#071c24]/70 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-card">
@@ -1285,7 +1290,7 @@ const ChatPage = () => {
       )}
 
       {/* MESSAGES */}
-      <div ref={messagesRef} onScroll={handleMessagesScroll} className="chat-messages flex-1 overflow-y-auto px-4 py-5 space-y-3 pb-40">
+      <div ref={messagesRef} onScroll={handleMessagesScroll} className="chat-messages relative z-10 flex-1 overflow-y-auto px-4 py-5 space-y-3 pb-40">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center py-16">
             <Illu name="chat" className="w-40 h-40 opacity-60" />
