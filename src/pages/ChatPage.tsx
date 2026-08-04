@@ -1037,19 +1037,40 @@ const ChatPage = () => {
   }, [messages.length]);
 
   useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let removeShow: (() => void) | undefined;
+    let removeHide: (() => void) | undefined;
+    let lastPluginKh = 0;
+    (async () => {
+      try {
+        const { Keyboard } = await import("@capacitor/keyboard");
+        removeShow = (await Keyboard.addListener("keyboardWillShow", (info) => {
+          lastPluginKh = info.keyboardHeight;
+          setKeyboardHeight(lastPluginKh + 12);
+          setTimeout(() => scrollToBottom(), 150);
+        })).remove;
+        removeHide = (await Keyboard.addListener("keyboardWillHide", () => {
+          lastPluginKh = 0;
+          setKeyboardHeight(0);
+          setTimeout(() => scrollToBottom(), 150);
+        })).remove;
+      } catch {}
+    })();
     const vv = window.visualViewport;
-    if (!vv) return;
     const update = () => {
-      const kh = Math.max(0, window.innerHeight - vv.height);
-      setKeyboardHeight(kh);
-      if (kh > 0) setTimeout(() => scrollToBottom(), 120);
+      const kh = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
+      if (kh > lastPluginKh + 12) {
+        setKeyboardHeight(kh + 12);
+        setTimeout(() => scrollToBottom(), 120);
+      }
     };
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    update();
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
     return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
+      removeShow?.();
+      removeHide?.();
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
     };
   }, []);
 
