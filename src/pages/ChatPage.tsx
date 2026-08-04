@@ -1141,12 +1141,7 @@ const ChatPage = () => {
   const canConfirmMission = user?.id === mission?.helper_id || paymentDone;
 
   return (
-    <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300"
-      style={{ paddingBottom: keyboardHeight }}>
-
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-pastel-soft via-background to-background dark:from-[#0d1d33] dark:via-[#0a1628] dark:to-[#0a1628]" />
-      <div className="absolute top-[-120px] left-[-120px] w-[260px] h-[260px] bg-pastel-yellow/30 dark:bg-yellow-500/15 blur-[120px] rounded-full -z-10" />
-      <div className="absolute bottom-[-120px] right-[-120px] w-[260px] h-[260px] bg-pastel-green/30 dark:bg-emerald-500/15 blur-[120px] rounded-full -z-10" />
+    <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
 
       {/* HEADER */}
       <div className="min-h-[88px] border-b border-border backdrop-blur-2xl bg-white/60 dark:bg-[#071c24]/70 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-card">
@@ -1643,7 +1638,8 @@ const ChatPage = () => {
 
       {/* INPUT */}
       {isActive && (
-        <div className="shrink-0 bg-background px-3 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+10px)]">
+        <div className="fixed left-0 right-0 z-30 bg-background px-3 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+10px)] border-t border-border shadow-[0_-8px_24px_rgba(0,0,0,0.06)]"
+          style={{ bottom: keyboardHeight }}>
           <div className="flex items-center gap-2 bg-card border border-border rounded-full px-2 py-1.5 shadow-card">
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={sendPhoto} />
             <button
