@@ -18,7 +18,6 @@ import {
   Lock,
   CreditCard,
   Euro,
-  Home,
   AlertTriangle,
   Flag,
   Wallet,
@@ -141,6 +140,7 @@ const ChatPage = () => {
 
   const [text, setText] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const [showAvis, setShowAvis] = useState(false);
   const [avisDonne, setAvisDonne] = useState(false);
@@ -179,6 +179,24 @@ const ChatPage = () => {
   const missionRef = useRef<Mission | null>(null);
 
   const isImgMsg = (content: string) => content.startsWith("📷:");
+  const isLocMsg = (content: string) => content.startsWith("📍");
+  const locLabel = (content: string) => {
+    const match = content.match(/^📍\s*(.*?)(?::|\n)/);
+    return match ? match[1].trim() : "Localisation";
+  };
+  const locAddress = (content: string) => {
+    const lines = content.replace(/^📍\s*[^:\n]*:\s*/, "").replace(/^📍\s*/, "").split("\n").filter(Boolean);
+    return lines.join(", ");
+  };
+  const openLocation = (content: string) => {
+    const urlMatch = content.match(/https:\/\/maps\.google\.com\/\?q=[\d.,-]+/);
+    if (urlMatch) {
+      window.open(urlMatch[0], "_system");
+      return;
+    }
+    const addr = locAddress(content);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, "_system");
+  };
 
   const allChatPhotos = useMemo(() => messages
     .filter(m => isImgMsg(m.content))
@@ -1024,18 +1042,24 @@ const ChatPage = () => {
     let removeHide: (() => void) | undefined;
     (async () => {
       try {
-        const { Keyboard } = await import("@capacitor/keyboard");
-        removeShow = (await Keyboard.addListener("keyboardWillShow", () => {
-          setTimeout(() => scrollToBottom(), 120);
+        const { Keyboard, KeyboardResize } = await import("@capacitor/keyboard");
+        await Keyboard.setResizeMode({ mode: KeyboardResize.None });
+        removeShow = (await Keyboard.addListener("keyboardWillShow", (info) => {
+          setKeyboardHeight(info.keyboardHeight);
+          setTimeout(() => scrollToBottom(), 150);
         })).remove;
         removeHide = (await Keyboard.addListener("keyboardWillHide", () => {
-          setTimeout(() => scrollToBottom(), 120);
+          setKeyboardHeight(0);
+          setTimeout(() => scrollToBottom(), 150);
         })).remove;
       } catch {}
     })();
     return () => {
       removeShow?.();
       removeHide?.();
+      import("@capacitor/keyboard").then(({ Keyboard, KeyboardResize }) => {
+        Keyboard.setResizeMode({ mode: KeyboardResize.Native });
+      });
     };
   }, []);
 
@@ -1084,7 +1108,8 @@ const ChatPage = () => {
   const canConfirmMission = user?.id === mission?.helper_id || paymentDone;
 
   return (
-    <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
+    <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300"
+      style={{ paddingBottom: keyboardHeight }}>
 
       {/* HEADER */}
       <div className="min-h-[88px] border-b border-border backdrop-blur-2xl bg-white/60 dark:bg-[#071c24]/70 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-card">
@@ -1251,18 +1276,35 @@ const ChatPage = () => {
                 {otherProfile?.pseudo?.[0]?.toUpperCase() || "?"}
               </button>
             )}
-            <div className={`flex flex-col min-w-0 flex-1 ${isMe(msg.sender_id) ? "items-end" : "items-start"}`}>
-              <div className={`max-w-[72vw] sm:max-w-sm px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
-                isMe(msg.sender_id)
-                  ? "bg-[linear-gradient(135deg,#4ade80_0%,#22c55e_50%,#16a34a_100%)] text-white shadow-soft"
-                  : "bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-600 shadow-card"
-              }`}>
-                {isImgMsg(msg.content) ? (
-                  <img src={msg.content.slice(3)} alt="photo" onClick={() => setLightbox({ images: allChatPhotos, index: allChatPhotos.indexOf(msg.content.slice(3)) })} className="rounded-xl max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" />
-                ) : (
-                  msg.content
-                )}
-              </div>
+            <div className={`flex flex-col min-w-0 max-w-[78vw] sm:max-w-sm ${isMe(msg.sender_id) ? "items-end" : "items-start"}`}>
+              {isImgMsg(msg.content) ? (
+                <button
+                  onClick={() => setLightbox({ images: allChatPhotos, index: allChatPhotos.indexOf(msg.content.slice(3)) })}
+                  className="rounded-3xl overflow-hidden border border-border shadow-soft bg-card active:scale-[0.98] transition-transform"
+                >
+                  <img src={msg.content.slice(3)} alt="photo" loading="lazy" className="max-h-80 w-auto max-w-[78vw] sm:max-w-sm object-cover hover:opacity-90 transition-opacity" />
+                </button>
+              ) : isLocMsg(msg.content) ? (
+                <button
+                  onClick={() => openLocation(msg.content)}
+                  className="max-w-[78vw] sm:max-w-sm px-4 py-3.5 rounded-[26px] bg-card border border-border shadow-card text-left active:scale-[0.98] transition-transform hover:border-accent/50"
+                >
+                  <span className="flex items-center gap-1.5 text-sm font-bold text-foreground">
+                    <MapPin className="w-4 h-4 text-accent shrink-0" />
+                    {locLabel(msg.content)}
+                  </span>
+                  <span className="block text-xs text-muted-foreground mt-1 break-words">{locAddress(msg.content)}</span>
+                  <span className="block text-[11px] font-semibold text-accent mt-1.5">{t('chat.openMaps')}</span>
+                </button>
+              ) : (
+                <div className={`px-4 py-3 rounded-[26px] text-sm break-words backdrop-blur-xl transition-colors ${
+                  isMe(msg.sender_id)
+                    ? "bg-[linear-gradient(135deg,#4ade80_0%,#22c55e_50%,#16a34a_100%)] text-white shadow-soft rounded-br-md"
+                    : "bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-600 shadow-card rounded-bl-md"
+                }`}>
+                  {msg.content}
+                </div>
+              )}
               <span className="text-[10px] text-muted-foreground/60 mt-1 px-2">
                 {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -1273,7 +1315,7 @@ const ChatPage = () => {
 
       {/* ADRESSE */}
       {showAdresseBox && !adresseEnvoyee && (
-        <div className="fixed bottom-32 left-4 right-4 z-40">
+        <div className="fixed left-4 right-4 z-40" style={{ bottom: `calc(8rem + ${keyboardHeight}px)` }}>
           <div className="rounded-[30px] bg-card/80 border border-border p-5 shadow-magic backdrop-blur-2xl">
             <div className="flex items-center gap-2 mb-3">
               <ShieldCheck className="w-5 h-5 text-accent dark:text-cyan-400" />
@@ -1296,7 +1338,7 @@ const ChatPage = () => {
 
       {/* CONFIRM */}
       {mission?.statut === "en_cours" && (
-        <div className="fixed bottom-32 left-0 right-0 px-4 z-30">
+        <div className="fixed left-0 right-0 px-4 z-30" style={{ bottom: `calc(8rem + ${keyboardHeight}px)` }}>
           <button
             onClick={() => canConfirmMission && setShowConfirmMission(true)}
             disabled={!canConfirmMission}
@@ -1372,7 +1414,7 @@ const ChatPage = () => {
 
       {/* AVIS */}
       {mission?.statut === "terminee" && !showAvis && !avisDonne && (
-        <div className="fixed bottom-32 left-0 right-0 px-4 z-30 space-y-2">
+        <div className="fixed left-0 right-0 px-4 z-30 space-y-2" style={{ bottom: `calc(8rem + ${keyboardHeight}px)` }}>
           <button onClick={() => setShowAvis(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">{t('chat.leaveReview')}</button>
           <button onClick={partagerCarte} disabled={sharingCard} className="w-full py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
             {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
@@ -1381,7 +1423,7 @@ const ChatPage = () => {
         </div>
       )}
       {mission?.statut === "terminee" && avisDonne && (
-        <div className="fixed bottom-32 left-0 right-0 px-4 z-30 space-y-2">
+        <div className="fixed left-0 right-0 px-4 z-30 space-y-2" style={{ bottom: `calc(8rem + ${keyboardHeight}px)` }}>
           <div className="w-full py-3 rounded-[24px] bg-muted border border-border text-center text-sm text-muted-foreground font-medium">{t('chat.reviewDone')}</div>
           <button onClick={partagerCarte} disabled={sharingCard} className="w-full py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
             {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
@@ -1564,24 +1606,25 @@ const ChatPage = () => {
 
       {/* INPUT */}
       {isActive && (
-        <div className="shrink-0 border-t border-border bg-card/70 backdrop-blur-2xl px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
-          <div className="flex items-center gap-2 bg-background border border-border rounded-[24px] px-2 py-2 shadow-card">
+        <div className="shrink-0 bg-background px-3 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+10px)]">
+          <div className="flex items-center gap-2 bg-card border border-border rounded-full px-2 py-1.5 shadow-card">
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={sendPhoto} />
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center shrink-0 disabled:opacity-50"
+              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 active:scale-95 transition-transform disabled:opacity-50"
+              title={t('chat.photoTitle')}
             >
-              {uploading ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : <ImageIcon className="w-4 h-4 text-muted-foreground" />}
+              {uploading ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> : <ImageIcon className="w-5 h-5 text-foreground/80" />}
             </button>
             <button
               onClick={() => { setShowAdresseBox(true); setAdresseDismissed(false); }}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                adresseEnvoyee ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground hover:text-accent"
+              className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 active:scale-95 transition-colors ${
+                adresseEnvoyee ? "bg-accent/15 text-accent" : "bg-secondary text-foreground/80"
               }`}
               title={adresseEnvoyee ? t('chat.addressSent') : isDemandeOwner ? t('chat.shareAddress') : t('chat.sendMyAddress')}
             >
-              <Home className="w-4 h-4" />
+              <MapPin className="w-5 h-5" />
             </button>
             <input value={text} onChange={(e) => { setText(e.target.value); handleTyping(); }}
               onKeyDown={(e) => {
@@ -1596,9 +1639,13 @@ const ChatPage = () => {
               autoCapitalize="sentences"
               enterKeyHint="send"
               inputMode="text"
-              className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none px-2 text-base" />
-            <button onClick={sendMessage} className="w-11 h-11 rounded-2xl btn-magic flex items-center justify-center shrink-0">
-              <Send className="w-4 h-4 text-foreground dark:text-white" />
+              className="flex-1 min-w-0 bg-transparent text-foreground placeholder:text-muted-foreground outline-none px-2 text-base" />
+            <button
+              onClick={sendMessage}
+              disabled={!text.trim()}
+              className="w-11 h-11 rounded-full btn-magic flex items-center justify-center shrink-0 disabled:opacity-50 active:scale-95 transition-all"
+            >
+              <Send className="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
