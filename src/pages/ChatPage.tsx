@@ -1211,60 +1211,52 @@ const ChatPage = () => {
 
       {/* ACCEPT / REFUSE */}
       {isDemandeOwner && conversation?.statut === "en_attente" && (
-        <div className="px-4 py-3 bg-card/80 border-b border-border">
-          <p className="text-sm font-semibold text-foreground mb-2">{t('chat.acceptPrompt')}</p>
-          <div className="flex gap-2">
+        <div className="px-4 py-2.5 bg-card/80 border-b border-border flex items-center justify-between gap-2">
+          <p className="text-[13px] font-semibold text-foreground leading-tight">{t('chat.acceptPrompt')}</p>
+          <div className="flex gap-2 shrink-0">
             <button onClick={refuserMission} disabled={actionLoading}
-              className="flex-1 h-11 rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 font-semibold text-sm flex items-center justify-center gap-1.5 disabled:opacity-50">
-              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} {t('chat.refuse')}
+              className="h-9 px-4 rounded-full bg-destructive/10 text-destructive border border-destructive/20 font-semibold text-xs flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />} {t('chat.refuse')}
             </button>
             <button onClick={accepterMission} disabled={actionLoading}
-              className="flex-1 h-11 rounded-2xl bg-accent/10 text-accent border border-accent/20 font-semibold text-sm flex items-center justify-center gap-1.5 disabled:opacity-50">
-              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} {t('chat.accept')}
+              className="h-9 px-4 rounded-full bg-accent/10 text-accent border border-accent/20 font-semibold text-xs flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />} {t('chat.accept')}
             </button>
           </div>
         </div>
       )}
 
-      {/* PAIEMENT — show if there's a price */}
+      {/* PAIEMENT — compact */}
       {canPayMission && (
-        <div className="px-4 py-3 bg-card/80 border-b border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Lock className="w-4 h-4 text-accent" />
-            <p className="text-sm font-semibold text-foreground">
+        <div className="px-4 py-2.5 bg-card/80 border-b border-border flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold text-foreground flex items-center gap-1.5 truncate">
+              <Lock className="w-3.5 h-3.5 text-accent shrink-0" />
               {payment?.statut === "en_attente" ? t('chat.paymentPending') : t('chat.paymentAvailable')}
             </p>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">
-            {payment?.statut === "en_attente"
-              ? t('chat.paymentPendingDesc')
-              : payment?.statut === "expiré"
-                ? t('chat.paymentExpiredDesc')
-                : t('chat.paymentDesc')}
-          </p>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <span className="text-xs text-muted-foreground">{t('chat.payTotal')}</span>
-            <span className="text-sm font-bold text-foreground">{getTotalEuros(missionPrice, isUrgentActive(mission?.demandes?.urgent, mission?.demandes?.created_at), isBoosted, isReferralExempt).toFixed(2)} €</span>
-          </div>
-          {isReferralExempt && (
-            <p className="text-[11px] text-accent font-semibold mb-2 flex items-center gap-1">
-              <Gift className="w-3 h-3" /> {t('chat.firstRequestFree')}
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+              {getTotalEuros(missionPrice, isUrgentActive(mission?.demandes?.urgent, mission?.demandes?.created_at), isBoosted, isReferralExempt).toFixed(2)} €
+              {isReferralExempt && (
+                <span className="text-accent font-semibold ml-1.5">
+                  <Gift className="w-3 h-3 inline" /> {t('chat.firstRequestFree')}
+                </span>
+              )}
             </p>
-          )}
+          </div>
           <button
             onClick={handlePayment}
             disabled={paymentLoading}
-            className="w-full h-12 rounded-2xl bg-black text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60 hover:bg-gray-800"
+            className="h-10 px-4 rounded-full bg-black text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-all disabled:opacity-60 hover:bg-gray-800"
           >
             {paymentLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
-              <CreditCard className="w-4 h-4" />
+              <CreditCard className="w-3.5 h-3.5" />
             )}
             Payer avec Apple Pay
           </button>
           {paymentLoading && (
-            <div className="mt-2 text-[10px] font-mono leading-tight text-muted-foreground">
+            <div className="absolute inset-x-4 bottom-1.5 text-[10px] font-mono leading-tight text-muted-foreground">
               <div>{payTrace}</div>
               <div>secondes écoulées : {payElapsed}</div>
             </div>
@@ -1643,7 +1635,7 @@ const ChatPage = () => {
       {/* INPUT */}
       {isActive && (
         <div className="fixed left-0 right-0 z-30 flex justify-center px-3 pb-2.5 pointer-events-none"
-          style={{ bottom: keyboardHeight }}>
+          style={{ bottom: Math.max(0, keyboardHeight - 6) }}>
           <div className="pointer-events-auto flex items-center gap-2 bg-card border border-border rounded-full px-2 py-1.5 shadow-card w-full max-w-2xl">
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={sendPhoto} />
             <button
