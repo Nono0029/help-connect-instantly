@@ -1642,9 +1642,9 @@ const ChatPage = () => {
 
       {/* INPUT */}
       {isActive && (
-        <div className="fixed left-0 right-0 z-30 bg-background px-3 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+10px)] border-t border-border shadow-[0_-8px_24px_rgba(0,0,0,0.06)]"
+        <div className="fixed left-0 right-0 z-30 flex justify-center px-3 pb-2.5 pointer-events-none"
           style={{ bottom: keyboardHeight }}>
-          <div className="flex items-center gap-2 bg-card border border-border rounded-full px-2 py-1.5 shadow-card">
+          <div className="pointer-events-auto flex items-center gap-2 bg-card border border-border rounded-full px-2 py-1.5 shadow-card w-full max-w-2xl">
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={sendPhoto} />
             <button
               onClick={() => fileRef.current?.click()}
