@@ -397,7 +397,7 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col relative">
 
       {/* HEADER */}
-      <header className="sticky top-[env(safe-area-inset-top)] z-50 glass border-b border-border/60">
+      <header className="sticky top-[env(safe-area-inset-top)] z-50 bg-background border-b border-border/60">
 
         <div className="px-4 pt-4 pb-3">
 
@@ -454,7 +454,7 @@ const Index = () => {
           </div>
 
           {/* HERO — liquid glass */}
-          <div className="mb-4 hero-glass rounded-[2rem] overflow-hidden relative">
+          <div className="mb-4 bg-card rounded-[2rem] border border-border/60 overflow-hidden relative">
             <div className="flex items-center gap-3 px-5 pt-5 pb-4">
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-bold tracking-widest uppercase text-primary/70 dark:text-primary/80 mb-1">
