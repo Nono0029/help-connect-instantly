@@ -149,6 +149,7 @@
 
 /* Sticky top bar — solid white, MUST NOT set position (would kill sticky) */
 .topbar-glass {
+  margin-top: calc(env(safe-area-inset-top) * -1);
   background:
     linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 45%),
     rgba(255, 255, 255, 0.96);
