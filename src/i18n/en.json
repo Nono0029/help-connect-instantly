@@ -24,7 +24,12 @@
     "errorExists": "This email is already in use.",
     "errorCredentials": "Incorrect email or password.",
     "errorConfirm": "Check your inbox to confirm your account.",
-    "refBanner": "Welcome! You were invited by a neighbor: your first request is FREE of fees."
+    "refBanner": "Welcome! You were invited by a neighbor: your first request is FREE of fees.",
+    "refCode": "Referral code (optional)",
+    "verifyTitle": "Check your inbox",
+    "verifyDesc": "A confirmation email has been sent to {email}. Click the link inside to activate your account, then sign in.",
+    "verifyReferralNotice": "If you entered a referral code, your first request will be FREE of fees.",
+    "verifyGoLogin": "Go to sign in"
   },
   "home": {
     "tagline": "Let's help each other",

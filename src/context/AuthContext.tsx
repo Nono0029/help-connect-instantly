@@ -9,10 +9,25 @@ interface AuthContextType {
   isAdmin: boolean;
   isBlocked: boolean;
   boostSyncVersion: number;
-  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: string | null; requiresEmailConfirm: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
+
+const PENDING_REF_KEY = "askoo_pending_ref_code";
+
+const applyPendingReferral = async (userId: string) => {
+  const code = localStorage.getItem(PENDING_REF_KEY);
+  if (!code) return;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    await supabase.functions.invoke("apply-referral", {
+      body: { code },
+    });
+    localStorage.removeItem(PENDING_REF_KEY);
+  } catch {}
+};
 
 const ensureProfile = async (user: User) => {
   try {
@@ -35,6 +50,7 @@ const ensureProfile = async (user: User) => {
         .eq("id", user.id)
         .is("email_verifie", false);
     }
+    applyPendingReferral(user.id);
   } catch {}
 };
 
@@ -145,9 +161,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [updateProfile]);
 
   const signUp = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) return { error: error.message };
-    return { error: null };
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return { error: error.message, requiresEmailConfirm: false };
+    const requiresEmailConfirm = !data.session && !data.user?.email_confirmed_at;
+    return { error: null, requiresEmailConfirm };
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
