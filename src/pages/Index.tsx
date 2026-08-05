@@ -38,6 +38,7 @@ import SearchFilters from "@/components/SearchFilters";
 import CityPicker from "@/components/CityPicker";
 import MapView from "@/components/MapView";
 import NotificationBell from "@/components/NotificationBell";
+import { useAuth } from "@/context/AuthContext";
 import ImageLightbox from "@/components/ImageLightbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -68,6 +69,7 @@ interface Demande {
 const Index = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { boostSyncVersion } = useAuth();
 
   const categoryKeys = [
     "Tout",
@@ -169,6 +171,25 @@ const Index = () => {
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   // FETCH
+  const fetchBoostedProfiles = async (ids: string[]) => {
+    if (ids.length === 0) return;
+    try {
+      const { data: profiles } = await withTimeout(supabase
+        .from("profiles")
+        .select("id, boost_until")
+        .in("id", ids), 12000, "profiles");
+
+      const boosted = new Set<string>();
+      const now = new Date();
+      profiles?.forEach(p => {
+        if (p.boost_until && new Date(p.boost_until) > now) {
+          boosted.add(p.id);
+        }
+      });
+      setBoostedUserIds(boosted);
+    } catch {}
+  };
+
   const fetchDemandes = async () => {
     setLoading(true);
     try {
@@ -194,19 +215,7 @@ const Index = () => {
       // Fetch boosted profiles
       const userIds = [...new Set(filtered.map(d => d.user_id).filter(Boolean))];
       if (userIds.length > 0) {
-        const { data: profiles } = await withTimeout(supabase
-          .from("profiles")
-          .select("id, boost_until")
-          .in("id", userIds), 12000, "profiles");
-
-        const boosted = new Set<string>();
-        const now = new Date();
-        profiles?.forEach(p => {
-          if (p.boost_until && new Date(p.boost_until) > now) {
-            boosted.add(p.id);
-          }
-        });
-        setBoostedUserIds(boosted);
+        fetchBoostedProfiles(userIds);
 
         // Trust — average rating per author (Airbnb style)
         const { data: avisData } = await withTimeout(supabase
@@ -263,6 +272,14 @@ const Index = () => {
     );
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    if (boostSyncVersion > 0 && demandes.length > 0) {
+      const userIds = [...new Set(demandes.map(d => d.user_id).filter(Boolean))];
+      fetchBoostedProfiles(userIds);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boostSyncVersion]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

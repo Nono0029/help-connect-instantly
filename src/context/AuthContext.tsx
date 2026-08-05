@@ -1,12 +1,14 @@
 ﻿import { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo, ReactNode } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { useBoostSync } from "@/hooks/useBoostSync";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
   isBlocked: boolean;
+  boostSyncVersion: number;
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -57,6 +59,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+
+  const { boostSyncVersion } = useBoostSync(user?.id);
 
   const profileUserIdRef = useRef<string | null>(null);
   const lastAdminRef = useRef(false);
@@ -161,10 +165,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     isAdmin,
     isBlocked,
+    boostSyncVersion,
     signUp,
     signIn,
     signOut,
-  }), [user, loading, isAdmin, isBlocked, signUp, signIn, signOut]);
+  }), [user, loading, isAdmin, isBlocked, boostSyncVersion, signUp, signIn, signOut]);
 
   return (
     <AuthContext.Provider value={value}>

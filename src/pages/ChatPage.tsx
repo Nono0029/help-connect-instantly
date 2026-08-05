@@ -83,7 +83,7 @@ const ChatPage = () => {
   const [searchParams] = useSearchParams();
   const paymentParam = searchParams.get("payment");
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, boostSyncVersion } = useAuth();
   const { t } = useTranslation();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -109,8 +109,6 @@ const ChatPage = () => {
   }
   const [payment, setPayment] = useState<Payment | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
-  const [payTrace, setPayTrace] = useState("");
-  const [payElapsed, setPayElapsed] = useState(0);
   const [isBoosted, setIsBoosted] = useState(false);
   const [isReferralExempt, setIsReferralExempt] = useState(false);
 
@@ -130,13 +128,7 @@ const ChatPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (!paymentLoading) return;
-    const t = setInterval(() => setPayElapsed((s) => s + 1), 1000);
-    return () => clearInterval(t);
-  }, [paymentLoading]);
+  }, [user?.id, boostSyncVersion]);
 
   const [text, setText] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -495,9 +487,6 @@ const ChatPage = () => {
   const handlePayment = async () => {
     if (!mission || !user) return;
     setPaymentLoading(true);
-    setPayElapsed(0);
-    setPayTrace("1/4 Envoi au serveur…");
-    console.log("[pay] 1. start", mission.id);
 
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -561,20 +550,14 @@ const ChatPage = () => {
       if (!data?.clientSecret) {
         throw new Error(t("chat.paymentError"));
       }
-      console.log("[pay] 2. clientSecret received, amount", data.amount);
-      setPayTrace(`2/4 ClientSecret reçu (${data.amount} €)`);
 
       const total = data.amount as number;
 
-      setPayTrace("3/4 Ouverture de la feuille Apple Pay…");
       const paid = await payWithApplePay(
         data.clientSecret,
         total,
         mission.demandes?.titre || "Mission"
       );
-      console.log("[pay] 3. payWithApplePay resolved", paid);
-      setPayTrace(paid ? "3/4 Feuille fermée : paiement réussi" : "3/4 Feuille fermée : annulé");
-
       if (!paid) {
         setPaymentLoading(false);
         return;
@@ -596,8 +579,6 @@ const ChatPage = () => {
     } catch (err: any) {
       console.error("Payment failed:", err);
       const msg = err?.message || "";
-      console.log("[pay] 4. error", msg);
-      setPayTrace(`4/4 Erreur : ${msg || "(aucun message)"}`);
       if (/load failed|network|internet|offline|connexion|ECONN/i.test(msg)) {
         toast.error(`Impossible de contacter le serveur de paiement. Vérifie ta connexion et réessaie. (${msg})`);
       } else {
@@ -1244,12 +1225,6 @@ const ChatPage = () => {
             )}
             Payer avec Apple Pay
           </button>
-          {paymentLoading && (
-            <div className="absolute inset-x-4 bottom-1.5 text-[10px] font-mono leading-tight text-muted-foreground">
-              <div>{payTrace}</div>
-              <div>secondes écoulées : {payElapsed}</div>
-            </div>
-          )}
         </div>
       )}
 

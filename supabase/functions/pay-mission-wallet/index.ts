@@ -57,7 +57,7 @@ serve(async (req) => {
       .from("payments")
       .select("id")
       .eq("mission_id", mission_id)
-      .in("statut", ["paye", "termine"])
+      .in("statut", ["payé", "termine"])
       .limit(1)
       .maybeSingle();
 
@@ -127,7 +127,7 @@ serve(async (req) => {
       helper_id: mission.helper_id,
       montant: prix,
       frais: totalFees,
-      statut: "paye",
+      statut: "payé",
     });
 
     if (insertError) {
