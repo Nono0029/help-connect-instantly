@@ -403,6 +403,12 @@
 .dark .dark\:bg-cyan-gradient {
   background: linear-gradient(135deg, rgba(34,197,94,0.18) 0%, rgba(253,230,138,0.12) 100%) !important;
 }
+.bg-avatar-gradient {
+  background: linear-gradient(135deg, #86efac 0%, #fef08a 50%, #7dd3fc 100%);
+}
+.dark .bg-avatar-gradient {
+  background: linear-gradient(135deg, #22c55e 0%, #facc15 50%, #22d3ee 100%);
+}
 .bg-green-glow {
   background: radial-gradient(circle, rgba(34,197,94,0.2) 0%, transparent 70%);
 }

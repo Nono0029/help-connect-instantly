@@ -128,7 +128,7 @@ const DemandeDetail = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-[env(safe-area-inset-top)] z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="p-1">
+          <button onClick={() => navigate("/")} className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="text-base font-bold text-foreground truncate">{demande.titre}</h1>
@@ -143,7 +143,7 @@ const DemandeDetail = () => {
           onClick={() => demande.user_id && navigate(`/profile/${demande.user_id}`)}
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-lg font-bold">
+            <div className="w-12 h-12 rounded-full bg-avatar-gradient text-white flex items-center justify-center text-lg font-bold">
               {demande.auteur?.slice(0, 2).toUpperCase() || "??"}
             </div>
             <div>

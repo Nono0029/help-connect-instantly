@@ -733,7 +733,9 @@ const Index = () => {
 
               {/* Content */}
               <h3 className="font-extrabold text-foreground text-[15px] leading-snug mb-1.5">{d.titre}</h3>
-              <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed mb-3">{d.description}</p>
+              {d.description && (
+                <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed mb-3">{d.description}</p>
+              )}
 
               {/* Divider */}
               <div className="h-px bg-border/40 mb-3" />

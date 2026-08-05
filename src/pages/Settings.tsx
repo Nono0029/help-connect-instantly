@@ -189,6 +189,7 @@ const Settings = () => {
           desc: t('settings.boostDesc'),
           action: () => navigate("/boost-profile"),
           toggle: false,
+          iconClass: "text-amber-600 dark:text-amber-400",
         },
         {
           icon: Gift,
@@ -281,9 +282,9 @@ const Settings = () => {
       <div className="h-16 border-b border-border bg-card/70 px-4 flex items-center gap-3">
         <button
           onClick={() => navigate("/")}
-          className="w-9 h-9 rounded-full flex items-center justify-center"
+          className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
 
         <div>
@@ -301,7 +302,7 @@ const Settings = () => {
           onClick={() => navigate("/edit-profile")}
         >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white dark:text-foreground text-2xl font-black bg-magic-gradient dark:bg-cyan-gradient shrink-0 overflow-hidden">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-black bg-avatar-gradient shrink-0 overflow-hidden">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
               ) : (
@@ -314,13 +315,21 @@ const Settings = () => {
               <p className="text-sm text-muted-foreground truncate">{email}</p>
 
               <div className="flex items-center gap-1 mt-1">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm font-semibold">
-                  {moyenne.toFixed(1)}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  ({avisCount} {t('settings.reviews')})
-                </span>
+                {avisCount > 0 ? (
+                  <>
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <span className="text-sm font-semibold">
+                      {moyenne.toFixed(1)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      ({avisCount} {t('settings.reviews')})
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xs font-medium bg-secondary text-muted-foreground px-2.5 py-1 rounded-full">
+                    {t('settings.newMember')}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -349,7 +358,7 @@ const Settings = () => {
                   className="w-full flex items-center gap-4 px-4 py-4 transition-colors duration-150 hover:bg-muted/50 rounded-xl"
                 >
 
-                  <item.icon className="w-5 h-5 text-muted-foreground" />
+                  <item.icon className={`w-5 h-5 ${(item as any).iconClass || "text-muted-foreground"}`} />
 
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium">{item.label}</p>

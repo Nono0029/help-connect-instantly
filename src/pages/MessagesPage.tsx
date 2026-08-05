@@ -40,9 +40,9 @@ interface Profile {
 
 const getStatutConfig = (t: (key: string) => string): Record<string, { label: string; color: string; icon: any }> => ({
   en_attente: { label: t('messages.statusPending'), color: "text-amber-500", icon: Clock },
-  en_cours: { label: t('messages.statusProgress'), color: "text-accent", icon: MessageCircle },
+  en_cours: { label: t('messages.statusProgress'), color: "text-primary", icon: MessageCircle },
   payé: { label: t('messages.statusPaid'), color: "text-emerald-500", icon: CheckCircle2 },
-  terminee: { label: t('messages.statusDone'), color: "text-emerald-500", icon: CheckCircle2 },
+  terminee: { label: t('messages.statusDone'), color: "text-muted-foreground", icon: CheckCircle2 },
   fermée: { label: t('messages.statusClosed'), color: "text-muted-foreground", icon: XCircle },
 });
 
@@ -172,7 +172,7 @@ const MessagesPage = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/")}
-            className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+            className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0"
           >
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
@@ -238,7 +238,7 @@ const MessagesPage = () => {
                       <div className="flex items-start gap-3">
                         <Avatar className="w-12 h-12 shrink-0 ring-2 ring-border group-hover:ring-primary/30 transition-all">
                           <AvatarImage src={otherProfile?.avatar_url || ""} />
-                          <AvatarFallback className="bg-magic-gradient dark:bg-cyan-gradient text-foreground font-bold text-sm">
+                          <AvatarFallback className="bg-avatar-gradient text-white font-bold text-sm">
                             {otherProfile?.pseudo?.[0]?.toUpperCase() || getRole(conv)[0]}
                           </AvatarFallback>
                         </Avatar>

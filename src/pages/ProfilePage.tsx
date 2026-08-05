@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2, BadgeCheck, Sprout, HandHeart, HeartHandshake, Building2, Crown, Trophy, Award, CalendarCheck, LucideIcon } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2, BadgeCheck, Sprout, HandHeart, HeartHandshake, Building2, Crown, Trophy, Award, CalendarCheck, User, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
@@ -231,7 +231,7 @@ const ProfilePage = () => {
       {/* HEADER */}
       <header className="sticky top-[env(safe-area-inset-top)] z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-1">
+          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="text-lg font-bold text-foreground">{t('profile.title')}</h1>
@@ -241,7 +241,7 @@ const ProfilePage = () => {
       <div className="px-4 pt-6 space-y-5">
         {/* CARD PROFIL */}
         <div className="card-magic text-center">
-          <div className="w-24 h-24 rounded-full bg-magic-gradient dark:bg-cyan-gradient mx-auto flex items-center justify-center text-3xl font-black text-foreground dark:text-white shadow-xl overflow-hidden">
+          <div className="w-24 h-24 rounded-full bg-avatar-gradient mx-auto flex items-center justify-center text-3xl font-black text-white shadow-xl overflow-hidden">
             {profile.avatar_url ? (
               <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
@@ -319,11 +319,18 @@ const ProfilePage = () => {
           )}
 
           <div className="flex items-center justify-center gap-2 mt-4">
-            <span className="flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1.5">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-base font-extrabold text-foreground">{moyenne.toFixed(1)}</span>
-              <span className="text-xs text-muted-foreground">({avis.length} {t('profile.reviews')})</span>
-            </span>
+            {avis.length > 0 ? (
+              <span className="flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1.5">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-base font-extrabold text-foreground">{moyenne.toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground">({avis.length} {t('profile.reviews')})</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 rounded-full bg-secondary border border-border px-3.5 py-1.5">
+                <User className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-muted-foreground">{t('settings.newMember')}</span>
+              </span>
+            )}
             <span className="flex items-center gap-1.5 rounded-full bg-accent/10 border border-accent/20 px-3.5 py-1.5">
               <Medal className="w-4 h-4 text-accent" />
               <span className="text-base font-extrabold text-foreground">{missions.length}</span>

@@ -9,6 +9,7 @@ import {
   PackageOpen,
   Archive,
   ArchiveX,
+  MessageCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -41,6 +42,7 @@ const MesDemandesPage = () => {
   const { t } = useTranslation();
 
   const [demandes, setDemandes] = useState<Demande[]>([]);
+  const [responseCounts, setResponseCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [demandeToEdit, setDemandeToEdit] = useState<Demande | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -60,7 +62,19 @@ const MesDemandesPage = () => {
       .limit(200);
 
     if (error) console.error(error);
-    else setDemandes(data || []);
+    else {
+      setDemandes(data || []);
+      if (data && data.length > 0) {
+        const ids = data.map(d => d.id);
+        const { data: convs } = await supabase
+          .from("conversations")
+          .select("demande_id")
+          .in("demande_id", ids);
+        const counts: Record<number, number> = {};
+        (convs || []).forEach(c => { counts[c.demande_id] = (counts[c.demande_id] || 0) + 1; });
+        setResponseCounts(counts);
+      }
+    }
 
     setLoading(false);
   };
@@ -108,7 +122,7 @@ const MesDemandesPage = () => {
       <header className="sticky top-[env(safe-area-inset-top)] z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
 
-          <button onClick={() => navigate("/")} className="p-1">
+          <button onClick={() => navigate("/")} className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
 
@@ -176,15 +190,20 @@ const MesDemandesPage = () => {
                   </div>
 
                   <h3 className="font-semibold">{d.titre}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{d.description}</p>
+                  {d.description && <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">{d.description}</p>}
 
-                  <div className="flex justify-between mt-3">
+                  <div className="flex justify-between items-center mt-3">
                     <span className="flex items-center gap-1 text-xs">
                       <Euro className="w-3 h-3" />
                       {d.gratuit ? t('requests.free') : d.prix || "—"}
                     </span>
 
                     <div className="flex gap-2">
+                      {(responseCounts[d.id] ?? 0) > 0 && (
+                        <span className="flex items-center gap-1 px-3 py-1 rounded-xl bg-accent/10 text-accent text-xs font-semibold" title={t('requests.responses')}>
+                          <MessageCircle className="w-3 h-3" /> {responseCounts[d.id]}
+                        </span>
+                      )}
                       <button onClick={() => handleArchive(d.id, !d.archived)}
                         className={`px-3 py-1 rounded-xl text-xs ${d.archived ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}
                       >
@@ -194,7 +213,7 @@ const MesDemandesPage = () => {
                       <button onClick={() => handleEdit(d)} className="px-3 py-1 rounded-xl bg-primary/10 text-primary text-xs">
                         <Pencil className="w-3 h-3 inline mr-1" /> {t('requests.edit')}
                       </button>
-                      <button onClick={() => setConfirmDeleteId(d.id)} className="px-3 py-1 rounded-xl bg-destructive/10 text-destructive text-xs">
+                      <button onClick={() => setConfirmDeleteId(d.id)} className="px-3 py-1 rounded-xl text-xs text-muted-foreground/70 hover:text-destructive transition-colors">
                         <Trash2 className="w-3 h-3 inline mr-1" /> {t('requests.delete')}
                       </button>
                     </div>

@@ -235,7 +235,7 @@ const EditProfile = () => {
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/settings")}
-            className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0"
           >
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
@@ -257,7 +257,7 @@ const EditProfile = () => {
         {/* AVATAR */}
         <div className="flex justify-center">
           <div className="relative">
-            <div className="w-28 h-28 rounded-full bg-magic-gradient dark:bg-cyan-gradient flex items-center justify-center text-4xl font-black text-foreground dark:text-white shadow-2xl overflow-hidden">
+            <div className="w-28 h-28 rounded-full bg-avatar-gradient flex items-center justify-center text-4xl font-black text-white shadow-2xl overflow-hidden">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
               ) : (

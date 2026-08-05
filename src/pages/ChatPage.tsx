@@ -155,6 +155,7 @@ const ChatPage = () => {
   const [adresseEnvoyee, setAdresseEnvoyee] = useState(false);
 
   const [showSOS, setShowSOS] = useState(false);
+  const [sosConfirmed, setSosConfirmed] = useState(false);
   const [sharingPosition, setSharingPosition] = useState(false);
   const [sharingCard, setSharingCard] = useState(false);
 
@@ -1147,35 +1148,30 @@ const ChatPage = () => {
   return (
     <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
 
-      {/* DESSIN DE FOND — décoratif, ne bloque rien */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" aria-hidden="true">
-        <Illu name={(["jardin","bricolage","cours","tech","animaux","ecoute","demenagement","nature","sports","travel","food","musique"] as const)[Number(id ?? 0) % 12]} className="w-64 h-64 opacity-[0.18]" />
-      </div>
-
       {/* HEADER */}
       <div className="min-h-[88px] border-b border-border backdrop-blur-2xl bg-white/60 dark:bg-[#071c24]/70 px-4 pt-4 pb-3 flex items-start gap-3 z-20 shadow-card">
 
-        <button onClick={() => navigate("/messages")} className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shrink-0 shadow-card">
-          <ArrowLeft className="w-5 h-5 text-accent dark:text-cyan-400" />
+        <button onClick={() => navigate("/messages")} className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0">
+          <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
 
         {!!mission && (
           <button
             onClick={() => setShowSignal(true)}
-            className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shrink-0 shadow-card hover:bg-destructive/10 hover:border-destructive/30 transition-all"
+            className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0"
             title={t('chat.signalBtn')}
           >
-            <Flag className="w-4 h-4 text-destructive/70" />
+            <Flag className="w-4 h-4 text-muted-foreground" />
           </button>
         )}
 
         {mission?.statut === "en_cours" && (
           <button
             onClick={() => setShowSOS(true)}
-            className="w-10 h-10 rounded-full bg-card border border-destructive/30 flex items-center justify-center shrink-0 shadow-card hover:bg-destructive hover:border-destructive transition-all"
+            className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center shrink-0 border border-destructive/25"
             title={t('chat.sosTitle')}
           >
-            <Siren className="w-4 h-4 text-destructive" />
+            <Siren className="w-3.5 h-3.5 text-destructive" />
           </button>
         )}
 
@@ -1199,13 +1195,6 @@ const ChatPage = () => {
             : conversation?.statut === "en_attente" ? t('chat.waitingAcceptance')
             : t('chat.discussion')}
           </p>
-
-          {canPayMission && (
-            <div className="mt-3 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <p className="text-[11px] text-accent font-semibold">{t('chat.paymentUnlocked')}</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -1287,6 +1276,11 @@ const ChatPage = () => {
 
       {/* MESSAGES */}
       <div ref={messagesRef} onScroll={handleMessagesScroll} className="chat-messages relative z-10 flex-1 overflow-y-auto px-4 py-5 space-y-3 pb-40">
+        {messages.length > 0 && (
+          <div className="flex justify-center pt-1 pb-2 pointer-events-none select-none" aria-hidden="true">
+            <Illu name={(["jardin","bricolage","cours","tech","animaux","ecoute","demenagement","nature","sports","travel","food","musique"] as const)[Number(id ?? 0) % 12]} className="w-20 h-20 opacity-[0.10]" />
+          </div>
+        )}
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center py-16">
             <Illu name="chat" className="w-40 h-40 opacity-60" />
@@ -1299,7 +1293,7 @@ const ChatPage = () => {
             {!isMe(msg.sender_id) && (
               <button
                 onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}
-                className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold shrink-0 hover:ring-2 hover:ring-primary/30 transition-all"
+                className="w-8 h-8 rounded-full bg-avatar-gradient text-white flex items-center justify-center text-[10px] font-bold shrink-0 hover:ring-2 hover:ring-primary/30 transition-all"
               >
                 {otherProfile?.pseudo?.[0]?.toUpperCase() || "?"}
               </button>
@@ -1365,21 +1359,13 @@ const ChatPage = () => {
       )}
 
       {/* CONFIRM */}
-      {mission?.statut === "en_cours" && (
+      {mission?.statut === "en_cours" && canConfirmMission && (
         <div className="fixed left-0 right-0 px-4 z-30" style={{ bottom: `calc(4.3rem + ${keyboardHeight}px)` }}>
           <button
-            onClick={() => canConfirmMission && setShowConfirmMission(true)}
-            disabled={!canConfirmMission}
-            title={!canConfirmMission ? t('chat.confirmMissionLocked') : undefined}
-            className={`w-full py-3 rounded-[24px] font-bold ${
-              canConfirmMission
-                ? "btn-magic"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-            }`}
+            onClick={() => setShowConfirmMission(true)}
+            className="w-full py-3 rounded-[24px] font-bold btn-magic"
           >
-            {!canConfirmMission
-              ? t('chat.confirmMissionLocked')
-              : user?.id === mission.helper_id
+            {user?.id === mission.helper_id
                 ? (mission.helper_confirme ? t('chat.confirmMissionWaitingDemandeur') : t('chat.confirmMissionHelper'))
                 : (mission.demandeur_confirme ? t('chat.confirmMissionWaitingHelper') : t('chat.confirmMissionDemandeur'))
             }
@@ -1581,7 +1567,7 @@ const ChatPage = () => {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end z-50"
-            onClick={() => setShowSOS(false)}
+            onClick={() => { setShowSOS(false); setSosConfirmed(false); }}
           >
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
@@ -1600,7 +1586,27 @@ const ChatPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {!sosConfirmed ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-foreground">{t('chat.sosConfirmDesc')}</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowSOS(false)}
+                      className="flex-1 h-12 rounded-2xl bg-muted border border-border text-muted-foreground font-semibold text-sm"
+                    >
+                      {t('chat.cancel')}
+                    </button>
+                    <button
+                      onClick={() => setSosConfirmed(true)}
+                      className="flex-1 h-12 rounded-2xl bg-destructive text-white font-bold text-sm"
+                    >
+                      {t('chat.sosConfirmBtn')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
                 {[{ n: "15", label: t('chat.sosSamu') }, { n: "17", label: t('chat.sosPolice') }, { n: "18", label: t('chat.sosPompiers') }, { n: "112", label: t('chat.sosEurope') }].map(c => (
                   <a
                     key={c.n}
@@ -1627,6 +1633,8 @@ const ChatPage = () => {
                   {sharingPosition ? t('chat.sosSending') : t('chat.sosShareLocation')}
                 </button>
               </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}

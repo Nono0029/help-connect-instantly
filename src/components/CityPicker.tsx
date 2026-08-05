@@ -55,7 +55,7 @@ const CityPicker = ({ ville, onChange }: Props) => {
   }, [query]);
 
   const getShortName = (display_name: string) =>
-    display_name.split(",").slice(0, 2).join(",").trim();
+    display_name.split(",")[0].trim();
 
   const handleSelect = (result: CityResult) => {
     onChange(getShortName(result.display_name), parseFloat(result.lat), parseFloat(result.lon));
