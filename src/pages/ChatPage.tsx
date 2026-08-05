@@ -1366,7 +1366,7 @@ const ChatPage = () => {
 
       {/* CONFIRM */}
       {mission?.statut === "en_cours" && (
-        <div className="fixed left-0 right-0 px-4 z-30" style={{ bottom: `calc(8rem + ${keyboardHeight}px)` }}>
+        <div className="fixed left-0 right-0 px-4 z-30" style={{ bottom: `calc(4.3rem + ${keyboardHeight}px)` }}>
           <button
             onClick={() => canConfirmMission && setShowConfirmMission(true)}
             disabled={!canConfirmMission}
