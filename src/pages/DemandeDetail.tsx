@@ -36,6 +36,8 @@ const DemandeDetail = () => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [isBoosted, setIsBoosted] = useState(false);
+  const [myPseudo, setMyPseudo] = useState("");
+  const [authorPseudo, setAuthorPseudo] = useState("");
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   useEffect(() => {
@@ -46,7 +48,13 @@ const DemandeDetail = () => {
         .select("*")
         .eq("id", id)
         .maybeSingle();
-      if (mounted && data) setDemande(data);
+      if (mounted && data) {
+        setDemande(data);
+        if (data.user_id) {
+          supabase.from("profiles").select("pseudo").eq("id", data.user_id).maybeSingle()
+            .then(({ data: p }) => { if (mounted && p?.pseudo) setAuthorPseudo(p.pseudo); });
+        }
+      }
       if (mounted) setLoading(false);
     };
     withTimeout(fetch(), 15000, "demandeDetail").catch(() => setLoading(false));
@@ -56,8 +64,12 @@ const DemandeDetail = () => {
   useEffect(() => {
     if (!user) return;
     let mounted = true;
-    supabase.from("profiles").select("boost_until").eq("id", user.id).maybeSingle()
-      .then(({ data }) => { if (mounted) setIsBoosted(isBoostActive(data?.boost_until)); });
+    supabase.from("profiles").select("boost_until, pseudo").eq("id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setIsBoosted(isBoostActive(data?.boost_until));
+        setMyPseudo(data?.pseudo || "");
+      });
     return () => { mounted = false; };
   }, [user?.id]);
 
@@ -94,7 +106,7 @@ const DemandeDetail = () => {
       if (newConv && demande.user_id && demande.user_id !== user.id) {
         await supabase.from("notifications").insert({
           user_id: demande.user_id,
-          message: `${user.email?.split("@")[0] || "Quelqu'un"} veut t'aider pour « ${demande.titre} » !`,
+          message: `${myPseudo || user.email?.split("@")[0] || "Quelqu'un"} veut t'aider pour « ${demande.titre} » !`,
           conversation_id: newConv.id,
           lu: false,
         });
@@ -142,12 +154,12 @@ const DemandeDetail = () => {
           className="bg-card rounded-2xl border border-border p-4 cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => demande.user_id && navigate(`/profile/${demande.user_id}`)}
         >
-          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-avatar-gradient text-white flex items-center justify-center text-lg font-bold">
               {demande.auteur?.slice(0, 2).toUpperCase() || "??"}
             </div>
             <div>
-              <p className="font-semibold text-foreground">{demande.auteur}</p>
+              <p className="font-semibold text-foreground">{authorPseudo || demande.auteur}</p>
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                 {demande.ville && <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{demande.ville}</span>}
                 <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{getTemps(demande.created_at)}</span>

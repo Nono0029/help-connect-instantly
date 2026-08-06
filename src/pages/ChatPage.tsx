@@ -111,19 +111,21 @@ const ChatPage = () => {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [isBoosted, setIsBoosted] = useState(false);
   const [isReferralExempt, setIsReferralExempt] = useState(false);
+  const [myPseudo, setMyPseudo] = useState("");
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     supabase
       .from("profiles")
-      .select("boost_until, referred_by, referral_fee_used")
+      .select("boost_until, referred_by, referral_fee_used, pseudo")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (cancelled) return;
         setIsBoosted(isBoostActive(data?.boost_until));
         setIsReferralExempt(!!data?.referred_by && !data?.referral_fee_used);
+        setMyPseudo(data?.pseudo || "");
       });
     return () => {
       cancelled = true;
@@ -470,7 +472,7 @@ const ChatPage = () => {
       } else if (otherUserId) {
         await supabase.from("notifications").insert({
           user_id: otherUserId,
-          message: t('chat.missionConfirmed', { name: user.email?.split("@")[0] || t('chat.someone') }),
+          message: t('chat.missionConfirmed', { name: myPseudo || user.email?.split("@")[0] || t('chat.someone') }),
           conversation_id: parseInt(id!),
           lu: false,
         });

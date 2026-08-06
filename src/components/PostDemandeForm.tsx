@@ -80,6 +80,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   const [loading, setLoading] = useState(false);
   const [isBoosted, setIsBoosted] = useState(false);
   const [isReferralExempt, setIsReferralExempt] = useState(false);
+  const [pseudo, setPseudo] = useState("");
   const [villeForm, setVilleForm] = useState("");
   const [villeLat, setVilleLat] = useState(0);
   const [villeLng, setVilleLng] = useState(0);
@@ -93,10 +94,11 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("boost_until, referred_by, referral_fee_used").eq("id", user.id).maybeSingle()
+    supabase.from("profiles").select("boost_until, referred_by, referral_fee_used, pseudo").eq("id", user.id).maybeSingle()
       .then(({ data }) => {
         setIsBoosted(isBoostActive(data?.boost_until));
         setIsReferralExempt(!!data?.referred_by && !data?.referral_fee_used);
+        setPseudo(data?.pseudo || "");
       });
   }, [user?.id]);
 
@@ -158,7 +160,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
 
     // ➕ INSERT
     const auteur =
-      user?.email?.split("@")[0] || "Anonyme";
+      pseudo || user?.email?.split("@")[0] || "Anonyme";
 
     const res = await supabase
       .from("demandes")

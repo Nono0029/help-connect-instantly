@@ -65,6 +65,7 @@ const CreateRequestPage = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [isBoosted, setIsBoosted] = useState(false);
   const [isReferralExempt, setIsReferralExempt] = useState(false);
+  const [pseudo, setPseudo] = useState("");
 
   const { photos, uploading: uploadingPhoto, handleFileInput, takePhoto, openNativePicker, removePhoto, setPhotos } = useCameraUpload({
     userId: user?.id || "",
@@ -72,10 +73,11 @@ const CreateRequestPage = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("boost_until, referred_by, referral_fee_used").eq("id", user.id).maybeSingle()
+    supabase.from("profiles").select("boost_until, referred_by, referral_fee_used, pseudo").eq("id", user.id).maybeSingle()
       .then(({ data }) => {
         setIsBoosted(isBoostActive(data?.boost_until));
         setIsReferralExempt(!!data?.referred_by && !data?.referral_fee_used);
+        setPseudo(data?.pseudo || "");
       });
   }, [user?.id]);
 
@@ -100,7 +102,7 @@ const CreateRequestPage = () => {
       ville,
       lat: lat || null,
       lng: lng || null,
-      auteur: user.email?.split("@")[0] || "Anonyme",
+      auteur: pseudo || user.email?.split("@")[0] || "Anonyme",
       user_id: user.id,
       photos: photos.length > 0 ? photos : null,
     }]);

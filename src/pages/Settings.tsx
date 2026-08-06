@@ -139,6 +139,13 @@ const Settings = () => {
         adresse,
       });
 
+    if (!error) {
+      await supabase
+        .from("demandes")
+        .update({ auteur: pseudo })
+        .eq("user_id", user.id);
+    }
+
     setSaving(false);
 
     if (error) {

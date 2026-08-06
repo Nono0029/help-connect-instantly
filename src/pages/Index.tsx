@@ -162,6 +162,7 @@ const Index = () => {
   >([]);
 
   const [boostedUserIds, setBoostedUserIds] = useState<Set<string>>(new Set());
+  const [pseudosById, setPseudosById] = useState<Record<string, string>>({});
   const [authorRatings, setAuthorRatings] = useState<Record<string, number>>({});
 
   const [loading, setLoading] = useState(true);
@@ -176,17 +177,20 @@ const Index = () => {
     try {
       const { data: profiles } = await withTimeout(supabase
         .from("profiles")
-        .select("id, boost_until")
+        .select("id, boost_until, pseudo")
         .in("id", ids), 12000, "profiles");
 
       const boosted = new Set<string>();
+      const pseudos: Record<string, string> = {};
       const now = new Date();
       profiles?.forEach(p => {
+        if (p.pseudo) pseudos[p.id] = p.pseudo;
         if (p.boost_until && new Date(p.boost_until) > now) {
           boosted.add(p.id);
         }
       });
       setBoostedUserIds(boosted);
+      setPseudosById(prev => ({ ...prev, ...pseudos }));
     } catch {}
   };
 
@@ -719,7 +723,7 @@ const Index = () => {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <p className="text-[13px] font-bold text-foreground truncate">{d.auteur}</p>
+                      <p className="text-[13px] font-bold text-foreground truncate">{pseudosById[d.user_id] || d.auteur}</p>
                       {d.user_id && authorRatings[d.user_id] && (
                         <span className="flex items-center gap-0.5 shrink-0 text-[11px] font-bold text-foreground/80">
                           <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
