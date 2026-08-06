@@ -60,6 +60,13 @@ const PrivacyPage = () => {
         <p className="text-center text-xs text-muted-foreground pt-2">
           {t('privacy.lastUpdate')}
         </p>
+
+        <button
+          onClick={() => window.open("https://askoo.fr/privacy", "_system")}
+          className="w-full bg-primary text-primary-foreground font-semibold py-3.5 rounded-2xl shadow-lg shadow-primary/20 active:scale-[0.98] transition"
+        >
+          {t('privacy.fullPolicy')}
+        </button>
       </div>
     </div>
   );

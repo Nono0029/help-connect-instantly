@@ -15,6 +15,7 @@ import {
   User,
   Flag,
   Gift,
+  FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -264,6 +265,13 @@ const Settings = () => {
           label: t('settings.rateApp'),
           desc: t('settings.rateAppDesc'),
           action: () => toast.info(t('settings.comingSoon')),
+          toggle: false,
+        },
+        {
+          icon: FileText,
+          label: t('settings.privacy'),
+          desc: t('settings.privacyDesc'),
+          action: () => navigate("/privacy"),
           toggle: false,
         },
       ],

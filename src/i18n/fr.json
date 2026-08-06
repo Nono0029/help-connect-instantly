@@ -306,6 +306,8 @@
     "helpCenterDesc": "FAQ et assistance",
     "rateApp": "Noter l'application",
     "rateAppDesc": "Ton avis aide la communauté.",
+    "privacy": "Confidentialité",
+    "privacyDesc": "Politique de confidentialité et CGU",
     "comingSoon": "Bientôt disponible",
     "saveError": "Erreur lors de la sauvegarde",
     "saveSuccess": "Profil mis à jour",
@@ -515,7 +517,8 @@
     "cookiesContent": "Nous utilisons des cookies essentiels au fonctionnement de la plateforme (authentification, session utilisateur). Des cookies analytiques (anonymisés) nous aident à améliorer l'expérience. Tu peux configurer tes préférences de cookies à tout moment via les paramètres de ton navigateur. Aucun cookie publicitaire n'est utilisé sur Askoo.",
     "legalTitle": "Mentions légales",
     "legalContent": "Askoo est une plateforme de mise en relation entre particuliers pour des services de proximité. Éditée par la société Askoo SAS, 123 Rue de l'Entraide, 75011 Paris. SIRET : 123 456 789 00012. Directeur de la publication : L'équipe Askoo. Hébergement : Supabase Inc., 111 Sutter Street, San Francisco, CA 94104.",
-    "lastUpdate": "Dernière mise à jour : Mai 2026"
+    "lastUpdate": "Dernière mise à jour : Mai 2026",
+    "fullPolicy": "Voir la politique de confidentialité complète"
   },
   "createRequest": {
     "title": "Nouvelle demande",
