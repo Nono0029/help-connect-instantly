@@ -4,6 +4,14 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/conditions",
+      "destination": "/conditions.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
