@@ -274,6 +274,13 @@ const Settings = () => {
           action: () => navigate("/privacy"),
           toggle: false,
         },
+        {
+          icon: FileText,
+          label: t('settings.terms'),
+          desc: t('settings.termsDesc'),
+          action: () => window.open("https://askoo.fr/conditions", "_system"),
+          toggle: false,
+        },
       ],
     },
     ...(isAdmin ? [{

@@ -281,6 +281,22 @@ const BoostProfilePage = () => {
             </Button>
           )}
         </div>
+
+        {/* Legal links */}
+        <div className="flex justify-center gap-4 pt-1">
+          <button
+            onClick={() => window.open("https://askoo.fr/conditions", "_system")}
+            className="text-xs text-muted-foreground underline underline-offset-2"
+          >
+            {t('boost.terms')}
+          </button>
+          <button
+            onClick={() => window.open("https://askoo.fr/privacy", "_system")}
+            className="text-xs text-muted-foreground underline underline-offset-2"
+          >
+            {t('boost.privacy')}
+          </button>
+        </div>
       </div>
     </div>
   );
