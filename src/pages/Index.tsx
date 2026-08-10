@@ -167,6 +167,52 @@ const Index = () => {
 
   const [loading, setLoading] = useState(true);
 
+  const [activityFeed, setActivityFeed] = useState<{ pseudo: string; ville?: string; created_at: string }[]>([]);
+
+  // LOCAL ACTIVITY FEED — dernières missions vérifiées du quartier (avis vérifiés = public)
+  const fetchActivityFeed = async () => {
+    try {
+      const { data: avisData } = await withTimeout(supabase
+        .from("avis")
+        .select("cible_id, created_at")
+        .eq("verifie", true)
+        .order("created_at", { ascending: false })
+        .limit(12), 10000, "feed");
+
+      if (!avisData || avisData.length === 0) { setActivityFeed([]); return; }
+
+      const cibleIds = [...new Set(avisData.map((a) => a.cible_id))];
+      const { data: profiles } = await withTimeout(supabase
+        .from("profiles")
+        .select("id, pseudo, ville")
+        .in("id", cibleIds), 10000, "feed-profiles");
+
+      const profileMap: Record<string, { pseudo?: string; ville?: string }> = {};
+      (profiles || []).forEach((p) => { profileMap[p.id] = p; });
+
+      const items = avisData
+        .map((a) => ({
+          pseudo: profileMap[a.cible_id]?.pseudo,
+          ville: profileMap[a.cible_id]?.ville,
+          created_at: a.created_at,
+        }))
+        .filter((i) => i.pseudo)
+        .slice(0, 4);
+
+      // Proximité : les avis de la ville de l'utilisateur d'abord, le reste en complément
+      const sameVille = items.filter((i) => i.ville && ville && (i.ville.includes(ville) || ville.includes(i.ville)));
+      const others = items.filter((i) => !sameVille.includes(i));
+      setActivityFeed([...sameVille, ...others].slice(0, 3));
+    } catch { /* silencieux — le bandeau est un bonus */ }
+  };
+
+  useEffect(() => {
+    fetchActivityFeed();
+    const interval = setInterval(fetchActivityFeed, 60000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ville]);
+
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
@@ -580,6 +626,29 @@ const Index = () => {
             </span>
 
           </div>
+
+          {/* LOCAL ACTIVITY — communauté vivante */}
+          {activityFeed.length > 0 && (
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-3 -mt-1">
+              {activityFeed.map((a, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full bg-card/70 border border-border/60 backdrop-blur-sm"
+                >
+                  <span className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                    <Heart className="w-3 h-3 text-primary fill-current" />
+                  </span>
+                  <p className="text-[11px] text-foreground/80 whitespace-nowrap">
+                    <span className="font-bold">{a.pseudo}</span> {t('home.feedHelped')}
+                    <span className="text-muted-foreground"> · {a.ville || ""} · {formatTimeAgo(a.created_at, t)}</span>
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
           {/* CATEGORIES */}
           <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">

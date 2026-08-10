@@ -43,6 +43,7 @@
     "available": "aides disponibles",
     "nearYou": "près de toi",
     "beFirst": "Sois le premier à proposer de l'aide",
+    "feedHelped": "a aidé un voisin",
     "beFirstTitle": "Un peu tôt ici !",
     "beFirstDesc": "Aucune demande pour le moment près de {ville}. Sois le premier à proposer ton aide et lance le mouvement.",
     "beFirstCta": "Poster une demande",

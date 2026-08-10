@@ -43,6 +43,7 @@
     "available": "help requests available",
     "nearYou": "near you",
     "beFirst": "Be the first to offer help",
+    "feedHelped": "helped a neighbor",
     "beFirstTitle": "A bit early here!",
     "beFirstDesc": "No requests for the moment near {ville}. Be the first to offer your help and get things going.",
     "beFirstCta": "Post a request",
