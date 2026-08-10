@@ -1,6 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { App as CapacitorApp } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -43,6 +45,24 @@ const queryClient = new QueryClient({
 
 function AnimatedRoutes() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Vague 2 — deep links du widget / Live Activity (askoo://chat/<id>, askoo://feed)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const handler = ({ url }: { url: string }) => {
+      const match = url.match(/^askoo:\/\/(chat|feed)(?:\/(\d+))?/);
+      if (!match) return;
+      if (match[1] === "chat" && match[2]) {
+        navigate(`/chat/${match[2]}`);
+      } else {
+        navigate("/");
+      }
+    };
+    const listener = CapacitorApp.addListener("appUrlOpen", handler);
+    CapacitorApp.getLaunchUrl().then(launch => { if (launch?.url) handler({ url: launch.url }); });
+    return () => { listener.then(l => l.remove()); };
+  }, [navigate]);
 
   return (
     <Routes location={location}>
