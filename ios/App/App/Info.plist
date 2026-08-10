@@ -55,5 +55,20 @@
 	<string>Askoo a besoin de sauvegarder des photos dans votre galerie</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Askoo utilise votre position pour vous permettre de la partager en cas d'urgence pendant une mission</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.askoo.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>askoo</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

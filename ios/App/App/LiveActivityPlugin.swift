@@ -1,0 +1,85 @@
+import Capacitor
+import ActivityKit
+import AskooWidget
+
+@objc(LiveActivityPlugin)
+public class LiveActivityPlugin: CAPInstancePlugin {
+
+    private var activity: Activity<AskooWidget.MissionAttributes>?
+
+    @objc func start(_ call: CAPPluginCall) {
+        guard let titre = call.getString("titre"), !titre.isEmpty else {
+            call.reject("titre requis")
+            return
+        }
+        let missionId = call.getString("missionId") ?? ""
+
+        if #available(iOS 16.1, *) {
+            let attributes = AskooWidget.MissionAttributes(titre: titre, missionId: missionId)
+            let state = AskooWidget.MissionAttributes.ContentState(statut: "en_cours", updatedAt: Date().timeIntervalSince1970)
+            do {
+                let activity = try Activity<AskooWidget.MissionAttributes>.request(
+                    attributes: attributes,
+                    contentState: state,
+                    pushType: nil
+                )
+                self.activity = activity
+                call.resolve(["activityId": activity.id])
+            } catch {
+                call.reject("Impossible de démarrer la Live Activity : \(error.localizedDescription)")
+            }
+        } else {
+            call.reject("Live Activities non supportées sur cet iOS")
+        }
+    }
+
+    @objc func update(_ call: CAPPluginCall) {
+        let statut = call.getString("statut") ?? "en_cours"
+        if #available(iOS 16.1, *) {
+            guard let activity = self.activity ?? Activity<AskooWidget.MissionAttributes>.activities.first else {
+                call.reject("Aucune Live Activity active")
+                return
+            }
+            Task {
+                await activity.update(
+                    ActivityContent<AskooWidget.MissionAttributes.ContentState>(
+                        state: AskooWidget.MissionAttributes.ContentState(
+                            statut: statut,
+                            updatedAt: Date().timeIntervalSince1970
+                        ),
+                        staleDate: nil
+                    )
+                )
+                call.resolve()
+            }
+        } else {
+            call.reject("Live Activities non supportées sur cet iOS")
+        }
+    }
+
+    @objc func end(_ call: CAPPluginCall) {
+        if #available(iOS 16.1, *) {
+            let target = self.activity ?? Activity<AskooWidget.MissionAttributes>.activities.first
+            self.activity = nil
+            guard let activity = target else {
+                call.resolve()
+                return
+            }
+            Task {
+                await activity.end(
+                    ActivityContent<AskooWidget.MissionAttributes.ContentState>(
+                        state: AskooWidget.MissionAttributes.ContentState(
+                            statut: "terminee",
+                            updatedAt: Date().timeIntervalSince1970
+                        ),
+                        staleDate: nil
+                    ),
+                    dismissalPolicy: .immediate
+                )
+                call.resolve()
+            }
+        } else {
+            call.resolve()
+        }
+    }
+}

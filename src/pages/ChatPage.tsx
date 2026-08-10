@@ -30,6 +30,7 @@ import {
 
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { startMissionActivity, endMissionActivity } from "@/lib/liveActivity";
 import { useAuth } from "@/context/AuthContext";
 import { Illu } from "@/components/Illustrations";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -393,17 +394,22 @@ const ChatPage = () => {
     setActionLoading(true);
 
     try {
-      const { error: missionErr } = await supabase.from("missions").insert({
+      const { data: newMission, error: missionErr } = await supabase.from("missions").insert({
         demande_id: conversation.demande_id,
         helper_id: conversation.helper_id,
         demandeur_id: conversation.demandeur_id,
         statut: "en_cours",
         helper_confirme: false,
         demandeur_confirme: false,
-      });
+      }).select("id").single();
       if (missionErr) throw missionErr;
 
       await supabase.from("conversations").update({ statut: "en_cours" }).eq("id", conversation.id);
+
+      // Vague 2 — Live Activity : la mission démarre
+      if (newMission) {
+        startMissionActivity(newMission.id, conversation.demande?.titre || "Mission en cours");
+      }
 
       await supabase.from("messages").insert({
         conversation_id: parseInt(id!),
@@ -483,6 +489,9 @@ const ChatPage = () => {
         const { error: termErr } = await supabase.from("missions").update({ statut: "terminee" }).eq("id", mission.id);
         if (termErr) throw termErr;
         await supabase.from("conversations").update({ statut: "terminee" }).eq("id", conversation?.id);
+
+        // Vague 2 — Live Activity : mission terminée → fin de la Live Activity
+        endMissionActivity(mission.id);
 
         const { error: releaseErr } = await supabase.functions.invoke("release-payment", {
           body: { mission_id: mission.id },
