@@ -10,6 +10,7 @@ on:
       - 'package-lock.json'
       - 'capacitor.config.ts'
       - 'vercel.json'
+      - '.github/workflows/ota-release.yml'
   workflow_dispatch:
 
 permissions:
