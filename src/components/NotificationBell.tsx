@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Bell, ChevronDown } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,16 +17,64 @@ const matchFilter = (msg: string, filter: Filter): boolean => {
   return true;
 };
 
+interface NotificationItem {
+  id: number;
+  conversation_id?: number;
+  lu: boolean;
+  message: string;
+  created_at: string;
+}
+
+interface Group {
+  conversation_id: number;
+  items: NotificationItem[];
+}
+
 const NotificationBell = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("Toutes");
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   const filtered = useMemo(() => notifications.filter(n => matchFilter(n.message, filter)), [notifications, filter]);
 
-  const handleClick = async (n: { id: number; conversation_id?: number; lu: boolean }) => {
+  // Vague 2 — notifications groupées par conversation (style iMessage)
+  const groups = useMemo(() => {
+    const withConv = filtered.filter(n => n.conversation_id);
+    const singles = filtered.filter(n => !n.conversation_id);
+    const byConv = new Map<number, NotificationItem[]>();
+    withConv.forEach(n => {
+      const list = byConv.get(n.conversation_id!) || [];
+      list.push(n);
+      byConv.set(n.conversation_id!, list);
+    });
+    const grouped: Group[] = [...byConv.entries()]
+      .map(([conversation_id, items]) => ({
+        conversation_id,
+        items: items.sort((a, b) => b.created_at.localeCompare(a.created_at)),
+      }))
+      .sort((a, b) => b.items[0].created_at.localeCompare(a.items[0].created_at));
+    return { singles, grouped };
+  }, [filtered]);
+
+  const hasUnread = (g: Group) => g.items.some(n => !n.lu);
+
+  const toggleGroup = (g: Group) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      const shouldExpand = !next.has(g.conversation_id);
+      if (shouldExpand) {
+        next.add(g.conversation_id);
+      } else {
+        next.delete(g.conversation_id);
+      }
+      return next;
+    });
+  };
+
+  const handleClick = async (n: NotificationItem) => {
     await markAsRead(n.id);
     setOpen(false);
     if (n.conversation_id) {
@@ -107,27 +155,86 @@ const NotificationBell = () => {
                 <p className="text-sm text-muted-foreground">{t('notifications.noNotifications')}</p>
               </div>
             ) : (
-              filtered.map(n => (
-                <button
-                  key={n.id}
-                  onClick={() => handleClick(n)}
-                  className={`w-full text-left px-4 py-3 border-b border-border hover:bg-muted/40 transition-colors ${
-                    !n.lu ? "bg-primary/5" : ""
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    {!n.lu && (
-                      <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
-                    )}
-                    <div className={!n.lu ? "" : "pl-4"}>
-                      <p className="text-sm text-foreground">{n.message}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {getTemps(n.created_at)}
-                      </p>
+              <>
+                {groups.singles.map(n => (
+                  <button
+                    key={n.id}
+                    onClick={() => handleClick(n)}
+                    className={`w-full text-left px-4 py-3 border-b border-border hover:bg-muted/40 transition-colors ${
+                      !n.lu ? "bg-primary/5" : ""
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {!n.lu && (
+                        <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                      )}
+                      <div className={!n.lu ? "" : "pl-4"}>
+                        <p className="text-sm text-foreground">{n.message}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {getTemps(n.created_at)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))
+                  </button>
+                ))}
+
+                {groups.grouped.map(g => {
+                  const isOpen = expanded.has(g.conversation_id);
+                  const unread = hasUnread(g);
+                  const preview = g.items[0];
+                  return (
+                    <div key={g.conversation_id} className="border-b border-border">
+                      <button
+                        onClick={() => toggleGroup(g)}
+                        className={`w-full text-left px-4 py-3 hover:bg-muted/40 transition-colors ${unread ? "bg-primary/5" : ""}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {unread && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+                          <div className={unread ? "" : "pl-4"}>
+                            <p className="text-sm text-foreground line-clamp-1">{preview.message}</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                              {getTemps(preview.created_at)}
+                              {g.items.length > 1 && (
+                                <span className="font-semibold text-primary">
+                                  · {t('notifications.others', { n: g.items.length - 1 })}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                          <ChevronDown className={`w-4 h-4 text-muted-foreground ml-auto shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                        </div>
+                      </button>
+
+                      <AnimatePresence>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            {g.items.map(n => (
+                              <button
+                                key={n.id}
+                                onClick={() => handleClick(n)}
+                                className={`w-full text-left pl-10 pr-4 py-2.5 border-t border-border/60 hover:bg-muted/40 transition-colors ${
+                                  !n.lu ? "bg-primary/5" : ""
+                                }`}
+                              >
+                                <p className="text-sm text-foreground">{n.message}</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">
+                                  {getTemps(n.created_at)}
+                                </p>
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </>
             )}
           </div>
         </motion.div>

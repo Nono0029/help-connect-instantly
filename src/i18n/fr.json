@@ -615,6 +615,7 @@
     "title": "Notifications",
     "markAllRead": "Tout lire",
     "noNotifications": "Aucune notification",
+    "others": "{n} autre(s)",
     "all": "Toutes",
     "messages": "Messages",
     "requests": "Demandes",
