@@ -25,6 +25,7 @@ import {
   Phone,
   Share2,
   Gift,
+  Heart,
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -96,6 +97,10 @@ const ChatPage = () => {
   const [isDemandeOwner, setIsDemandeOwner] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showConfirmMission, setShowConfirmMission] = useState(false);
+  const [bravoCount, setBravoCount] = useState(0);
+  const [bravoMine, setBravoMine] = useState(false);
+  const [bravoEnabled, setBravoEnabled] = useState(false);
+  const [bravoLoading, setBravoLoading] = useState(false);
   interface Payment {
     id: number;
     mission_id: number;
@@ -329,8 +334,52 @@ const ChatPage = () => {
           .maybeSingle();
         if (avis) setAvisDonne(true);
       }
+
+      // BRAVO — réactions (feature désactivée silencieusement si la table n'existe pas)
+      try {
+        const { data: reactions } = await supabase
+          .from("reactions")
+          .select("user_id, type")
+          .eq("mission_id", missionData.id);
+        if (reactions) {
+          setBravoCount(reactions.length);
+          setBravoMine(!!user && reactions.some((r) => r.user_id === user.id));
+          setBravoEnabled(true);
+        }
+      } catch {
+        setBravoEnabled(false);
+      }
     } catch (err) {
       console.error("fetchMission error:", err);
+    }
+  };
+
+  // BRAVO — bascule réaction (insert / delete avec RLS)
+  const toggleBravo = async () => {
+    if (!user || !mission || bravoLoading || !bravoEnabled) return;
+    setBravoLoading(true);
+    try {
+      if (bravoMine) {
+        const { error } = await supabase
+          .from("reactions")
+          .delete()
+          .eq("mission_id", mission.id)
+          .eq("user_id", user.id);
+        if (error) throw error;
+        setBravoMine(false);
+        setBravoCount((c) => Math.max(0, c - 1));
+      } else {
+        const { error } = await supabase
+          .from("reactions")
+          .insert({ mission_id: mission.id, user_id: user.id, type: "bravo" });
+        if (error) throw error;
+        setBravoMine(true);
+        setBravoCount((c) => c + 1);
+      }
+    } catch (err) {
+      console.error("toggleBravo error:", err);
+    } finally {
+      setBravoLoading(false);
     }
   };
 
@@ -1407,19 +1456,33 @@ const ChatPage = () => {
       {mission?.statut === "terminee" && !showAvis && !avisDonne && (
         <div className="fixed left-0 right-0 px-4 z-30 space-y-2" style={{ bottom: `calc(8rem + ${keyboardHeight}px)` }}>
           <button onClick={() => setShowAvis(true)} className="w-full py-3 rounded-[24px] btn-magic font-bold">{t('chat.leaveReview')}</button>
-          <button onClick={partagerCarte} disabled={sharingCard} className="w-full py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
-            {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
-            {t('chat.shareCard')}
-          </button>
+          <div className="flex gap-2">
+            <button onClick={toggleBravo} disabled={!bravoEnabled} className="flex-1 py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+              {bravoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${bravoMine ? "fill-current text-primary" : ""}`} />}
+              {t('chat.bravo')}
+              {bravoCount > 0 && <span className="text-muted-foreground">· {bravoCount}</span>}
+            </button>
+            <button onClick={partagerCarte} disabled={sharingCard} className="flex-1 py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+              {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+              {t('chat.shareCard')}
+            </button>
+          </div>
         </div>
       )}
       {mission?.statut === "terminee" && avisDonne && (
         <div className="fixed left-0 right-0 px-4 z-30 space-y-2" style={{ bottom: `calc(8rem + ${keyboardHeight}px)` }}>
           <div className="w-full py-3 rounded-[24px] bg-muted border border-border text-center text-sm text-muted-foreground font-medium">{t('chat.reviewDone')}</div>
-          <button onClick={partagerCarte} disabled={sharingCard} className="w-full py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
-            {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
-            {t('chat.shareCard')}
-          </button>
+          <div className="flex gap-2">
+            <button onClick={toggleBravo} disabled={!bravoEnabled} className="flex-1 py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+              {bravoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${bravoMine ? "fill-current text-primary" : ""}`} />}
+              {t('chat.bravo')}
+              {bravoCount > 0 && <span className="text-muted-foreground">· {bravoCount}</span>}
+            </button>
+            <button onClick={partagerCarte} disabled={sharingCard} className="flex-1 py-3 rounded-[24px] bg-card border border-border font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+              {sharingCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+              {t('chat.shareCard')}
+            </button>
+          </div>
         </div>
       )}
 
