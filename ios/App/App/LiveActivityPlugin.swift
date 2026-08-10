@@ -43,7 +43,7 @@ public class LiveActivityPlugin: CAPInstancePlugin {
             Task {
                 await activity.update(
                     ActivityContent<AskooWidget.MissionAttributes.ContentState>(
-                        state: AskooWidget.MissionAttributes.ContentState(
+                        AskooWidget.MissionAttributes.ContentState(
                             statut: statut,
                             updatedAt: Date().timeIntervalSince1970
                         ),
@@ -68,7 +68,7 @@ public class LiveActivityPlugin: CAPInstancePlugin {
             Task {
                 await activity.end(
                     ActivityContent<AskooWidget.MissionAttributes.ContentState>(
-                        state: AskooWidget.MissionAttributes.ContentState(
+                        AskooWidget.MissionAttributes.ContentState(
                             statut: "terminee",
                             updatedAt: Date().timeIntervalSince1970
                         ),
