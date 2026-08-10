@@ -529,7 +529,7 @@ const Settings = () => {
               </button>
               <button
                 onClick={handleDeleteAccount}
-                disabled={deleteConfirmText !== "SUPPRIMER" || deleting}
+                disabled={deleteConfirmText.trim().toUpperCase() !== "SUPPRIMER" || deleting}
                 className="flex-1 h-11 rounded-xl bg-destructive text-white text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {deleting ? t('settings.deleting') : t('settings.deleteProceed')}
