@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Camera, Image, Euro, Clock, Sparkles, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { X, Camera, Image, Euro, Clock, Sparkles, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +13,8 @@ import { useTranslation } from "@/context/LanguageContext";
 import { getTotalEuros, getFeesEuros, isBoostActive } from "@/lib/urgentFee";
 import { getPriceSuggestion } from "@/lib/priceSuggestions";
 import { useCameraUpload } from "@/hooks/useCameraUpload";
+import { withTimeout } from "@/lib/utils";
+import { computeBadge, type TrustTier } from "@/lib/trustBadges";
 import { Capacitor } from "@capacitor/core";
 
 const typesAide = [
@@ -70,6 +73,7 @@ interface Props {
 const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }: Props) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -84,6 +88,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
   const [villeForm, setVilleForm] = useState("");
   const [villeLat, setVilleLat] = useState(0);
   const [villeLng, setVilleLng] = useState(0);
+  const [suggestedNeighbors, setSuggestedNeighbors] = useState<{ id: string; pseudo: string; note: number; count: number; badgeKey: TrustTier }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const isEdit = !!demandeToEdit;
@@ -101,6 +106,58 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
         setPseudo(data?.pseudo || "");
       });
   }, [user?.id]);
+
+  // FEATURE 5 — Meilleurs voisins pour cette demande (top 3 : même ville + avis vérifiés)
+  const fetchSuggestedNeighbors = async (city: string) => {
+    if (!city || isEdit) { setSuggestedNeighbors([]); return; }
+    try {
+      const { data: profiles } = await withTimeout(supabase
+        .from("profiles")
+        .select("id, pseudo")
+        .eq("ville", city)
+        .limit(50), 10000, "suggested");
+      if (!profiles || profiles.length === 0) { setSuggestedNeighbors([]); return; }
+      const ids = profiles.map(p => p.id).filter(id => id !== user?.id);
+      if (ids.length === 0) { setSuggestedNeighbors([]); return; }
+
+      const { data: avis } = await withTimeout(supabase
+        .from("avis")
+        .select("cible_id, note")
+        .eq("verifie", true)
+        .in("cible_id", ids)
+        .limit(1000), 10000, "suggested-avis");
+
+      const stats: Record<string, { sum: number; count: number }> = {};
+      (avis || []).forEach(a => {
+        if (!stats[a.cible_id]) stats[a.cible_id] = { sum: 0, count: 0 };
+        stats[a.cible_id].sum += a.note;
+        stats[a.cible_id].count += 1;
+      });
+
+      const list = profiles
+        .map(p => {
+          const s = stats[p.id];
+          if (!s || s.count === 0) return null;
+          return {
+            id: p.id,
+            pseudo: p.pseudo || "Anonyme",
+            note: s.sum / s.count,
+            count: s.count,
+            badgeKey: computeBadge(s.count, s.sum / s.count).key,
+          };
+        })
+        .filter((x): x is { id: string; pseudo: string; note: number; count: number; badgeKey: TrustTier } => !!x)
+        .sort((a, b) => b.note - a.note || b.count - a.count)
+        .slice(0, 3);
+      setSuggestedNeighbors(list);
+    } catch {
+      setSuggestedNeighbors([]);
+    }
+  };
+
+  useEffect(() => {
+    if (open && !demandeToEdit) fetchSuggestedNeighbors(ville || "");
+  }, [open, demandeToEdit, ville]);
 
   useEffect(() => {
     resetBusy();
@@ -226,6 +283,39 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
             </div>
 
             <div className="px-4 py-4 space-y-5">
+              {!isEdit && suggestedNeighbors.length > 0 && (
+                <div className="rounded-2xl border border-border/60 bg-muted/40 p-3 space-y-2">
+                  <p className="text-xs font-bold text-foreground uppercase tracking-wide flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" /> {t('postForm.suggestedTitle')}
+                  </p>
+                  <div className="space-y-2">
+                    {suggestedNeighbors.map(n => (
+                      <button
+                        key={n.id}
+                        onClick={() => { onClose(); navigate(`/profile/${n.id}`); }}
+                        className="w-full flex items-center gap-2.5 rounded-xl bg-background border border-border/60 p-2 text-left hover:bg-background/80 active:scale-[0.99] transition"
+                      >
+                        <div className="w-9 h-9 rounded-full bg-avatar-gradient flex items-center justify-center text-sm font-bold text-white shrink-0">
+                          {n.pseudo[0]?.toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13px] font-bold text-foreground truncate">{n.pseudo}</p>
+                          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {n.note.toFixed(1)}
+                            <span className="opacity-40">·</span> {n.count} {t('postForm.suggestedMissions')}
+                          </p>
+                        </div>
+                        {n.badgeKey !== "newcomer" && (
+                          <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${n.badgeKey === "trusted" ? "bg-amber-500/15 text-amber-600" : "bg-primary/10 text-primary"}`}>
+                            {t(`badges.${n.badgeKey}`)}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {!isEdit && (
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-2 block">
@@ -291,7 +381,7 @@ const PostDemandeForm = ({ open, onClose, onDemandeAdded, demandeToEdit, ville }
                 <div className="h-11 rounded-xl bg-secondary px-4 flex items-center">
                   <CityPicker
                     ville={villeForm || t('postForm.cityFallback')}
-                    onChange={(v, lat, lng) => { setVilleForm(v); setVilleLat(lat); setVilleLng(lng); }}
+                    onChange={(v, lat, lng) => { setVilleForm(v); setVilleLat(lat); setVilleLng(lng); fetchSuggestedNeighbors(v); }}
                   />
                 </div>
               </div>

@@ -582,6 +582,8 @@
     "descPlaceholder": "Explique en détail ce dont tu as besoin, quand, où, etc.",
     "cityField": "Ville de la demande",
     "cityFallback": "Choisir une ville...",
+    "suggestedTitle": "Meilleurs voisins près de toi",
+    "suggestedMissions": "missions",
     "helpType": "Type d'aide",
     "duration": "Durée estimée",
     "budget": "Budget",

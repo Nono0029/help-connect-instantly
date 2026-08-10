@@ -582,6 +582,8 @@
     "descPlaceholder": "Explain in detail what you need, when, where, etc.",
     "cityField": "Request city",
     "cityFallback": "Choose a city...",
+    "suggestedTitle": "Top neighbors near you",
+    "suggestedMissions": "missions",
     "helpType": "Type of help",
     "duration": "Estimated duration",
     "budget": "Budget",
