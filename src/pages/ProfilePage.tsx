@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2, BadgeCheck, Sprout, HandHeart, HeartHandshake, Building2, Crown, Trophy, Award, CalendarCheck, User, LucideIcon } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2, BadgeCheck, Sprout, HandHeart, HeartHandshake, Building2, Crown, Trophy, Award, CalendarCheck, ShieldCheck, User, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
@@ -8,6 +8,7 @@ import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { isUrgentActive } from "@/lib/urgentFee";
+import { computeBadge, badgeLabel } from "@/lib/trustBadges";
 
 interface Profile {
   id: string;
@@ -105,6 +106,7 @@ const ProfilePage = () => {
         .from("avis")
         .select("*")
         .eq("cible_id", id)
+        .eq("verifie", true)
         .order("created_at", { ascending: false })
         .limit(50);
 
@@ -218,6 +220,9 @@ const ProfilePage = () => {
     return { icon: Sprout, label: t('profile.level1') };
   })();
 
+  // Badge de confiance public — basé sur les avis vérifiés (visible pour tous les visiteurs)
+  const trustBadge = computeBadge(avis.length, moyenne);
+
   const earnedBadges = [
     profile.email_verifie && { key: "verified", icon: BadgeCheck, label: t('profile.badgeVerified'), desc: t('profile.identityVerifiedDesc') },
     helperCount >= 1 && { key: "first", icon: HeartHandshake, label: t('profile.badgeFirst'), desc: t('profile.badgeFirstDesc') },
@@ -251,7 +256,7 @@ const ProfilePage = () => {
 
           <h2 className="text-xl font-bold text-foreground mt-4 flex items-center justify-center gap-2">
             {profile.pseudo || t('profile.anonymous')}
-            {profile.email_verifie && (
+          {profile.email_verifie && (
               <Badge className="rounded-full text-[10px] gap-1 bg-accent/15 text-accent hover:bg-accent/15" title={t('profile.identityVerifiedDesc')}>
                 <BadgeCheck className="w-3 h-3" />
                 {t('profile.identityVerified')}
@@ -263,6 +268,16 @@ const ProfilePage = () => {
               </span>
             )}
           </h2>
+
+          <Badge
+            className={`mt-2 rounded-full text-[11px] gap-1.5 px-3 py-1 font-semibold ${
+              trustBadge.key === "trusted" ? "bg-amber-500/15 text-amber-600" : "bg-primary/10 text-primary"
+            }`}
+            title={t('badges.tooltip', { count: avis.length, note: moyenne.toFixed(1) })}
+          >
+            {trustBadge.key === "trusted" ? <ShieldCheck className="w-3.5 h-3.5" /> : trustBadge.key === "helper10" ? <Star className="w-3.5 h-3.5" /> : trustBadge.key === "helper5" ? <Sparkles className="w-3.5 h-3.5" /> : <Sprout className="w-3.5 h-3.5" />}
+            {badgeLabel(trustBadge, t)}
+          </Badge>
 
           {profile.bio && (
             <p className="text-sm text-muted-foreground italic mt-1 px-4">{profile.bio}</p>

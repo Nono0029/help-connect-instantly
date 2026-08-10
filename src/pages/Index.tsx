@@ -25,6 +25,7 @@ import {
   Star,
   Zap,
   Rocket,
+  ShieldCheck,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ import { Button } from "@/components/ui/button";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { isUrgentActive } from "@/lib/urgentFee";
+import { computeBadge, type TrustTier } from "@/lib/trustBadges";
 
 import PostDemandeForm from "@/components/PostDemandeForm";
 import SearchFilters from "@/components/SearchFilters";
@@ -164,6 +166,7 @@ const Index = () => {
   const [boostedUserIds, setBoostedUserIds] = useState<Set<string>>(new Set());
   const [pseudosById, setPseudosById] = useState<Record<string, string>>({});
   const [authorRatings, setAuthorRatings] = useState<Record<string, number>>({});
+  const [authorBadges, setAuthorBadges] = useState<Record<string, TrustTier>>({});
 
   const [loading, setLoading] = useState(true);
 
@@ -270,22 +273,36 @@ const Index = () => {
         // Trust — average rating per author (Airbnb style)
         const { data: avisData } = await withTimeout(supabase
           .from("avis")
-          .select("cible_id, note")
+          .select("cible_id, note, verifie")
           .in("cible_id", userIds)
           .limit(1000), 12000, "avis");
         const ratings: Record<string, number> = {};
+        const verifiedRatings: Record<string, { sum: number; count: number }> = {};
         (avisData || []).forEach(a => {
           if (!ratings[a.cible_id]) {
             ratings[a.cible_id] = { sum: 0, count: 0 } as any;
           }
           (ratings as any)[a.cible_id].sum += a.note;
           (ratings as any)[a.cible_id].count += 1;
+          if (a.verifie) {
+            if (!verifiedRatings[a.cible_id]) verifiedRatings[a.cible_id] = { sum: 0, count: 0 };
+            verifiedRatings[a.cible_id].sum += a.note;
+            verifiedRatings[a.cible_id].count += 1;
+          }
         });
         const ratingMap: Record<string, number> = {};
         Object.keys(ratings).forEach(id => {
           ratingMap[id] = Math.round((((ratings as any)[id].sum) / ((ratings as any)[id].count)) * 10) / 10;
         });
         setAuthorRatings(ratingMap);
+
+        // Trust badges — basés sur les avis vérifiés (public)
+        const badgeMap: Record<string, TrustTier> = {};
+        Object.keys(verifiedRatings).forEach(id => {
+          const v = verifiedRatings[id];
+          badgeMap[id] = computeBadge(v.count, v.sum / v.count).key;
+        });
+        setAuthorBadges(badgeMap);
       }
     } catch (err) {
       console.error("fetchDemandes error:", err);
@@ -797,6 +814,12 @@ const Index = () => {
                         <span className="flex items-center gap-0.5 shrink-0 text-[11px] font-bold text-foreground/80">
                           <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                           {authorRatings[d.user_id]}
+                        </span>
+                      )}
+                      {d.user_id && authorBadges[d.user_id] && authorBadges[d.user_id] !== "newcomer" && (
+                        <span className={`flex items-center gap-0.5 shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${authorBadges[d.user_id] === "trusted" ? "bg-amber-500/15 text-amber-600" : "bg-primary/10 text-primary"}`}>
+                          {authorBadges[d.user_id] === "trusted" ? <ShieldCheck className="w-2.5 h-2.5" /> : authorBadges[d.user_id] === "helper10" ? <Star className="w-2.5 h-2.5" /> : <Sparkles className="w-2.5 h-2.5" />}
+                          {t(`badges.${authorBadges[d.user_id]}`)}
                         </span>
                       )}
                     </div>

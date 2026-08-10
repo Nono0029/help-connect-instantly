@@ -366,7 +366,13 @@
     "verifiedMission": "Verified mission",
     "identityVerified": "Verified identity",
     "identityVerifiedDesc": "Confirmed email — Askoo verified member",
-    "badges": "Badges",
+    "badges": {
+      "newcomer": "New neighbor",
+      "helper5": "5 missions",
+      "helper10": "10 missions",
+      "trusted": "Trusted neighbor",
+      "tooltip": "{count} verified missions · {note} rating"
+    },
     "levelHint": "levels based on completed missions",
     "level1": "New neighbor",
     "level2": "Helping hand",
