@@ -16,6 +16,7 @@ import {
   Flag,
   Gift,
   FileText,
+  Trash2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -47,6 +48,10 @@ const Settings = () => {
   const [moyenne, setMoyenne] = useState(0);
   const [avisCount, setAvisCount] = useState(0);
   const [notifPrefs, setNotifPrefs] = useState(defaultNotifPrefs);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const email = user?.email || "";
 
@@ -164,6 +169,27 @@ const Settings = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
+  };
+
+  // DELETE ACCOUNT
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-account");
+      if (error) throw error;
+      if (!data?.ok) throw new Error("delete failed");
+      toast.success(t('settings.deleteSuccess'));
+      await signOut();
+      navigate("/auth");
+    } catch (err) {
+      console.error("delete-account error:", err);
+      toast.error(t('settings.deleteError'));
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+      setDeleteConfirmText("");
+    }
   };
 
   const menuSections = [
@@ -455,6 +481,49 @@ const Settings = () => {
           {t('settings.logout')}
         </button>
       </div>
+
+      {/* DELETE ACCOUNT */}
+      <div className="px-4 mt-3">
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="w-full h-12 rounded-2xl text-muted-foreground text-sm font-medium flex items-center justify-center gap-2 hover:text-red-400 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          {t('settings.deleteAccount')}
+        </button>
+      </div>
+
+      {/* DELETE CONFIRM MODAL */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+          <div className="bg-card border border-border rounded-2xl p-5 w-full max-w-sm space-y-4">
+            <h3 className="font-bold text-foreground text-lg">{t('settings.deleteConfirmTitle')}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{t('settings.deleteConfirmText')}</p>
+            <input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={t('settings.deleteTypeHint')}
+              className="w-full h-11 rounded-xl bg-secondary border border-border px-3 text-sm uppercase tracking-wider"
+              autoCapitalize="characters"
+            />
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+                className="flex-1 h-11 rounded-xl bg-muted text-foreground text-sm font-semibold"
+              >
+                {t('settings.deleteCancel')}
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== "SUPPRIMER" || deleting}
+                className="flex-1 h-11 rounded-xl bg-destructive text-white text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {deleting ? t('settings.deleting') : t('settings.deleteProceed')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* VERSION */}
       <div className="px-4 mt-6 mb-24 text-center">
