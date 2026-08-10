@@ -53,6 +53,20 @@ const Settings = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  const [appVersion, setAppVersion] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { App } = await import("@capacitor/app");
+        const info = await App.getInfo();
+        setAppVersion(info.version);
+      } catch {
+        setAppVersion("1.0.35");
+      }
+    })();
+  }, []);
+
   const email = user?.email || "";
 
   // PROFILE
@@ -527,7 +541,7 @@ const Settings = () => {
 
       {/* VERSION */}
       <div className="px-4 mt-6 mb-24 text-center">
-        <span className="text-xs text-muted-foreground/60">Askoo v1.0.22</span>
+        <span className="text-xs text-muted-foreground/60">Askoo v{appVersion}</span>
       </div>
 
     </div>
