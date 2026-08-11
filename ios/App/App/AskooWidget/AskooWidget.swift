@@ -48,7 +48,7 @@ struct AskooProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<AskooEntry>) -> Void) {
         Task {
             var demandes: [DemandeEntry] = []
-            var error: String? = nil
+            var errorMessage: String? = nil
             do {
                 var request = URLRequest(url: URL(string: "\(supabaseURL)/rest/v1/demandes?select=id,titre&order=created_at.desc&limit=5")!)
                 request.setValue(anonKey, forHTTPHeaderField: "apikey")
@@ -57,9 +57,9 @@ struct AskooProvider: TimelineProvider {
                 let (data, _) = try await URLSession.shared.data(for: request)
                 demandes = try JSONDecoder().decode([DemandeEntry].self, from: data)
             } catch {
-                error = String(describing: error)
+                errorMessage = String(describing: error)
             }
-            let entry = AskooEntry(date: Date(), demandes: demandes, error: error)
+            let entry = AskooEntry(date: Date(), demandes: demandes, error: errorMessage)
             let timeline = Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(15 * 60)))
             completion(timeline)
         }
