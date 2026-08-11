@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import ActivityKit
 
 // MARK: - Attributes partagés avec l'app (Live Activity)
 public struct MissionAttributes: ActivityAttributes {
