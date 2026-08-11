@@ -143,13 +143,13 @@ struct AskooWidgetView: View {
 @main
 struct AskooWidgetBundle: WidgetBundle {
     var body: some Widget {
-        AskooWidget()
+        AskooFeedWidget()
         MissionLiveActivity()
     }
 }
 
-struct AskooWidget: Widget {
-    let kind = "AskooWidget"
+struct AskooFeedWidget: Widget {
+    let kind = "AskooFeedWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: AskooProvider()) { entry in
