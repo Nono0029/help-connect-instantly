@@ -61,6 +61,14 @@ jobs:
           echo "${{ secrets.APPLE_PROVISIONING_BASE64 }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/askoo.mobileprovision"
           echo "${{ secrets.APPLE_WIDGET_PROVISIONING_BASE64 }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/askoo-widget.mobileprovision"
           test -s "$HOME/Library/MobileDevice/Provisioning Profiles/askoo-widget.mobileprovision" || { echo "::error::APPLE_WIDGET_PROVISIONING_BASE64 est vide ou invalide - verifier le secret GitHub"; exit 1; }
+
+      - name: Verify widget profile (diagnostic)
+        run: |
+          PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/askoo-widget.mobileprovision"
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
+          security cms -D -i "$PROFILE" 2>/dev/null | plutil -extract Name raw -o - -
+          security cms -D -i "$PROFILE" 2>/dev/null | plutil -extract UUID raw -o - -
+          security cms -D -i "$PROFILE" 2>/dev/null | plutil -extract ExpirationDate raw -o - -
           mkdir -p "$HOME/private_keys"
           echo "${{ secrets.ASC_KEY_BASE64 }}" | base64 --decode > "$HOME/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8"
 
