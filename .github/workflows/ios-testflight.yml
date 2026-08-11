@@ -23,6 +23,7 @@ jobs:
     env:
       TEAM_ID: ${{ secrets.TEAM_ID }}
       PROVISIONING_NAME: ${{ secrets.APPLE_PROVISIONING_NAME }}
+      WIDGET_PROVISIONING_NAME: ${{ secrets.APPLE_WIDGET_PROVISIONING_NAME }}
       VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
     steps:
       - uses: actions/checkout@v4
@@ -58,6 +59,8 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PW" "$KEYCHAIN"
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           echo "${{ secrets.APPLE_PROVISIONING_BASE64 }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/askoo.mobileprovision"
+          echo "${{ secrets.APPLE_WIDGET_PROVISIONING_BASE64 }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/askoo-widget.mobileprovision"
+          test -s "$HOME/Library/MobileDevice/Provisioning Profiles/askoo-widget.mobileprovision" || { echo "::error::APPLE_WIDGET_PROVISIONING_BASE64 est vide ou invalide - verifier le secret GitHub"; exit 1; }
           mkdir -p "$HOME/private_keys"
           echo "${{ secrets.ASC_KEY_BASE64 }}" | base64 --decode > "$HOME/private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8"
 
@@ -96,6 +99,8 @@ jobs:
             <dict>
               <key>com.askoo.app</key>
               <string>$PROVISIONING_NAME</string>
+              <key>com.askoo.app.widget</key>
+              <string>${WIDGET_PROVISIONING_NAME:-askoo-widget}</string>
             </dict>
           </dict>
           </plist>
