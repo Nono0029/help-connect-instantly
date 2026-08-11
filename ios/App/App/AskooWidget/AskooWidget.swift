@@ -57,7 +57,7 @@ struct AskooProvider: TimelineProvider {
                 let (data, _) = try await URLSession.shared.data(for: request)
                 demandes = try JSONDecoder().decode([DemandeEntry].self, from: data)
             } catch {
-                error = error.localizedDescription
+                error = String(describing: error)
             }
             let entry = AskooEntry(date: Date(), demandes: demandes, error: error)
             let timeline = Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(15 * 60)))
