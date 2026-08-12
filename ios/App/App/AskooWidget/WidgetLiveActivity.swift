@@ -83,9 +83,13 @@ private struct MissionProgressBar: View {
                 Capsule()
                     .fill(Color.white.opacity(0.18))
                 Capsule()
-                    .fill(statut == "terminee"
-                          ? Color.white.opacity(0.9)
-                          : LinearGradient(colors: [.white.opacity(0.95), .white.opacity(0.7)], startPoint: .leading, endPoint: .trailing))
+                    .fill(
+                        AnyShapeStyle(
+                            statut == "terminee"
+                            ? Color.white.opacity(0.9)
+                            : LinearGradient(colors: [.white.opacity(0.95), .white.opacity(0.7)], startPoint: .leading, endPoint: .trailing)
+                        )
+                    )
                     .frame(width: geo.size.width * progress)
             }
         }
