@@ -14,7 +14,7 @@ public class LiveActivityPlugin: CAPInstancePlugin {
         }
         let missionId = call.getString("missionId") ?? ""
 
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
             let attributes = AskooWidget.MissionAttributes(titre: titre, missionId: missionId)
             let state = AskooWidget.MissionAttributes.ContentState(statut: "en_cours", updatedAt: Date().timeIntervalSince1970)
             do {
@@ -35,7 +35,7 @@ public class LiveActivityPlugin: CAPInstancePlugin {
 
     @objc func update(_ call: CAPPluginCall) {
         let statut = call.getString("statut") ?? "en_cours"
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
             guard let activity = self.activity ?? Activity<AskooWidget.MissionAttributes>.activities.first else {
                 call.reject("Aucune Live Activity active")
                 return
@@ -58,7 +58,7 @@ public class LiveActivityPlugin: CAPInstancePlugin {
     }
 
     @objc func end(_ call: CAPPluginCall) {
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
             let target = self.activity ?? Activity<AskooWidget.MissionAttributes>.activities.first
             self.activity = nil
             guard let activity = target else {

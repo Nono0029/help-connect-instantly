@@ -80,12 +80,6 @@ jobs:
           echo "marketing=$VERSION" >> "$GITHUB_OUTPUT"
           echo "build=$BUILD" >> "$GITHUB_OUTPUT"
 
-      - name: Debug LiveActivityPlugin (diagnostic)
-        run: |
-          git log -1 --format='COMMIT: %h %s' -- ios/App/App/LiveActivityPlugin.swift
-          grep -n "state:" ios/App/App/LiveActivityPlugin.swift
-          sed -n '44,46p' ios/App/App/LiveActivityPlugin.swift
-
       - name: Archive app
         run: |
           xcodebuild archive \
