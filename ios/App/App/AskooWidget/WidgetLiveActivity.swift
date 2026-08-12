@@ -82,15 +82,15 @@ private struct MissionProgressBar: View {
             ZStack(alignment: .leading) {
                 Capsule()
                     .fill(Color.white.opacity(0.18))
-                Capsule()
-                    .fill(
-                        AnyShapeStyle(
-                            statut == "terminee"
-                            ? Color.white.opacity(0.9)
-                            : LinearGradient(colors: [.white.opacity(0.95), .white.opacity(0.7)], startPoint: .leading, endPoint: .trailing)
-                        )
-                    )
-                    .frame(width: geo.size.width * progress)
+                if statut == "terminee" {
+                    Capsule()
+                        .fill(Color.white.opacity(0.9))
+                        .frame(width: geo.size.width * progress)
+                } else {
+                    Capsule()
+                        .fill(LinearGradient(colors: [.white.opacity(0.95), .white.opacity(0.7)], startPoint: .leading, endPoint: .trailing))
+                        .frame(width: geo.size.width * progress)
+                }
             }
         }
         .frame(height: 4)
