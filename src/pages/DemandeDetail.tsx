@@ -1,16 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, Euro, Zap, MessageCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Euro, Zap, MessageCircle, Share2, ShieldOff, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { sendPushNotification } from "@/lib/push";
 import ImageLightbox from "@/components/ImageLightbox";
 import { toast } from "sonner";
 import { useTranslation } from "@/context/LanguageContext";
 import { formatTimeAgo, withTimeout } from "@/lib/utils";
 import { isUrgentActive, getFeesEuros, isBoostActive } from "@/lib/urgentFee";
+import QRCode from "qrcode";
+import { Capacitor } from "@capacitor/core";
+import { Share } from "@capacitor/share";
 
 interface Demande {
   id: number;
@@ -39,6 +44,50 @@ const DemandeDetail = () => {
   const [myPseudo, setMyPseudo] = useState("");
   const [authorPseudo, setAuthorPseudo] = useState("");
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+
+  const qrDataUrl = useMemo(() => {
+    if (!demande) return null as string | null;
+    return QRCode.toDataURL(`askoo://demande/${demande.id}`, {
+      errorCorrectionLevel: "M",
+      width: 220,
+      margin: 1,
+      color: { dark: "#0f1c15", light: "#ffffff" },
+    }).catch(() => null);
+  }, [demande?.id, shareOpen]);
+
+  const handleShareNative = async () => {
+    const text = t('demandeDetail.shareText', {
+      titre: demande?.titre || "",
+      ville: demande?.ville || "",
+      prix: demande?.prix || (demande?.gratuit ? "Gratuit" : ""),
+    });
+    try {
+      await Share.share({ title: t('demandeDetail.shareTitle'), text, url: Capacitor.isNativePlatform() ? undefined : `askoo://demande/${demande?.id}` });
+      setShareOpen(false);
+    } catch {
+      // partage annulé
+    }
+  };
+
+  const handleBlock = async () => {
+    if (!user || !demande?.user_id || user.id === demande.user_id) return;
+    setBlocking(true);
+    try {
+      const { error } = await supabase.from("user_blocks").insert({
+        user_id: user.id,
+        blocked_id: demande.user_id,
+      });
+      if (error) throw error;
+      toast.success(t('demandeDetail.blocked'));
+      navigate("/");
+    } catch (err: any) {
+      toast.error(err?.message || "Erreur");
+    } finally {
+      setBlocking(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -104,12 +153,14 @@ const DemandeDetail = () => {
         .single();
 
       if (newConv && demande.user_id && demande.user_id !== user.id) {
+        const notifMessage = `${myPseudo || user.email?.split("@")[0] || "Quelqu'un"} veut t'aider pour « ${demande.titre} » !`;
         await supabase.from("notifications").insert({
           user_id: demande.user_id,
-          message: `${myPseudo || user.email?.split("@")[0] || "Quelqu'un"} veut t'aider pour « ${demande.titre} » !`,
+          message: notifMessage,
           conversation_id: newConv.id,
           lu: false,
         });
+        sendPushNotification(demande.user_id, t('push.titles.demande'), notifMessage);
       }
 
       if (newConv) navigate(`/chat/${newConv.id}`);
@@ -144,6 +195,27 @@ const DemandeDetail = () => {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="text-base font-bold text-foreground truncate">{demande.titre}</h1>
+          <div className="flex items-center gap-2 ml-auto shrink-0">
+            <button
+              onClick={() => setShareOpen(true)}
+              aria-label={t('demandeDetail.share')}
+              className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center"
+            >
+              <Share2 className="w-4 h-4 text-foreground" />
+            </button>
+            {!isOwner && demande.user_id && (
+              <button
+                onClick={() => {
+                  if (window.confirm(t('demandeDetail.blockConfirm', { name: authorPseudo || demande.auteur }))) handleBlock();
+                }}
+                disabled={blocking}
+                aria-label={t('demandeDetail.block')}
+                className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center"
+              >
+                <ShieldOff className="w-4 h-4 text-foreground" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -243,6 +315,27 @@ const DemandeDetail = () => {
           onNext={lightbox.index < lightbox.images.length - 1 ? () => setLightbox(prev => prev ? { ...prev, index: prev.index + 1 } : null) : undefined}
         />
       )}
+
+      {/* Partager — QR code + partage natif */}
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent className="max-w-xs text-center">
+          <DialogHeader>
+            <DialogTitle>{t('demandeDetail.shareTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-3 py-2">
+            {qrDataUrl ? (
+              <img src={qrDataUrl as string} alt="QR" className="w-44 h-44 rounded-xl border border-border" />
+            ) : (
+              <div className="w-44 h-44 rounded-xl bg-secondary animate-pulse" />
+            )}
+            <p className="text-xs text-muted-foreground">{t('demandeDetail.qrHint')}</p>
+            <Button className="w-full rounded-xl" onClick={handleShareNative}>
+              <Share2 className="w-4 h-4 mr-2" />
+              {t('demandeDetail.shareNative')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -31,6 +31,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { startMissionActivity, endMissionActivity } from "@/lib/liveActivity";
+import { sendPushNotification } from "@/lib/push";
 import { useAuth } from "@/context/AuthContext";
 import { Illu } from "@/components/Illustrations";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -424,6 +425,7 @@ const ChatPage = () => {
           conversation_id: conversation.id,
           lu: false,
         });
+        sendPushNotification(otherUserId, t('push.titles.mission'), t('chat.missionAcceptedNotif'));
       }
 
       fetchConversation();
@@ -455,6 +457,7 @@ const ChatPage = () => {
           conversation_id: conversation.id,
           lu: false,
         });
+        sendPushNotification(otherUserId, t('push.titles.mission'), t('chat.missionRefusedNotif'));
       }
 
       fetchConversation();
@@ -504,6 +507,7 @@ const ChatPage = () => {
             conversation_id: parseInt(id!),
             lu: false,
           });
+          sendPushNotification(mission.helper_id, t('push.titles.mission'), t('chat.paymentReleaseError'));
         }
 
         await supabase.from("messages").insert({
@@ -526,15 +530,17 @@ const ChatPage = () => {
             conversation_id: parseInt(id!),
             lu: false,
           }]);
+          sendPushNotification(otherUserId, t('push.titles.mission'), t('chat.missionFinishedNotif'));
         }
-      } else if (otherUserId) {
+} else if (otherUserId) {
         await supabase.from("notifications").insert({
           user_id: otherUserId,
           message: t('chat.missionConfirmed', { name: myPseudo || user.email?.split("@")[0] || t('chat.someone') }),
           conversation_id: parseInt(id!),
           lu: false,
         });
-      }
+        sendPushNotification(otherUserId, t('push.titles.mission'), t('chat.missionConfirmed', { name: myPseudo || user.email?.split("@")[0] || t('chat.someone') }));
+   }
 
       fetchMission(conversation);
     } catch (err) {
@@ -901,12 +907,14 @@ const ChatPage = () => {
         return inserted ? [...withoutTemp, inserted as Message] : withoutTemp;
       });
       if (otherUserId) {
+        const notifMessage = `${user.email?.split("@")[0] || "Quelqu'un"}: ${trimmed.slice(0, 80)}${trimmed.length > 80 ? "..." : ""}`;
         await supabase.from("notifications").insert({
           user_id: otherUserId,
-          message: `${user.email?.split("@")[0] || "Quelqu'un"}: ${trimmed.slice(0, 80)}${trimmed.length > 80 ? "..." : ""}`,
+          message: notifMessage,
           conversation_id: parseInt(id),
           lu: false,
         });
+        sendPushNotification(otherUserId, t('push.titles.message'), notifMessage);
       }
     } catch (err) {
       console.error("sendMessage error:", err);

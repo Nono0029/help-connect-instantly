@@ -71,7 +71,7 @@ interface Demande {
 const Index = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { boostSyncVersion } = useAuth();
+  const { boostSyncVersion, user } = useAuth();
 
   const categoryKeys = [
     "Tout",
@@ -254,6 +254,14 @@ const Index = () => {
         .limit(500), 12000, "missions");
       const completedIds = completedMissions?.map(m => m.demande_id) || [];
 
+      let blockedIds: string[] = [];
+      if (user) {
+        const { data: blocks } = await withTimeout(supabase
+          .from("user_blocks")
+          .select("blocked_id"), 8000, "blocks");
+        blockedIds = blocks?.map(b => b.blocked_id) || [];
+      }
+
       const { data } = await withTimeout(supabase
         .from("demandes")
         .select("*")
@@ -262,7 +270,7 @@ const Index = () => {
         })
         .limit(100), 12000, "demandes");
 
-      const filtered = (data || []).filter(d => !completedIds.includes(d.id));
+      const filtered = (data || []).filter(d => !completedIds.includes(d.id) && !blockedIds.includes(d.user_id));
       setDemandes(filtered);
 
       // Fetch boosted profiles

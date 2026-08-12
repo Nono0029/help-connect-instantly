@@ -47,14 +47,16 @@ function AnimatedRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Vague 2 — deep links du widget / Live Activity (askoo://chat/<id>, askoo://feed)
+  // Vague 2 — deep links du widget / Live Activity (askoo://chat/<id>, askoo://feed, askoo://demande/<id>)
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const handler = ({ url }: { url: string }) => {
-      const match = url.match(/^askoo:\/\/(chat|feed)(?:\/(\d+))?/);
+      const match = url.match(/^askoo:\/\/(chat|feed|demande)(?:\/(\d+))?/);
       if (!match) return;
       if (match[1] === "chat" && match[2]) {
         navigate(`/chat/${match[2]}`);
+      } else if (match[1] === "demande" && match[2]) {
+        navigate(`/demande/${match[2]}`);
       } else {
         navigate("/");
       }

@@ -419,7 +419,15 @@
     "free": "Gratuit",
     "connecting": "Connexion...",
     "wantToHelp": "Je veux aider",
-    "yourRequest": "C'est ta demande"
+    "yourRequest": "C'est ta demande",
+    "share": "Partager",
+    "shareTitle": "Partager la demande",
+    "shareText": "Aide-moi sur Askoo ! « {titre} » — {ville} — {prix}",
+    "shareNative": "Partager…",
+    "qrHint": "Scanne ce QR code avec l'app Askoo",
+    "block": "Bloquer",
+    "blockConfirm": "Bloquer {name} ? Vous ne verrez plus ses demandes.",
+    "blocked": "Utilisateur bloqué"
   },
   "wallet": {
     "title": "Portefeuille & Paiements",
@@ -723,5 +731,12 @@
     "copyError": "Impossible de copier le code",
     "friendsJoined": "Amis inscrits",
     "friendsJoinedDesc": "Ils bénéficient de la 1re demande sans frais"
+  },
+  "push": {
+    "titles": {
+      "message": "Nouveau message",
+      "mission": "Mission",
+      "demande": "Nouvelle demande"
+    }
   }
 }

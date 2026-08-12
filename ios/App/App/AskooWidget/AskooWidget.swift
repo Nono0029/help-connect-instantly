@@ -14,10 +14,30 @@ public struct MissionAttributes: ActivityAttributes {
     }
     public var titre: String
     public var missionId: String
+    public var debut: Date
 
-    public init(titre: String, missionId: String) {
+    public init(titre: String, missionId: String, debut: Date = Date()) {
         self.titre = titre
         self.missionId = missionId
+        self.debut = debut
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case titre, missionId, debut
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        titre = try c.decode(String.self, forKey: .titre)
+        missionId = try c.decodeIfPresent(String.self, forKey: .missionId) ?? ""
+        debut = try c.decodeIfPresent(Date.self, forKey: .debut) ?? Date()
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(titre, forKey: .titre)
+        try c.encode(missionId, forKey: .missionId)
+        try c.encode(debut, forKey: .debut)
     }
 }
 
@@ -78,6 +98,8 @@ struct AskooWidgetView: View {
             switch family {
             case .systemSmall:
                 small
+            case .systemLarge:
+                large
             default:
                 medium
             }
@@ -109,28 +131,17 @@ struct AskooWidgetView: View {
 
     var medium: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Askoo")
-                    .font(.system(size: 14, weight: .black, design: .rounded))
-                Spacer()
-                Text("\(entry.demandes.count) demandes près de toi")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.9))
-            }
+            header
             if entry.demandes.isEmpty {
                 Text("Aucune demande pour le moment.\nReviens vite, les voisins ont besoin de toi.")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.white.opacity(0.9))
                     .lineLimit(2)
+                    .widgetURL(URL(string: "askoo://feed"))
             } else {
                 ForEach(Array(entry.demandes.prefix(3))) { d in
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(.white.opacity(0.2))
-                            .frame(width: 5, height: 5)
-                        Text(d.titre)
-                            .font(.system(size: 11, weight: .semibold))
-                            .lineLimit(1)
+                    Link(destination: URL(string: "askoo://demande/\(d.id)")!) {
+                        row(d)
                     }
                 }
             }
@@ -138,6 +149,57 @@ struct AskooWidgetView: View {
         }
         .padding(14)
         .widgetURL(URL(string: "askoo://feed"))
+    }
+
+    var large: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            header
+            if entry.demandes.isEmpty {
+                Spacer()
+                Text("Aucune demande pour le moment.\nReviens vite, les voisins ont besoin de toi.")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .widgetURL(URL(string: "askoo://feed"))
+                Spacer()
+            } else {
+                ForEach(Array(entry.demandes.prefix(6))) { d in
+                    Link(destination: URL(string: "askoo://demande/\(d.id)")!) {
+                        row(d)
+                    }
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .widgetURL(URL(string: "askoo://feed"))
+    }
+
+    private var header: some View {
+        HStack {
+            Text("Askoo")
+                .font(.system(size: 14, weight: .black, design: .rounded))
+            Spacer()
+            Text("\(entry.demandes.count) demandes près de toi")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(.white.opacity(0.9))
+        }
+    }
+
+    private func row(_ d: DemandeEntry) -> some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(.white.opacity(0.2))
+                .frame(width: 5, height: 5)
+            Text(d.titre)
+                .font(.system(size: 11, weight: .semibold))
+                .lineLimit(1)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(.white.opacity(0.6))
+        }
+        .padding(.vertical, 1)
     }
 }
 
@@ -158,6 +220,6 @@ struct AskooFeedWidget: Widget {
         }
         .configurationDisplayName("Askoo")
         .description("Les demandes d'entraide près de chez toi.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

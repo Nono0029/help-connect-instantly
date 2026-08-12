@@ -14,10 +14,30 @@ struct MissionAttributes: ActivityAttributes {
     }
     var titre: String
     var missionId: String
+    var debut: Date
 
-    init(titre: String, missionId: String) {
+    init(titre: String, missionId: String, debut: Date = Date()) {
         self.titre = titre
         self.missionId = missionId
+        self.debut = debut
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case titre, missionId, debut
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        titre = try c.decode(String.self, forKey: .titre)
+        missionId = try c.decodeIfPresent(String.self, forKey: .missionId) ?? ""
+        debut = try c.decodeIfPresent(Date.self, forKey: .debut) ?? Date()
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(titre, forKey: .titre)
+        try c.encode(missionId, forKey: .missionId)
+        try c.encode(debut, forKey: .debut)
     }
 }
 

@@ -419,7 +419,15 @@
     "free": "Free",
     "connecting": "Connecting...",
     "wantToHelp": "I want to help",
-    "yourRequest": "This is your request"
+    "yourRequest": "This is your request",
+    "share": "Share",
+    "shareTitle": "Share request",
+    "shareText": "Help me on Askoo! \"{titre}\" — {ville} — {prix}",
+    "shareNative": "Share…",
+    "qrHint": "Scan this QR code with the Askoo app",
+    "block": "Block",
+    "blockConfirm": "Block {name}? You won't see their requests anymore.",
+    "blocked": "User blocked"
   },
   "wallet": {
     "title": "Wallet & Payments",
@@ -723,5 +731,12 @@
     "copyError": "Could not copy the code",
     "friendsJoined": "Friends signed up",
     "friendsJoinedDesc": "They get the fee-free first request"
+  },
+  "push": {
+    "titles": {
+      "message": "New message",
+      "mission": "Mission",
+      "demande": "New request"
+    }
   }
 }

@@ -2,6 +2,7 @@
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useBoostSync } from "@/hooks/useBoostSync";
+import { registerPushToken } from "@/lib/push";
 
 interface AuthContextType {
   user: User | null;
@@ -122,6 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           profileUserIdRef.current = session.user.id;
           ensureProfile(session.user);
           updateProfile(session.user.id);
+          registerPushToken(session.user.id);
         }
       } catch (err) {
         console.error("Auth init error:", err);
