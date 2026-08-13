@@ -1,7 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { Stripe } from "@capacitor-community/stripe";
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "";
+const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_live_51TOgh7JwFZnHiYqfLqnwpNHfG0krpc8ZYbi95cp6UeIm7UzdqwBMu6DhMz2uIK60pRrJW6hF6DR14JNlEQWpcT8500yHgrPu3c";
 const APPLE_MERCHANT_ID = "merchant.com.askoo.app";
 const COUNTRY_CODE = "FR";
 const CURRENCY = "EUR";
