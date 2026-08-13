@@ -564,16 +564,36 @@ const ChatPage = () => {
       let data: any = null;
       for (let attempt = 0; ; attempt++) {
         try {
-          const { data: result, error } = await supabase.functions.invoke("create-payment", {
-            body: {
-              mission_id: mission.id,
-              conversation_id: conversation?.id || parseInt(id!),
-            },
-          });
-          if (error) {
-            throw new Error(error.message || error.error || "Erreur serveur");
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          const token = session?.access_token;
+
+          const res = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL || "https://tdymtslljytdihkblvwu.supabase.co"}/functions/v1/create-payment`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+                apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+              },
+              body: JSON.stringify({
+                mission_id: mission.id,
+                conversation_id: conversation?.id || parseInt(id!),
+              }),
+            }
+          );
+
+          const resBody = await res.json().catch(() => null);
+
+          if (!res.ok) {
+            const errMsg = resBody?.error || resBody?.message || `Erreur serveur (${res.status})`;
+            console.error("create-payment error:", res.status, resBody);
+            throw new Error(errMsg);
           }
-          data = result;
+
+          data = resBody;
           break;
         } catch (err: any) {
           const msg = err?.message || "";
