@@ -112,7 +112,7 @@ serve(async (req) => {
       },
     });
 
-    await supabase.from("payments").insert({
+    const { error: insertErr } = await supabase.from("payments").insert({
       mission_id,
       payeur_id: user.id,
       helper_id: mission.helper_id,
@@ -121,14 +121,20 @@ serve(async (req) => {
       frais: totalFees,
       statut: "en_attente",
     });
+    if (insertErr) {
+      console.error("payments insert error:", insertErr);
+      return new Response(JSON.stringify({ error: `db insert failed: ${insertErr.message}` }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
 
     return new Response(JSON.stringify({
       clientSecret: paymentIntent.client_secret,
       amount: totalCents / 100,
     }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
 
-  } catch (err) {
-    console.error("create-payment error:", err);
-    return new Response(JSON.stringify({ error: "internal server error" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  } catch (err: any) {
+    console.error("create-payment error:", err?.message || err);
+    console.error("create-payment stack:", err?.stack);
+    const detail = err?.message || String(err);
+    return new Response(JSON.stringify({ error: `internal server error: ${detail}` }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
   }
 });
