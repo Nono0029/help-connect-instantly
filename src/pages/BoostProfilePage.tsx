@@ -253,6 +253,25 @@ const BoostProfilePage = () => {
 
         {/* CTA */}
         <div className="space-y-3">
+          {!isBoostActive && Capacitor.isNativePlatform() && (
+            <div className="space-y-2 text-center text-xs text-muted-foreground pt-2 border-t border-border">
+              <p>{t('boost.subscriptionTerms')}</p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => window.open("https://askoo.fr/conditions", "_system")}
+                  className="underline"
+                >
+                  {t('boost.terms')}
+                </button>
+                <button
+                  onClick={() => window.open("https://askoo.fr/privacy", "_system")}
+                  className="underline"
+                >
+                  {t('boost.privacy')}
+                </button>
+              </div>
+            </div>
+          )}
           <Button
             onClick={handleSubscribe}
             disabled={activating || loading || isBoostActive}
@@ -280,22 +299,6 @@ const BoostProfilePage = () => {
               {t('boost.restore')}
             </Button>
           )}
-        </div>
-
-        {/* Legal links */}
-        <div className="flex justify-center gap-4 pt-1">
-          <button
-            onClick={() => window.open("https://askoo.fr/conditions", "_system")}
-            className="text-xs text-muted-foreground underline underline-offset-2"
-          >
-            {t('boost.terms')}
-          </button>
-          <button
-            onClick={() => window.open("https://askoo.fr/privacy", "_system")}
-            className="text-xs text-muted-foreground underline underline-offset-2"
-          >
-            {t('boost.privacy')}
-          </button>
         </div>
       </div>
     </div>

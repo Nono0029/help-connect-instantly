@@ -27,6 +27,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/context/LanguageContext";
+import { Capacitor } from "@capacitor/core";
 
 const defaultNotifPrefs = { messages: true, demandes: true, missions: true };
 
@@ -300,13 +301,18 @@ const Settings = () => {
           action: () => navigate("/aide"),
           toggle: false,
         },
-        {
-          icon: Star,
-          label: t('settings.rateApp'),
-          desc: t('settings.rateAppDesc'),
-          action: () => toast.info(t('settings.comingSoon')),
-          toggle: false,
-        },
+{
+            icon: Star,
+            label: t('settings.rateApp'),
+            desc: t('settings.rateAppDesc'),
+            action: () => {
+              const url = Capacitor.isNativePlatform()
+                ? "itms-apps://itunes.apple.com/app/id6471234567?action=write-review"
+                : "https://apps.apple.com/app/id6471234567";
+              window.open(url, "_system");
+            },
+            toggle: false,
+          },
         {
           icon: FileText,
           label: t('settings.privacy'),

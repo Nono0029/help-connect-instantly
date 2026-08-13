@@ -59,6 +59,8 @@
 	<true/>
 	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
 	<true/>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Askoo utilise votre identifiant publicitaire pour mesurer la performance de nos campagnes marketing et améliorer l'application. Aucune donnée personnelle n'est partagée.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

@@ -706,7 +706,7 @@
     "syncError": "Unable to sync your subscription",
     "restored": "Purchase restored",
     "restoreError": "No subscription to restore",
-    "webOnly": "The subscription is available on the mobile app",
+    "webOnly": "Subscriptions are only available on the mobile app.",
     "terms": "Terms of Use",
     "privacy": "Privacy Policy",
     "benefitsTitle": "Benefits",
@@ -716,7 +716,8 @@
     "benefit4": "Boost badge on your profile",
     "activating": "Activating...",
     "paymentCancelled": "Payment cancelled",
-    "paymentError": "Payment error"
+    "paymentError": "Payment error",
+    "subscriptionTerms": "By subscribing, you agree to our"
   },
   "invite": {
     "title": "Refer friends",

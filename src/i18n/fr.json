@@ -706,7 +706,7 @@
     "syncError": "Impossible de synchroniser ton abonnement",
     "restored": "Achat restauré",
     "restoreError": "Aucun abonnement à restaurer",
-    "webOnly": "L'abonnement est disponible sur l'application mobile",
+    "webOnly": "Les abonnements ne sont disponibles que sur l'application mobile.",
     "terms": "Conditions d'utilisation",
     "privacy": "Politique de confidentialité",
     "benefitsTitle": "Avantages",
@@ -716,7 +716,8 @@
     "benefit4": "Badge boost sur ton profil",
     "activating": "Activation...",
     "paymentCancelled": "Paiement annulé",
-    "paymentError": "Erreur lors du paiement"
+    "paymentError": "Erreur lors du paiement",
+    "subscriptionTerms": "En vous abonnant, vous acceptez nos"
   },
   "invite": {
     "title": "Parrainer des amis",
