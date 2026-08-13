@@ -561,53 +561,24 @@ const ChatPage = () => {
         return;
       }
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const token = session?.access_token;
-
-      const makePaymentRequest = async (): Promise<any> => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000);
-        try {
-          const res = await fetch(
-            "https://tdymtslljytdihkblvwu.supabase.co/functions/v1/create-payment",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                mission_id: mission.id,
-                conversation_id: conversation?.id || parseInt(id),
-              }),
-              signal: controller.signal,
-            }
-          );
-          if (!res.ok) {
-            const errBody = await res.json().catch(() => null);
-            throw new Error(errBody?.error || `Erreur serveur (${res.status})`);
-          }
-          return res.json();
-        } catch (err: any) {
-          if (err?.name === "AbortError") {
-            throw new Error("Le serveur de paiement ne répond pas. Réessaie.");
-          }
-          throw err;
-        } finally {
-          clearTimeout(timeout);
-        }
-      };
-
-      let data: any;
+      let data: any = null;
       for (let attempt = 0; ; attempt++) {
         try {
-          data = await makePaymentRequest();
+          const { data: result, error } = await supabase.functions.invoke("create-payment", {
+            body: {
+              mission_id: mission.id,
+              conversation_id: conversation?.id || parseInt(id!),
+            },
+          });
+          if (error) {
+            throw new Error(error.message || error.error || "Erreur serveur");
+          }
+          data = result;
           break;
         } catch (err: any) {
+          const msg = err?.message || "";
           const isNetwork =
-            /load failed|network|internet|offline|connexion|ECONN/i.test(err?.message || "");
+            /load failed|network|internet|offline|connexion|ECONN|failed to fetch/i.test(msg);
           if (!isNetwork || attempt >= 2) throw err;
           await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
         }
@@ -645,7 +616,7 @@ const ChatPage = () => {
     } catch (err: any) {
       console.error("Payment failed:", err);
       const msg = err?.message || "";
-      if (/load failed|network|internet|offline|connexion|ECONN/i.test(msg)) {
+      if (/load failed|network|internet|offline|connexion|ECONN|failed to fetch/i.test(msg)) {
         toast.error(`Impossible de contacter le serveur de paiement. Vérifie ta connexion et réessaie. (${msg})`);
       } else {
         toast.error(msg || t("chat.paymentErrorDesc"));
