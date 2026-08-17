@@ -54,7 +54,7 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Askoo enregistre les photos prises via l'appareil photo dans votre galerie pour les conserver après envoi.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Askoo utilise votre position pour vous permettre de la partager en cas d'urgence pendant une mission</string>
+	<string>Askoo utilise votre position pour vous permettre de la partager en cas d'urgence pendant une mission.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSSupportsLiveActivitiesFrequentUpdates</key>

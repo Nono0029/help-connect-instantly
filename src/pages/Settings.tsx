@@ -63,7 +63,7 @@ const Settings = () => {
         const info = await App.getInfo();
         setAppVersion(info.version);
       } catch {
-        setAppVersion("1.0.35");
+        setAppVersion("1.0.37");
       }
     })();
   }, []);
@@ -307,8 +307,8 @@ const Settings = () => {
             desc: t('settings.rateAppDesc'),
             action: () => {
               const url = Capacitor.isNativePlatform()
-                ? "itms-apps://itunes.apple.com/app/id6471234567?action=write-review"
-                : "https://apps.apple.com/app/id6471234567";
+                ? "itms-apps://itunes.apple.com/app/id6791352808?action=write-review"
+                : "https://apps.apple.com/app/id6791352808";
               window.open(url, "_system");
             },
             toggle: false,
