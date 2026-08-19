@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Sparkles, Mail, Lock, MapPin, Home, Gift, CheckCircle2, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -29,9 +30,15 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showVerifyEmail, setShowVerifyEmail] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleSubmit = async () => {
     setError("");
+
+    if (tab === "signup" && !acceptedTerms) {
+      setError(t('auth.acceptTermsError'));
+      return;
+    }
 
     if (tab === "login") {
       const result = authSchema.safeParse({ email, password });
@@ -233,6 +240,38 @@ const AuthPage = () => {
               </motion.p>
             )}
 
+            {tab === "signup" && (
+              <label className="flex items-start gap-3 cursor-pointer px-1">
+                <Checkbox
+                  checked={acceptedTerms}
+                  onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                  className="mt-0.5"
+                />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  {t('auth.acceptTerms')}{" "}
+                  <a
+                    href="https://askoo.fr/conditions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {t('auth.termsLink')}
+                  </a>
+                  {" "}{t('auth.and')}{" "}
+                  <a
+                    href="https://askoo.fr/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {t('auth.privacyLink')}
+                  </a>
+                </span>
+              </label>
+            )}
+
             <Button onClick={handleSubmit} disabled={loading} className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 mt-2">
               <Sparkles className="w-4 h-4 mr-2" />
               {loading
@@ -243,7 +282,14 @@ const AuthPage = () => {
         </AnimatePresence>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          {t('auth.footer')}
+          <a
+            href="https://askoo.fr/conditions"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            {t('auth.footer')}
+          </a>
         </p>
       </motion.div>
       </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2, BadgeCheck, Sprout, HandHeart, HeartHandshake, Building2, Crown, Trophy, Award, CalendarCheck, ShieldCheck, User, LucideIcon } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Medal, Calendar, MessageCircle, ShoppingBag, TrendingUp, Clock, Zap, CheckCircle2, BadgeCheck, Sprout, HandHeart, HeartHandshake, Building2, Crown, Trophy, Award, CalendarCheck, ShieldCheck, User, LucideIcon, ShieldOff, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { isUrgentActive } from "@/lib/urgentFee";
 import { computeBadge, badgeLabel } from "@/lib/trustBadges";
+import { toast } from "sonner";
 
 interface Profile {
   id: string;
@@ -68,6 +69,11 @@ const ProfilePage = () => {
   const [monthMissions, setMonthMissions] = useState(0);
   const [demandes, setDemandes] = useState<Demande[]>([]);
   const [contacting, setContacting] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDesc, setReportDesc] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
 
   const getRelativeTime = (dateStr: string) => {
     const now = new Date();
@@ -169,6 +175,47 @@ const ProfilePage = () => {
     withTimeout(load(), 15000, "profile").catch(() => setLoading(false));
     return () => { mounted = false; };
   }, [id]);
+
+  const handleBlock = async () => {
+    if (!user || !id || user.id === id) return;
+    if (!window.confirm(t('profile.confirmBlock'))) return;
+    setBlocking(true);
+    try {
+      const { error } = await supabase.from("user_blocks").insert({
+        user_id: user.id,
+        blocked_id: id,
+      });
+      if (error) throw error;
+      toast.success(t('profile.blocked'));
+      navigate("/");
+    } catch (err: any) {
+      toast.error(err?.message || "Erreur");
+    } finally {
+      setBlocking(false);
+    }
+  };
+
+  const handleReport = async () => {
+    if (!reportReason || !user || !id) return;
+    setReportLoading(true);
+    try {
+      await supabase.from("signals").insert({
+        reporter_id: user.id,
+        reported_id: id,
+        raison: reportReason,
+        description: reportDesc,
+        statut: "ouvert",
+      });
+      toast.success(t('profile.reportSent'));
+      setShowReport(false);
+      setReportReason("");
+      setReportDesc("");
+    } catch (err: any) {
+      toast.error(err?.message || "Erreur");
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -331,6 +378,26 @@ const ProfilePage = () => {
               <MessageCircle className="w-4 h-4 mr-2" />
               {contacting ? t('profile.connecting') : t('profile.contact')}
             </Button>
+          )}
+
+          {user && user.id !== id && (
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => setShowReport(true)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-secondary text-muted-foreground text-xs font-medium"
+              >
+                <Flag className="w-3.5 h-3.5" />
+                {t('profile.report')}
+              </button>
+              <button
+                onClick={handleBlock}
+                disabled={blocking}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-destructive/10 text-destructive text-xs font-medium"
+              >
+                <ShieldOff className="w-3.5 h-3.5" />
+                {blocking ? "..." : t('profile.block')}
+              </button>
+            </div>
           )}
 
           <div className="flex items-center justify-center gap-2 mt-4">
@@ -534,6 +601,48 @@ const ProfilePage = () => {
           </div>
         )}
       </div>
+
+      {/* REPORT MODAL */}
+      {showReport && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center" onClick={() => setShowReport(false)}>
+          <div className="bg-background w-full max-w-lg rounded-t-3xl p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-foreground">{t('profile.reportTitle')}</h3>
+            <select
+              value={reportReason}
+              onChange={e => setReportReason(e.target.value)}
+              className="w-full h-12 rounded-xl bg-secondary border-none px-4 text-sm text-foreground"
+            >
+              <option value="">{t('profile.reportSelectReason')}</option>
+              <option value="bad_behavior">{t('profile.reportBadBehavior')}</option>
+              <option value="scam">{t('profile.reportScam')}</option>
+              <option value="inappropriate">{t('profile.reportInappropriate')}</option>
+              <option value="other">{t('profile.reportOther')}</option>
+            </select>
+            <textarea
+              value={reportDesc}
+              onChange={e => setReportDesc(e.target.value)}
+              placeholder={t('profile.reportDescPlaceholder')}
+              rows={3}
+              className="w-full rounded-xl bg-secondary border-none px-4 py-3 text-sm text-foreground resize-none"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowReport(false)}
+                className="flex-1 h-11 rounded-xl bg-secondary text-foreground font-semibold text-sm"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleReport}
+                disabled={!reportReason || reportLoading}
+                className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50"
+              >
+                {reportLoading ? "..." : t('profile.reportSend')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
