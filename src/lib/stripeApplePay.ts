@@ -68,9 +68,10 @@ export async function payWithApplePay(
     Stripe.createApplePay({
       paymentIntentClientSecret: clientSecret,
       merchantIdentifier: APPLE_MERCHANT_ID,
+      merchantName: "Askoo",
       countryCode: COUNTRY_CODE,
       currency: CURRENCY,
-      paymentSummaryItems: [{ label: label || "Mission", amount }],
+      paymentSummaryItems: [{ label: label || "Mission Askoo", amount }],
     }),
     10000,
     "Erreur étape 3/4 : la demande de paiement Apple Pay ne se crée pas (10 s)."
