@@ -304,7 +304,7 @@ const AdminReportsPage = () => {
                     )}
                     <span className="truncate font-medium">{reporter?.pseudo || "Inconnu"}</span>
                   </div>
-                  <span className="text-muted-foreground">-></span>
+                  <span className="text-muted-foreground">→</span>
                   <div className="flex items-center gap-1.5 min-w-0">
                     {reported?.avatar_url ? (
                       <img src={reported.avatar_url} className="w-5 h-5 rounded-full object-cover" />
