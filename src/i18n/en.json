@@ -714,7 +714,7 @@
     "description": "Your profile and requests appear first in search results. Urgent requests are featured at the top of the home feed.",
     "subscribe": "Subscribe to Boost",
     "subscribeMonthly": "{price} / month",
-    "cancelAnytime": "Renewable subscription — cancel anytime from the App Store",
+    "cancelAnytime": "Monthly renewable subscription — cancel anytime from App Store settings",
     "restore": "Restore purchase",
     "manage": "Manage subscription",
     "active": "Boost active until {date}",

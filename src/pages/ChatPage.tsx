@@ -26,6 +26,7 @@ import {
   Share2,
   Gift,
   Heart,
+  ShieldOff,
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -613,7 +614,7 @@ const ChatPage = () => {
       const paid = await payWithApplePay(
         data.clientSecret,
         total,
-        mission.demandes?.titre || "Mission"
+        `Mission Askoo - ${mission.demandes?.titre || "Service"}`
       );
       if (!paid) {
         setPaymentLoading(false);
@@ -1202,6 +1203,21 @@ const ChatPage = () => {
             title={t('chat.signalBtn')}
           >
             <Flag className="w-4 h-4 text-muted-foreground" />
+          </button>
+        )}
+
+        {!!mission && user && (
+          <button
+            onClick={async () => {
+              const otherId = user.id === mission.helper_id ? mission.demandeur_id : mission.helper_id;
+              if (!window.confirm(t('profile.confirmBlock'))) return;
+              const { error } = await supabase.from("user_blocks").insert({ user_id: user.id, blocked_id: otherId });
+              if (!error) { toast.success(t('profile.blocked')); navigate("/"); }
+            }}
+            className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0"
+            title={t('profile.block')}
+          >
+            <ShieldOff className="w-4 h-4 text-muted-foreground" />
           </button>
         )}
 

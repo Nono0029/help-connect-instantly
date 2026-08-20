@@ -714,7 +714,7 @@
     "description": "Ton profil et tes demandes apparaissent en premier dans les résultats de recherche. Les demandes urgentes sont mises en avant en haut de l'accueil.",
     "subscribe": "S'abonner à Boost",
     "subscribeMonthly": "{price} / mois",
-    "cancelAnytime": "Abonnement renouvelable — annule quand tu veux depuis l'App Store",
+    "cancelAnytime": "Abonnement renouvelable mensuellement — annule quand tu veux depuis les Reglages de l'App Store",
     "restore": "Restaurer l'achat",
     "manage": "Gérer l'abonnement",
     "active": "Boost actif jusqu'au {date}",

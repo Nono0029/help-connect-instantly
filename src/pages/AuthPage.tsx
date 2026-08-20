@@ -249,25 +249,19 @@ const AuthPage = () => {
                 />
                 <span className="text-xs text-muted-foreground leading-relaxed">
                   {t('auth.acceptTerms')}{" "}
-                  <a
-                    href="https://askoo.fr/conditions"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline"
-                    onClick={(e) => e.stopPropagation()}
+                  <span
+                    className="text-primary underline cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); window.open("https://askoo.fr/conditions", "_system"); }}
                   >
                     {t('auth.termsLink')}
-                  </a>
+                  </span>
                   {" "}{t('auth.and')}{" "}
-                  <a
-                    href="https://askoo.fr/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline"
-                    onClick={(e) => e.stopPropagation()}
+                  <span
+                    className="text-primary underline cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); window.open("https://askoo.fr/privacy", "_system"); }}
                   >
                     {t('auth.privacyLink')}
-                  </a>
+                  </span>
                 </span>
               </label>
             )}
@@ -282,14 +276,12 @@ const AuthPage = () => {
         </AnimatePresence>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          <a
-            href="https://askoo.fr/conditions"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
+          <span
+            className="underline cursor-pointer"
+            onClick={() => window.open("https://askoo.fr/conditions", "_system")}
           >
             {t('auth.footer')}
-          </a>
+          </span>
         </p>
       </motion.div>
       </div>
