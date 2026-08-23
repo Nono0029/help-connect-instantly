@@ -112,7 +112,10 @@ const BoostProfilePage = () => {
       await initIAP();
       const transaction = await purchaseProduct(IAP_PRODUCTS.BOOST_MONTHLY);
 
-      if (!transaction) return;
+      if (!transaction) {
+        setActivating(false);
+        return;
+      }
 
       const { error: verifyError } = await supabase.functions.invoke("verify-apple-receipt", {
         body: { receipt: transaction.receipt },
@@ -120,6 +123,7 @@ const BoostProfilePage = () => {
 
       if (verifyError) {
         toast.error(t('boost.syncError'));
+        setActivating(false);
         return;
       }
 
@@ -128,6 +132,8 @@ const BoostProfilePage = () => {
     } catch (err: any) {
       if (err?.message?.includes("cancel")) {
         toast.info(t('boost.paymentCancelled'));
+      } else if (err?.message?.includes("timeout")) {
+        toast.error(t('boost.paymentError'));
       } else {
         toast.error(t('boost.paymentError'));
       }

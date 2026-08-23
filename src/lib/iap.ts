@@ -33,10 +33,17 @@ export async function initIAP(): Promise<void> {
   if (!Capacitor.isNativePlatform() || initialized) return;
   try {
     const NativePurchases = await getNativePurchases();
-    await NativePurchases.getProducts({
-      productIdentifiers: Object.values(IAP_PRODUCTS),
-      productType: PURCHASE_TYPE.SUBS,
-    });
+
+    const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> =>
+      Promise.race([promise, new Promise<T>((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
+
+    await withTimeout(
+      NativePurchases.getProducts({
+        productIdentifiers: Object.values(IAP_PRODUCTS),
+        productType: PURCHASE_TYPE.SUBS,
+      }),
+      15000
+    );
     initialized = true;
   } catch (err) {
     console.error("IAP init error:", err);
@@ -66,10 +73,17 @@ export async function purchaseProduct(productId: string): Promise<IAPTransaction
   if (!Capacitor.isNativePlatform()) return null;
   try {
     const NativePurchases = await getNativePurchases();
-    const transaction = await NativePurchases.purchaseProduct({
-      productIdentifier: productId,
-      productType: PURCHASE_TYPE.SUBS,
-    });
+
+    const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> =>
+      Promise.race([promise, new Promise<T>((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
+
+    const transaction = await withTimeout(
+      NativePurchases.purchaseProduct({
+        productIdentifier: productId,
+        productType: PURCHASE_TYPE.SUBS,
+      }),
+      60000
+    );
     return {
       transactionId: transaction.transactionId,
       productId: transaction.productIdentifier,
@@ -79,6 +93,7 @@ export async function purchaseProduct(productId: string): Promise<IAPTransaction
     };
   } catch (err: any) {
     if (err?.message?.includes("cancel")) return null;
+    if (err?.message === "timeout") throw new Error("Le paiement a pris trop de temps. Réessaie.");
     console.error("IAP purchase error:", err);
     throw err;
   }
