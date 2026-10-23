@@ -1,0 +1,154 @@
+name: ASC diagnostic IAP
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/asc-diag.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deps
+        run: pip install pyjwt cryptography requests
+
+      - name: Query App Store Connect API
+        env:
+          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          python3 <<'PYEOF'
+          import os, json, base64, time, sys
+          import jwt, requests
+
+          key_b64 = (os.environ.get("ASC_KEY_BASE64") or "").strip()
+          key_id = os.environ.get("ASC_KEY_ID", "")
+          issuer = os.environ.get("ASC_ISSUER_ID", "")
+          if not key_b64 or not key_id or not issuer:
+              print("ERREUR: secrets ASC_KEY_BASE64 / ASC_KEY_ID / ASC_ISSUER_ID manquants")
+              sys.exit(1)
+
+          try:
+              key_pem = base64.b64decode(key_b64).decode("utf-8", "replace")
+          except Exception:
+              key_pem = base64.urlsafe_b64decode(key_b64 + "==").decode("utf-8", "replace")
+          if "BEGIN PRIVATE KEY" not in key_pem:
+              body = "".join(l for l in key_pem.splitlines() if "PRIVATE KEY" not in l)
+              key_pem = "-----BEGIN PRIVATE KEY-----\n" + body.strip() + "\n-----END PRIVATE KEY-----\n"
+
+          now = int(time.time())
+          token = jwt.encode(
+              {"iss": issuer, "iat": now, "exp": now + 900, "aud": "appstoreconnect-v1"},
+              key_pem, algorithm="ES256")
+
+          H = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+          BASE = "https://api.appstoreconnect.apple.com/v1"
+
+          def get(url):
+              r = requests.get(url, headers=H, timeout=30)
+              if r.status_code != 200:
+                  print(f"GET {url} -> {r.status_code}: {r.text[:400]}")
+                  return None
+              return r.json()
+
+          TARGET_APP = "6791352808"
+
+          # 1. Apps with bundle com.askoo.app (detect duplicate app records)
+          d = get(f"{BASE}/apps?filter[bundleId]=com.askoo.app&limit=200&fields[apps]=name,bundleId,sku,primaryLocale")
+          apps_same_bundle = (d or {}).get("data", [])
+          print(f"\n=== Apps bundleId=com.askoo.app: {len(apps_same_bundle)} ===")
+          for a in apps_same_bundle:
+              at = a["attributes"]
+              print(f"  - id={a['id']} name={at.get('name')} sku={at.get('sku')} locale={at.get('primaryLocale')}")
+
+          # All apps in the account (to locate boost_monthly if missing from target app)
+          all_apps = []
+          url = f"{BASE}/apps?limit=200&fields[apps]=name,bundleId"
+          while url:
+              d = get(url)
+              if not d:
+                  break
+              all_apps.extend(d.get("data", []))
+              url = d.get("links", {}).get("next")
+          print(f"\n=== Total apps dans le compte: {len(all_apps)} ===")
+          for a in all_apps:
+              print(f"  - id={a['id']} name={a['attributes'].get('name')} bundle={a['attributes'].get('bundleId')}")
+
+          def scan_app(app_id, app_name):
+              d = get(f"{BASE}/apps/{app_id}/subscriptionGroups?limit=200&fields[subscriptionGroups]=productName,referenceName")
+              groups = (d or {}).get("data", [])
+              print(f"\n--- App '{app_name}' (id={app_id}): {len(groups)} groupe(s) d'abonnement ---")
+              found = []
+              for g in groups:
+                  gt = g["attributes"]
+                  sd = get(f"{BASE}/subscriptionGroups/{g['id']}/subscriptions?limit=200&fields[subscriptions]=name,productId,state,subscriptionPeriod,familySharable")
+                  subs = (sd or {}).get("data", [])
+                  line = ", ".join(f"{s['attributes']['productId']}({s['attributes']['state']})" for s in subs) or "(vide)"
+                  print(f"  Groupe '{gt.get('productName')}' ref={gt.get('referenceName')}: {line}")
+                  for s in subs:
+                      if s["attributes"]["productId"] == "boost_monthly":
+                          found.append((g, s))
+              return found
+
+          print("\n=== Recherche de boost_monthly dans l'app cible ===")
+          found_here = []
+          for a in apps_same_bundle:
+              found_here += scan_app(a["id"], a["attributes"].get("name"))
+
+          elsewhere = []
+          if not found_here:
+              print("\n>>> boost_monthly ABSENT de l'app cible -> scan de toutes les apps du compte")
+              target_ids = {a["id"] for a in apps_same_bundle}
+              for a in all_apps:
+                  if a["id"] in target_ids:
+                      continue
+                  f = scan_app(a["id"], a["attributes"].get("name"))
+                  elsewhere += [(a, g, s) for g, s in f]
+
+          targets = [(None, g, s) for g, s in found_here] + elsewhere
+          print(f"\n=== Details boost_monthly ({len(targets)} trouve(s)) ===")
+          for app, g, s in targets:
+              sid, st = s["id"], s["attributes"]
+              owner = app["attributes"].get("name") + f" (id={app['id']}, bundle={app['attributes'].get('bundleId')})" if app else f"APP CIBLE id={TARGET_APP}"
+              print(f"\n>> App: {owner}")
+              print(f"   Groupe: {g['attributes'].get('productName')}")
+              print(f"   productId={st.get('productId')} state={st.get('state')} period={st.get('subscriptionPeriod')} name={st.get('name')}")
+
+              pd = get(f"{BASE}/subscriptionPrices?filter[subscription]={sid}&limit[subscriptionPrices]=200&include=territory,subscriptionPricePoint")
+              if pd is None:
+                  continue
+              inc = {i["id"]: i for i in pd.get("included", [])}
+              prices = pd.get("data", [])
+              print(f"   Prix definis: {len(prices)} territoires")
+              fr_ok = False
+              for p in prices:
+                  rel = p.get("relationships", {})
+                  tid = (rel.get("territory", {}).get("data") or {}).get("id")
+                  tattr = inc.get(tid, {}).get("attributes", {})
+                  pp_id = (rel.get("subscriptionPricePoint", {}).get("data") or {}).get("id")
+                  ppattr = inc.get(pp_id, {}).get("attributes", {})
+                  is_fr = tattr.get("territoryId") == "FRA"
+                  if is_fr:
+                      fr_ok = True
+                  if is_fr or len(prices) <= 25:
+                      print(f"     - {tattr.get('name') or tid}: {ppattr.get('customerPrice')} {ppattr.get('currency') or ''} (start={p['attributes'].get('startDate')})")
+              if not prices:
+                  print("     !!! AUCUN PRIX -> produit indisponible partout")
+              elif not fr_ok:
+                  print("     !!! FRANCE ABSENTE des territoires de prix -> cause probable du [] sur l'appareil")
+              else:
+                  print(f"     France presente -> prix FR affiche ci-dessus")
+
+          print("\n=== DONE ===")
+          PYEOF
