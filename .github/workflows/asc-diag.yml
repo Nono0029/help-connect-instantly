@@ -88,7 +88,7 @@ jobs:
               print(f"  - id={a['id']} name={a['attributes'].get('name')} bundle={a['attributes'].get('bundleId')}")
 
           def scan_app(app_id, app_name):
-              d = get(f"{BASE}/apps/{app_id}/subscriptionGroups?limit=200&fields[subscriptionGroups]=productName,referenceName")
+              d = get(f"{BASE}/apps/{app_id}/subscriptionGroups?limit=200&fields[subscriptionGroups]=referenceName")
               groups = (d or {}).get("data", [])
               print(f"\n--- App '{app_name}' (id={app_id}): {len(groups)} groupe(s) d'abonnement ---")
               found = []
@@ -97,7 +97,7 @@ jobs:
                   sd = get(f"{BASE}/subscriptionGroups/{g['id']}/subscriptions?limit=200&fields[subscriptions]=name,productId,state,subscriptionPeriod,familySharable")
                   subs = (sd or {}).get("data", [])
                   line = ", ".join(f"{s['attributes']['productId']}({s['attributes']['state']})" for s in subs) or "(vide)"
-                  print(f"  Groupe '{gt.get('productName')}' ref={gt.get('referenceName')}: {line}")
+                  print(f"  Groupe ref={gt.get('referenceName')}: {line}")
                   for s in subs:
                       if s["attributes"]["productId"] == "boost_monthly":
                           found.append((g, s))
