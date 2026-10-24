@@ -127,7 +127,7 @@ jobs:
               print(f"   Groupe: {g['attributes'].get('productName')}")
               print(f"   productId={st.get('productId')} state={st.get('state')} period={st.get('subscriptionPeriod')} name={st.get('name')}")
 
-              pd = get(f"{BASE}/subscriptionPrices?filter[subscription]={sid}&limit[subscriptionPrices]=200&include=territory,subscriptionPricePoint")
+              pd = get(f"{BASE}/subscriptions/{sid}/prices?limit=200&include=territory,subscriptionPricePoint")
               if pd is None:
                   continue
               inc = {i["id"]: i for i in pd.get("included", [])}
