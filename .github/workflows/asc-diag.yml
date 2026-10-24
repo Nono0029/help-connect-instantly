@@ -50,7 +50,9 @@ jobs:
           now = int(time.time())
           token = jwt.encode(
               {"iss": issuer, "iat": now, "exp": now + 900, "aud": "appstoreconnect-v1"},
-              key_pem, algorithm="ES256")
+              key_pem,
+              algorithm="ES256",
+              headers={"kid": key_id, "typ": "JWT"})
 
           H = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
           BASE = "https://api.appstoreconnect.apple.com/v1"
