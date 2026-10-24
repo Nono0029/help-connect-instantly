@@ -140,7 +140,7 @@ jobs:
                   tattr = inc.get(tid, {}).get("attributes", {})
                   pp_id = (rel.get("subscriptionPricePoint", {}).get("data") or {}).get("id")
                   ppattr = inc.get(pp_id, {}).get("attributes", {})
-                  is_fr = tattr.get("territoryId") == "FRA"
+                  is_fr = tid == "FRA"
                   if is_fr:
                       fr_ok = True
                   if is_fr or len(prices) <= 25:
