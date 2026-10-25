@@ -12,3 +12,8 @@ node --version
 npm install
 npm run build
 npx cap sync ios
+
+# Autoriser la résolution des packages et actualiser Package.resolved
+defaults write com.apple.dt.Xcode IDEPackageOnlyUseVersionsFromResolvedFile -bool NO
+xcodebuild -resolvePackageDependencies -project ios/App/App.xcodeproj -scheme App
+
