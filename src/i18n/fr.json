@@ -106,8 +106,10 @@
     "paymentPending": "Paiement en attente",
     "paymentAvailable": "Paiement sécurisé disponible",
     "paymentSecure": "Paiement sécurisé",
-    "paymentPendingDesc": "Un paiement précédent n'a pas été complété. Tu peux réessayer.",
-    "paymentExpiredDesc": "La session de paiement a expiré. Tu peux réessayer.",
+"paymentPendingDesc": "Un paiement précédent n'a pas été complété. Tu peux réessayer.",
+      "paymentExpiredDesc": "La session de paiement a expiré. Tu peux réessayer.",
+      "paymentAvailableDesc": "Le demandeur peut payer maintenant. L'argent est sécurisé jusqu'à la confirmation des deux parties.",
+      "payWithApplePay": "Payer avec Apple Pay",
     "paymentDesc": "Paiement par carte ou Apple Pay. L'argent est bloqué jusqu'à la confirmation des deux parties. Le total inclut le prix et les frais.",
     "payTotal": "Total à payer",
     "paymentLocked": "Échangez quelques messages pour débloquer le paiement sécurisé.",
@@ -471,7 +473,9 @@
     "withdrawFunds": "Demander un retrait",
     "withdrawSuccess": "Demande de retrait de {amount} € enregistrée.",
     "withdrawError": "Erreur lors du retrait",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "howItWorksTitle": "Comment ça marche ?",
+    "howItWorksDesc": "L'argent de tes missions validées arrive ici. Renseigne ton IBAN ci-dessous, puis demande un retrait. Le virement sera envoyé sous quelques jours."
   },
   "paymentSetup": {
     "title": "Paiements",
@@ -559,7 +563,7 @@
     "cguTitle": "Conditions Générales d'Utilisation",
     "cguContent": "En utilisant Askoo, tu acceptes de respecter les présentes conditions. La plateforme sert d'intermédiaire de mise en relation entre les demandeurs et les prestataires de services. Chaque utilisateur est responsable de ses annonces et de ses prestations. Les litiges entre membres doivent être résolus à l'amiable dans un premier temps. L'équipe d'Askoo se réserve le droit de suspendre tout compte en cas de non-respect des règles.",
     "cookiesTitle": "Gestion des cookies",
-    "cookiesContent": "Nous utilisons des cookies essentiels au fonctionnement de la plateforme (authentification, session utilisateur). Des cookies analytiques (anonymisés) nous aident à améliorer l'expérience. Tu peux configurer tes préférences de cookies à tout moment via les paramètres de ton navigateur. Aucun cookie publicitaire n'est utilisé sur Askoo.",
+    "cookiesContent": "Nous utilisons des cookies essentiels au fonctionnement de la plateforme (authentification, session utilisateur). Aucun cookie publicitaire ou de suivi n'est utilisé sur Askoo. Tu peux configurer tes préférences de cookies à tout moment via les paramètres de ton navigateur.",
     "legalTitle": "Mentions légales",
     "legalContent": "Askoo est une plateforme de mise en relation entre particuliers pour des services de proximité. Éditée par la société Askoo SAS, 82 Grande Rue, 92380 Garches. SIRET : 123 456 789 00012. Directeur de la publication : L'équipe Askoo. Hébergement : Supabase Inc., 111 Sutter Street, San Francisco, CA 94104.",
     "lastUpdate": "Dernière mise à jour : Mai 2026",

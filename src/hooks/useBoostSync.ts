@@ -29,9 +29,9 @@ export function useBoostSync(userId?: string | null): { boostSyncVersion: number
       try {
         const purchases = await getActivePurchases();
         const active = purchases.find((p) => p.productId === IAP_PRODUCTS.BOOST_MONTHLY);
-        if (!active?.receipt) return;
+        // Always call server — even without receipt, to handle expiry clearing
         const { error } = await supabase.functions.invoke("verify-apple-receipt", {
-          body: { receipt: active.receipt },
+          body: { receipt: active?.receipt || null },
         });
         if (error) return;
         setBoostSyncVersion((v) => v + 1);

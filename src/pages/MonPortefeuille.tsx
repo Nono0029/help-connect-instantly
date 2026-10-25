@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Wallet, ArrowUpRight, ArrowDownLeft, Loader2, AlertTriangle, Landmark, ShieldCheck, Lock, Smartphone } from "lucide-react";
+import { ArrowLeft, Wallet, ArrowUpRight, ArrowDownLeft, Loader2, AlertTriangle, Landmark, ShieldCheck, Lock, Smartphone, Info } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -162,6 +162,15 @@ const MonPortefeuille = () => {
               <AlertTriangle className="w-3 h-3" /> {t('wallet.bankAskedOnWithdraw')}
             </p>
           )}
+          <div className="mt-4 p-3 bg-muted/50 rounded-xl text-sm space-y-2">
+            <div className="flex items-start gap-2">
+              <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-foreground">{t('wallet.howItWorksTitle')}</p>
+                <p className="text-muted-foreground text-xs">{t('wallet.howItWorksDesc')}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

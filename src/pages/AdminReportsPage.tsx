@@ -296,7 +296,7 @@ const AdminReportsPage = () => {
                 <div className="flex items-center gap-3 text-sm">
                   <div className="flex items-center gap-1.5 min-w-0">
                     {reporter?.avatar_url ? (
-                      <img src={reporter.avatar_url} className="w-5 h-5 rounded-full object-cover" />
+                      <img src={reporter.avatar_url} alt="Avatar du signaleur" className="w-5 h-5 rounded-full object-cover" />
                     ) : (
                       <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
                         {reporter?.pseudo?.[0]?.toUpperCase() || "?"}
@@ -307,7 +307,7 @@ const AdminReportsPage = () => {
                   <span className="text-muted-foreground">→</span>
                   <div className="flex items-center gap-1.5 min-w-0">
                     {reported?.avatar_url ? (
-                      <img src={reported.avatar_url} className="w-5 h-5 rounded-full object-cover" />
+                      <img src={reported.avatar_url} alt="Avatar signalé" className="w-5 h-5 rounded-full object-cover" />
                     ) : (
                       <div className="w-5 h-5 rounded-full bg-destructive/10 flex items-center justify-center text-[10px] font-bold text-destructive">
                         {reported?.pseudo?.[0]?.toUpperCase() || "?"}
@@ -328,7 +328,7 @@ const AdminReportsPage = () => {
                 {s.photos && s.photos.length > 0 && (
                   <div className="flex gap-2 overflow-x-auto">
                     {s.photos.map((p, i) => (
-                      <img key={i} src={p} className="w-20 h-20 rounded-xl object-cover shrink-0" />
+                      <img key={i} src={p} alt="Photo du signalement" className="w-20 h-20 rounded-xl object-cover shrink-0" />
                     ))}
                   </div>
                 )}

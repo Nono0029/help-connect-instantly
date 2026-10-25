@@ -50,6 +50,11 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync ios
 
+      - name: Resolve SwiftPM package dependencies
+        run: |
+          defaults write com.apple.dt.Xcode IDEPackageOnlyUseVersionsFromResolvedFile -bool NO
+          xcodebuild -resolvePackageDependencies -project ios/App/App.xcodeproj -scheme App
+
       - name: Prepare signing certificates + ASC key
         run: |
           KEYCHAIN="$RUNNER_TEMP/build.keychain"

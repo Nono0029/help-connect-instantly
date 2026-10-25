@@ -10,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { getTotalEuros, getFeesEuros, isBoostActive } from "@/lib/urgentFee";
 import { getPriceSuggestion } from "@/lib/priceSuggestions";
+import { demandeSchema } from "@/lib/validations";
 import CityPicker from "@/components/CityPicker";
 import { useCameraUpload } from "@/hooks/useCameraUpload";
 import { Capacitor } from "@capacitor/core";
@@ -82,12 +83,23 @@ const CreateRequestPage = () => {
   }, [user?.id]);
 
   const handleSubmit = async () => {
-    if (!titre || !selectedType || !user) {
-      toast.error(t('createRequest.fillFields'));
+    const result = demandeSchema.safeParse({
+      titre,
+      description,
+      selectedType,
+      villeForm: ville,
+      prix: gratuit ? undefined : prix,
+      gratuit,
+      urgent,
+      duree: undefined,
+    });
+    if (!result.success) {
+      const msg = result.error.issues[0]?.message || t('createRequest.fillFields');
+      toast.error(msg);
       return;
     }
-    if (!ville) {
-      toast.error(t('createRequest.cityRequired'));
+    if (!user) {
+      toast.error(t('createRequest.fillFields'));
       return;
     }
     setLoading(true);

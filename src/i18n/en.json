@@ -106,8 +106,10 @@
     "paymentPending": "Payment pending",
     "paymentAvailable": "Secure payment available",
     "paymentSecure": "Secure payment",
-    "paymentPendingDesc": "A previous payment was not completed. You can try again.",
-    "paymentExpiredDesc": "The payment session has expired. You can try again.",
+"paymentPendingDesc": "A previous payment was not completed. You can try again.",
+      "paymentExpiredDesc": "The payment session has expired. You can try again.",
+      "paymentAvailableDesc": "The requester can pay now. Money is held securely until both parties confirm.",
+      "payWithApplePay": "Pay with Apple Pay",
     "paymentDesc": "Pay by card or Apple Pay. The money is held until both parties confirm. The total includes the price and fees.",
     "payTotal": "Total to pay",
     "paymentLocked": "Exchange a few messages to unlock the secure payment.",
@@ -471,7 +473,9 @@
     "withdrawFunds": "Request a withdrawal",
     "withdrawSuccess": "Withdrawal request of €{amount} recorded.",
     "withdrawError": "Withdrawal error",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "howItWorksTitle": "How it works?",
+    "howItWorksDesc": "Money from your completed missions arrives here. Add your IBAN below, then request a withdrawal. The transfer will be sent within a few days."
   },
   "paymentSetup": {
     "title": "Payments",
@@ -559,7 +563,7 @@
     "cguTitle": "Terms of Service",
     "cguContent": "By using Askoo, you agree to comply with these terms. The platform acts as a matching intermediary between requesters and service providers. Each user is responsible for their listings and services. Disputes between members should first be resolved amicably. The Askoo team reserves the right to suspend any account that fails to comply with the rules.",
     "cookiesTitle": "Cookie management",
-    "cookiesContent": "We use cookies essential to the platform's operation (authentication, user session). Anonymous analytics cookies help us improve the experience. You can configure your cookie preferences at any time through your browser settings. No advertising cookies are used on Askoo.",
+    "cookiesContent": "We use cookies essential to the platform's operation (authentication, user session). No advertising or tracking cookies are used on Askoo. You can configure your cookie preferences at any time through your browser settings.",
     "legalTitle": "Legal notice",
     "legalContent": "Askoo is a matching platform between individuals for local services. Published by Askoo SAS, 82 Grande Rue, 92380 Garches. SIRET: 123 456 789 00012. Publication director: The Askoo team. Hosting: Supabase Inc., 111 Sutter Street, San Francisco, CA 94104.",
     "lastUpdate": "Last updated: May 2026",

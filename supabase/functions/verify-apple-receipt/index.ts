@@ -37,8 +37,20 @@ serve(async (req) => {
     }
 
     const body = await req.json().catch(() => null);
+    
+    // No receipt: client is checking if boost should be expired/cleared
     if (!body?.receipt) {
-      return new Response(JSON.stringify({ error: "missing receipt" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("boost_until")
+        .eq("id", user.id)
+        .maybeSingle();
+      const active = profile?.boost_until && new Date(profile.boost_until) > new Date();
+      if (!active && profile?.boost_until) {
+        // Boost expired — clear it
+        await supabase.from("profiles").update({ boost_until: null }).eq("id", user.id);
+      }
+      return new Response(JSON.stringify({ success: true, type: "boost", active: !!active, until: active ? profile.boost_until : null }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
     const { receipt } = body;
@@ -49,10 +61,13 @@ serve(async (req) => {
     }
 
     const boostTx = findBoostTransaction(verifyResult.latestReceiptInfo || []);
-    const expiresDate = boostTx ? parseDate(boostTx.expires_date) : null;
+    const expiresMs = boostTx ? getExpiresMs(boostTx) : 0;
+    const expiresDate = expiresMs > 0 ? new Date(expiresMs) : null;
 
-    if (!boostTx || !expiresDate || expiresDate.getTime() <= Date.now()) {
-      return new Response(JSON.stringify({ success: true, type: "boost", active: false }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+    if (!boostTx || !expiresDate || expiresMs <= Date.now()) {
+      // Check if it was cancelled/refunded
+      const cancelled = boostTx && (boostTx.cancellation_date || boostTx.revocation_date);
+      return new Response(JSON.stringify({ success: true, type: "boost", active: false, cancelled: !!cancelled }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
     const originalTransactionId = boostTx.original_transaction_id;
@@ -106,7 +121,7 @@ function findBoostTransaction(latestReceiptInfo: any[]): any | null {
   let bestDate = 0;
   for (const tx of latestReceiptInfo) {
     if (tx.product_id !== BOOST_PRODUCT_ID) continue;
-    const d = parseDate(tx.expires_date)?.getTime() || 0;
+    const d = getExpiresMs(tx);
     if (d > bestDate) {
       bestDate = d;
       best = tx;
@@ -115,10 +130,35 @@ function findBoostTransaction(latestReceiptInfo: any[]): any | null {
   return best;
 }
 
-function parseDate(value?: string | number): Date | null {
-  if (!value) return null;
-  const d = new Date(typeof value === "number" ? value * 1000 : value);
-  return Number.isNaN(d.getTime()) ? null : d;
+function getExpiresMs(tx: any): number {
+  // Apple returns expires_date_ms as a string of milliseconds
+  if (tx.expires_date_ms) {
+    const ms = Number(tx.expires_date_ms);
+    if (!Number.isNaN(ms) && ms > 0) return ms;
+  }
+  // Fallback: expires_date format "2026-11-21 10:00:00 Etc/GMT"
+  if (tx.expires_date) {
+    const parsed = parseAppleDate(String(tx.expires_date));
+    if (parsed) return parsed.getTime();
+  }
+  return 0;
+}
+
+function parseAppleDate(value: string): Date | null {
+  // Format: "2026-11-21 10:00:00 Etc/GMT"
+  const appleMatch = value.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})/);
+  if (appleMatch) {
+    const d = new Date(`${appleMatch[1]}T${appleMatch[2]}Z`);
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  // Fallback: ISO string or epoch
+  const d = new Date(value);
+  if (!Number.isNaN(d.getTime())) return d;
+  const num = Number(value);
+  if (!Number.isNaN(num) && num > 0) {
+    return new Date(num > 1e12 ? num : num * 1000);
+  }
+  return null;
 }
 
 async function verifyAppleReceipt(receiptData: string): Promise<{ success: boolean; latestReceiptInfo?: any[]; error?: string }> {

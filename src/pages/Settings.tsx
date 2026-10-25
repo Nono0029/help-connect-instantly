@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft,
   Moon,
@@ -17,6 +17,7 @@ import {
   Gift,
   FileText,
   Trash2,
+  Landmark,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -55,6 +56,7 @@ const Settings = () => {
   const [deleting, setDeleting] = useState(false);
 
   const [appVersion, setAppVersion] = useState("");
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -66,6 +68,12 @@ const Settings = () => {
         setAppVersion("1.0.37");
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    };
   }, []);
 
   const email = user?.email || "";
@@ -177,7 +185,8 @@ const Settings = () => {
 
     toast.success(t('settings.saveSuccess'));
     setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    savedTimeoutRef.current = setTimeout(() => setSaved(false), 2500);
   };
 
   // LOGOUT
@@ -222,6 +231,13 @@ const Settings = () => {
           icon: Wallet,
           label: t('settings.wallet'),
           desc: t('settings.walletDesc'),
+          action: () => navigate("/portefeuille"),
+          toggle: false,
+        },
+        {
+          icon: Landmark,
+          label: t('paymentSetup.bankTitle'),
+          desc: t('paymentSetup.bankDesc'),
           action: () => navigate("/portefeuille"),
           toggle: false,
         },

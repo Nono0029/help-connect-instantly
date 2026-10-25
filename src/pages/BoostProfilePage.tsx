@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Rocket, Check, Sparkles, Loader2, RotateCcw, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/LanguageContext";
 import { Capacitor } from "@capacitor/core";
+import { App as CapacitorApp } from "@capacitor/app";
 import {
   initIAP,
   getIAPProducts,
@@ -15,6 +16,8 @@ import {
   restorePurchases,
   getActivePurchases,
   manageSubscriptions,
+  probeStore,
+  getDefaultProducts,
   IAP_PRODUCTS,
   type IAPProduct,
 } from "@/lib/iap";
@@ -28,6 +31,26 @@ const BoostProfilePage = () => {
   const [activating, setActivating] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [products, setProducts] = useState<IAPProduct[]>([]);
+  const [debugLine, setDebugLine] = useState<string | null>(null);
+  const [probe, setProbe] = useState<string | null>(null);
+  const [probeOk, setProbeOk] = useState<boolean | null>(null);
+  const [probeElapsed, setProbeElapsed] = useState(0);
+  const [buildInfo, setBuildInfo] = useState<string>("");
+  const [elapsed, setElapsed] = useState(0);
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startElapsed = () => {
+    stopElapsed();
+    setElapsed(0);
+    elapsedTimerRef.current = setInterval(() => setElapsed((s) => s + 1), 1000);
+  };
+  const stopElapsed = () => {
+    if (elapsedTimerRef.current) {
+      clearInterval(elapsedTimerRef.current);
+      elapsedTimerRef.current = null;
+    }
+  };
+  useEffect(() => () => stopElapsed(), []);
 
   const product = products.find((p) => p.id === IAP_PRODUCTS.BOOST_MONTHLY) || null;
 
@@ -39,6 +62,7 @@ const BoostProfilePage = () => {
       .eq("id", user.id)
       .maybeSingle();
     if (data?.boost_until) setBoostUntil(data.boost_until);
+    else setBoostUntil(null);
     if (!silent) setLoading(false);
     return data?.boost_until ?? null;
   };
@@ -48,9 +72,8 @@ const BoostProfilePage = () => {
     try {
       const purchases = await getActivePurchases();
       const active = purchases.find((p) => p.productId === IAP_PRODUCTS.BOOST_MONTHLY);
-      if (!active?.receipt) return;
       const { error } = await supabase.functions.invoke("verify-apple-receipt", {
-        body: { receipt: active.receipt },
+        body: { receipt: active?.receipt || null },
       });
       if (error) throw error;
       await refreshBoost(true);
@@ -73,10 +96,35 @@ const BoostProfilePage = () => {
 
   useEffect(() => {
     (async () => {
+      if (!Capacitor.isNativePlatform()) {
+        setProducts(getDefaultProducts());
+        return;
+      }
       try {
-        const ps = await getIAPProducts();
-        setProducts(ps);
+        const info = await CapacitorApp.getInfo();
+        setBuildInfo(`v${info.version} (${info.build})`);
       } catch {}
+      setProbe("Test automatique de l'App Store en cours...");
+      setProbeOk(null);
+      setProbeElapsed(0);
+      const probeTimer = setInterval(() => setProbeElapsed((s) => s + 1), 1000);
+      try {
+        const res = await probeStore((step) => setProbe(step));
+        setProbe(res.message);
+        setProbeOk(res.ok);
+        // Fetch full product data only if the store responded
+        if (res.ok) {
+          try {
+            const ps = await getIAPProducts();
+            setProducts(ps);
+          } catch {}
+        }
+      } catch (e: any) {
+        setProbe(`Erreur probe : ${e?.message || e || "inconnue"}`);
+        setProbeOk(false);
+      } finally {
+        clearInterval(probeTimer);
+      }
     })();
   }, []);
 
@@ -103,41 +151,64 @@ const BoostProfilePage = () => {
 
   const handleSubscribe = async () => {
     if (!user) return;
+    setDebugLine(null);
     if (!Capacitor.isNativePlatform()) {
+      setDebugLine("Mode web détecté — l'achat nécessite l'app native (iOS).");
       toast.info(t('boost.webOnly'));
       return;
     }
     setActivating(true);
+    startElapsed();
+    // Safety: force-reset if promise hangs (covers init 45s*2 + check 30s + purchase 120s)
+    const safetyTimer = setTimeout(() => setActivating(false), 300000);
     try {
+      setDebugLine("Étape 1/4 : initialisation de l'App Store...");
       await initIAP();
+      setDebugLine("Étape 2/4 : ouverture du paiement Apple...");
       const transaction = await purchaseProduct(IAP_PRODUCTS.BOOST_MONTHLY);
 
       if (!transaction) {
-        setActivating(false);
+        setDebugLine("Achat annulé ou interrompu par le système.");
         return;
       }
 
-      const { error: verifyError } = await supabase.functions.invoke("verify-apple-receipt", {
+      setDebugLine("Étape 3/4 : reçu reçu, vérification côté serveur...");
+      const { data: verifyRes, error: verifyError } = await supabase.functions.invoke("verify-apple-receipt", {
         body: { receipt: transaction.receipt },
       });
 
       if (verifyError) {
+        setDebugLine(`Étape 4/4 : erreur serveur — ${verifyError.message || "inconnue"}`);
         toast.error(t('boost.syncError'));
-        setActivating(false);
+        return;
+      }
+
+      if (verifyRes?.active !== true) {
+        setDebugLine(`Étape 4/4 : serveur a refusé l'activation (active=${String(verifyRes?.active)})`);
+        toast.error("Le boost n'a pas pu être activé. Réessaie ou restaure tes achats.");
         return;
       }
 
       await refreshBoost(true);
+      setDebugLine(null);
       toast.success(t('boost.activated'));
     } catch (err: any) {
-      if (err?.message?.includes("cancel")) {
+      const msg = err?.message || "";
+      setDebugLine(`Erreur : ${msg || "inconnue"}`);
+      if (msg.includes("cancel") || msg.includes("user cancelled")) {
         toast.info(t('boost.paymentCancelled'));
-      } else if (err?.message?.includes("timeout")) {
-        toast.error(t('boost.paymentError'));
+      } else if (msg.includes("timeout")) {
+        toast.error("Délai dépassé. Réessaie.");
+      } else if (msg.includes("disponible") || msg.includes("introuvable") || msg.includes("non configuré") || msg.includes("pas encore actif")) {
+        toast.error("L'abonnement n'est pas encore disponible. Réessaie plus tard.");
+      } else if (msg.includes("reçu")) {
+        toast.error("Erreur de réception. Réessaie ou restaure tes achats.");
       } else {
-        toast.error(t('boost.paymentError'));
+        toast.error("Erreur lors de l'achat. Réessaie.");
       }
     } finally {
+      clearTimeout(safetyTimer);
+      stopElapsed();
       setActivating(false);
     }
   };
@@ -145,22 +216,34 @@ const BoostProfilePage = () => {
   const handleRestore = async () => {
     if (!user || !Capacitor.isNativePlatform()) return;
     setRestoring(true);
+    startElapsed();
+    setDebugLine("Restauration des achats en cours...");
     try {
       const purchases = await restorePurchases();
       const active = purchases.find((p) => p.productId === IAP_PRODUCTS.BOOST_MONTHLY);
       if (active?.receipt) {
-        const { error } = await supabase.functions.invoke("verify-apple-receipt", {
+        setDebugLine("Achat trouvé, vérification côté serveur...");
+        const { data: verifyRes, error } = await supabase.functions.invoke("verify-apple-receipt", {
           body: { receipt: active.receipt },
         });
         if (error) throw error;
+        if (verifyRes?.active !== true) {
+          setDebugLine("Achat trouvé mais expiré/annulé.");
+          toast.info(t('boost.restoreError'));
+          return;
+        }
         await refreshBoost(true);
+        setDebugLine(null);
         toast.success(t('boost.restored'));
       } else {
+        setDebugLine("Aucun abonnement trouvé sur ce compte Apple.");
         toast.info(t('boost.restoreError'));
       }
-    } catch {
+    } catch (e: any) {
+      setDebugLine(`Erreur restauration : ${e?.message || "inconnue"}`);
       toast.error(t('boost.syncError'));
     } finally {
+      stopElapsed();
       setRestoring(false);
     }
   };
@@ -232,6 +315,23 @@ const BoostProfilePage = () => {
             {t('boost.subscribeMonthly', { price: displayPrice })}
           </p>
           <p className="text-xs text-muted-foreground">{t('boost.cancelAnytime')}</p>
+          {buildInfo && (
+            <p className="text-[10px] font-mono text-muted-foreground/60">Build {buildInfo}</p>
+          )}
+          {probe && (
+            <p
+              className={`text-xs font-mono break-words px-2 py-2 rounded-lg border ${
+                probeOk === null
+                  ? "text-sky-600 dark:text-sky-400 bg-sky-500/10 border-sky-500/20"
+                  : probeOk
+                  ? "text-green-600 dark:text-green-400 bg-green-500/10 border-green-500/20"
+                  : "text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20"
+              }`}
+            >
+              {probe}
+              {probeOk === null && probeElapsed > 0 && ` (${probeElapsed}s)`}
+            </p>
+          )}
         </div>
 
         {/* Status */}
@@ -304,6 +404,12 @@ const BoostProfilePage = () => {
               )}
               {t('boost.restore')}
             </Button>
+          )}
+          {debugLine && (
+            <p className="text-xs text-center text-amber-600 dark:text-amber-400 font-mono break-words px-2 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              {debugLine}
+              {elapsed > 0 && ` (${elapsed}s)`}
+            </p>
           )}
         </div>
       </div>

@@ -20,7 +20,6 @@ import {
   Euro,
   AlertTriangle,
   Flag,
-  Wallet,
   Siren,
   Phone,
   Share2,
@@ -82,6 +81,38 @@ interface Profile {
   last_seen?: string;
 }
 
+interface Payment {
+  id: number;
+  mission_id: number;
+  statut: string;
+  montant: number;
+  frais: number;
+  stripe_session_id: string;
+  stripe_payment_intent?: string;
+  released_at?: string;
+  refunded_at?: string;
+}
+
+const isImgMsg = (content: string) => content.startsWith("📷:");
+const isLocMsg = (content: string) => content.startsWith("📍");
+const locLabel = (content: string) => {
+  const match = content.match(/^📍\s*(.*?)(?::|\n)/);
+  return match ? match[1].trim() : "Localisation";
+};
+const locAddress = (content: string) => {
+  const lines = content.replace(/^📍\s*[^:\n]*:\s*/, "").replace(/^📍\s*/, "").split("\n").filter(Boolean);
+  return lines.join(", ");
+};
+const openLocation = (content: string) => {
+  const urlMatch = content.match(/https:\/\/maps\.google\.com\/\?q=[\d.,-]+/);
+  if (urlMatch) {
+    window.open(urlMatch[0], "_system");
+    return;
+  }
+  const addr = locAddress(content);
+  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, "_system");
+};
+
 const ChatPage = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -104,17 +135,6 @@ const ChatPage = () => {
   const [bravoMine, setBravoMine] = useState(false);
   const [bravoEnabled, setBravoEnabled] = useState(false);
   const [bravoLoading, setBravoLoading] = useState(false);
-  interface Payment {
-    id: number;
-    mission_id: number;
-    statut: string;
-    montant: number;
-    frais: number;
-    stripe_session_id: string;
-    stripe_payment_intent?: string;
-    released_at?: string;
-    refunded_at?: string;
-  }
   const [payment, setPayment] = useState<Payment | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [isBoosted, setIsBoosted] = useState(false);
@@ -180,26 +200,6 @@ const ChatPage = () => {
   const otherUserIdRef = useRef<string | null>(null);
   const conversationRef = useRef<Conversation | null>(null);
   const missionRef = useRef<Mission | null>(null);
-
-  const isImgMsg = (content: string) => content.startsWith("📷:");
-  const isLocMsg = (content: string) => content.startsWith("📍");
-  const locLabel = (content: string) => {
-    const match = content.match(/^📍\s*(.*?)(?::|\n)/);
-    return match ? match[1].trim() : "Localisation";
-  };
-  const locAddress = (content: string) => {
-    const lines = content.replace(/^📍\s*[^:\n]*:\s*/, "").replace(/^📍\s*/, "").split("\n").filter(Boolean);
-    return lines.join(", ");
-  };
-  const openLocation = (content: string) => {
-    const urlMatch = content.match(/https:\/\/maps\.google\.com\/\?q=[\d.,-]+/);
-    if (urlMatch) {
-      window.open(urlMatch[0], "_system");
-      return;
-    }
-    const addr = locAddress(content);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, "_system");
-  };
 
   const allChatPhotos = useMemo(() => messages
     .filter(m => isImgMsg(m.content))
@@ -1185,6 +1185,13 @@ const ChatPage = () => {
   const isActive = conversation?.statut !== "fermée";
   const paymentDone = !missionHasStripePayment || payment?.statut === "payé" || payment?.statut === "termine";
   const canConfirmMission = user?.id === mission?.helper_id || paymentDone;
+  
+  const paymentLabel = payment?.statut === "en_attente" 
+    ? t('chat.paymentPending') 
+    : t('chat.paymentAvailable');
+  const paymentSubLabel = payment?.statut === "en_attente"
+    ? t('chat.paymentPendingDesc')
+    : t('chat.paymentAvailableDesc');
 
   return (
     <div className="chat-viewport flex flex-col overflow-hidden relative bg-background text-foreground transition-colors duration-300">
@@ -1277,7 +1284,7 @@ const ChatPage = () => {
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-foreground flex items-center gap-1.5 truncate">
               <Lock className="w-3.5 h-3.5 text-accent shrink-0" />
-              {payment?.statut === "en_attente" ? t('chat.paymentPending') : t('chat.paymentAvailable')}
+              {paymentLabel}
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
               {getTotalEuros(missionPrice, isUrgentActive(mission?.demandes?.urgent, mission?.demandes?.created_at), isBoosted, isReferralExempt).toFixed(2)} €
@@ -1298,7 +1305,7 @@ const ChatPage = () => {
             ) : (
               <CreditCard className="w-3.5 h-3.5" />
             )}
-            Payer avec Apple Pay
+            {t('chat.payWithApplePay')}
           </button>
         </div>
       )}

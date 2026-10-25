@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { withTimeout } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { profileSchema } from "@/lib/validations";
 import { useTranslation } from "@/context/LanguageContext";
 import { Capacitor } from "@capacitor/core";
 
@@ -193,8 +194,9 @@ const EditProfile = () => {
         return;
       }
 
-      if (!pseudo.trim()) {
-        toast.error("Le pseudo est obligatoire.");
+      const result = profileSchema.safeParse({ pseudo, bio, ville, adresse });
+      if (!result.success) {
+        toast.error(result.error.issues[0]?.message || "Champ invalide.");
         return;
       }
 
